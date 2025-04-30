@@ -1,0 +1,671 @@
+local I = require('openmw.interfaces')
+local ui = require('openmw.ui')
+local util = require('openmw.util')
+local async = require('openmw.async')
+local playerObj = require('openmw.self')
+
+local commonData = require("scripts.proximityTool.common")
+
+local uniqueId = require("scripts.proximityTool.uniqueId")
+local tableLib = require("scripts.proximityTool.utils.table")
+
+local log = require("scripts.proximityTool.log")
+
+local icons = require("scripts.proximityTool.icons")
+
+local activeObjects = require("scripts.proximityTool.activeObjects")
+local activeMarkers = require("scripts.proximityTool.activeMarkers")
+
+local safeContainers = require("scripts.proximityTool.ui.safeContainer")
+
+local tooltipFuncs = require("scripts.proximityTool.ui.mainMenuTooltip")
+
+
+local this = {}
+
+local defaultColorData = commonData.defaultColorData
+local defaultColor = commonData.defaultColor
+local elementRelPos = util.vector2(0.5, 0.5)
+
+local eventNames = {
+    "keyPress",
+    "keyRelease",
+    "mouseClick",
+    "mouseDoubleClick",
+    "mousePress",
+    "mouseRelease",
+    "textInput",
+    "focusGain"
+}
+
+this.element = nil
+---@type objectTrackingBD.elementSafeContainer
+this.tooltip = nil
+
+local mainMenuSafeContainer = safeContainers.new("mainMenu")
+local markerParentElement = nil
+
+
+local function getMarkerParentElement(element)
+    if markerParentElement and not element then
+        return markerParentElement
+    elseif element then
+        return element.layout.content[1].content[1].content[2]
+    else
+        markerParentElement = this.element.layout.content[1].content[1].content[2]
+        return markerParentElement
+    end
+end
+
+---@param activeMarker objectTrackingBD.activeMarker
+function this.registerMarker(activeMarker)
+    if not activeMarker or not this.element then return end
+
+    local elementId = activeMarker.markerId or uniqueId.get()
+
+    activeMarker.markerId = elementId
+
+    ---@type objectTrackingBD.activeMarkerData
+    local topRecord = activeMarker.topMarker
+    local nameColor = topRecord.record.nameColor and util.color.rgb(
+            topRecord.record.nameColor[1] or 1,
+            topRecord.record.nameColor[2] or 1,
+            topRecord.record.nameColor[3] or 1)
+
+    local markerRecId = activeMarker.id
+
+    local unitedEvents = {
+        mouseMove = async:callback(function(coord, layout)
+            tooltipFuncs.tooltipMoveOrCreate(coord, layout)
+
+            if not layout.userData or not layout.userData.data then return end
+            local activeM = layout.userData.data
+            activeM:triggerEvent("mouseMove", coord)
+        end),
+
+        focusLoss = async:callback(function(e, layout)
+            tooltipFuncs.tooltipDestroy(layout)
+
+            if not layout.userData or not layout.userData.data then return end
+            local activeM = layout.userData.data
+            activeM:triggerEvent("focusLoss", e)
+        end),
+    }
+
+    for _, eventName in pairs(eventNames) do
+        unitedEvents[eventName] = async:callback(function(e, layout)
+            if not layout.userData or not layout.userData.data then return end
+            local activeM = layout.userData.data
+            activeM:triggerEvent(eventName, e)
+        end)
+    end
+
+
+    local eventsForRecord = {
+        mouseMove = async:callback(function(coord, layout)
+            tooltipFuncs.tooltipMoveOrCreate(coord, layout, true)
+
+            if not layout.userData or not layout.userData.record then return end
+            ---@type objectTrackingBD.markerRecord
+            local record = layout.userData.record
+            if record.events and record.events["mouseMove"] then record.events["mouseMove"]() end
+        end),
+
+        focusLoss = async:callback(function(e, layout)
+            tooltipFuncs.tooltipDestroy(layout)
+
+            if not layout.userData or not layout.userData.record then return end
+            ---@type objectTrackingBD.markerRecord
+            local record = layout.userData.record
+            if record.events and record.events["focusLoss"] then record.events["focusLoss"]() end
+        end),
+    }
+
+    for _, eventName in pairs(eventNames) do
+        eventsForRecord[eventName] = async:callback(function(e, layout)
+            if not layout.userData or not layout.userData.record then return end
+            ---@type objectTrackingBD.markerRecord
+            local record = layout.userData.record
+            if record.events and record.events[eventName] then record.events[eventName]() end
+        end)
+    end
+
+
+    local content = {
+        {
+            type = ui.TYPE.Flex,
+            props = {
+                horizontal = true,
+                arrange = ui.ALIGNMENT.End,
+                alpha = 1,
+            },
+            content = ui.content {
+                {
+                    template = I.MWUI.templates.textNormal,
+                    type = ui.TYPE.Text,
+                    props = {
+                        text = "",
+                        textSize = 24,
+                        multiline = false,
+                        wordWrap = false,
+                        textAlignH = ui.ALIGNMENT.End,
+                        textAlignV = ui.ALIGNMENT.Start,
+                    },
+                    events = unitedEvents,
+                    userData = {
+                        data = activeMarker,
+                    },
+                },
+                {
+                    type = ui.TYPE.Image,
+                    props = {
+                        resource = icons.arrowIcons[1],
+                        size = util.vector2(24, 24),
+                        color = defaultColor,
+                    },
+                    events = unitedEvents,
+                    userData = {
+                        data = activeMarker,
+                    },
+                },
+                {
+                    template = I.MWUI.templates.interval,
+                    userData = {
+                        data = activeMarker,
+                    },
+                    events = unitedEvents,
+                },
+                {
+                    type = ui.TYPE.Flex,
+                    props = {
+                        horizontal = true,
+                    },
+                    userData = {
+                        data = activeMarker,
+                    },
+                    content = ui.content {}
+                },
+                {
+                    template = I.MWUI.templates.interval,
+                    userData = {
+                        data = activeMarker,
+                    },
+                    events = unitedEvents,
+                },
+                {
+                    template = I.MWUI.templates.textNormal,
+                    type = ui.TYPE.Text,
+                    userData = {
+                        data = activeMarker,
+                    },
+                    props = {
+                        text = topRecord.name,
+                        textSize = 24,
+                        multiline = false,
+                        wordWrap = false,
+                        textAlignH = ui.ALIGNMENT.End,
+                    },
+                    events = unitedEvents,
+                },
+            }
+        },
+        {
+            type = ui.TYPE.Flex,
+            props = {
+                horizontal = false,
+                arrange = ui.ALIGNMENT.End,
+                alpha = 1,
+            },
+            content = ui.content{},
+        }
+    }
+
+    ---@type objectTrackingBD.activeMarkerData[]
+    local sortedRecords = tableLib.values(activeMarker.markers, function (a, b)
+        return (a.record.priority or 0) > (b.record.priority or 0)
+    end)
+
+    for _, rDt in ipairs(sortedRecords) do
+        local rec = rDt.record
+        if rec.note then
+            rDt.noteId = uniqueId.get()
+
+            local noteColor = rec.noteColor and
+                util.color.rgb(rec.noteColor[1] or 1, rec.noteColor[2] or 1, rec.noteColor[3] or 1) or defaultColor
+
+            local noteContent = ui.content {}
+
+            if rec.icon then
+                local texture = ui.texture{path = rec.icon}
+                local iconColor = rec.iconColor and util.color.rgb(rec.iconColor[1] or 1, rec.iconColor[2] or 1, rec.iconColor[3] or 1) or nil
+                local name = rec.icon..tostring(iconColor)
+
+                local iconContent = {
+                    type = ui.TYPE.Image,
+                    props = {
+                        resource = texture,
+                        size = util.vector2(24, 24),
+                        color = iconColor,
+                    },
+                    name = name,
+                    events = eventsForRecord,
+                    userData = {
+                        recordId = rDt.recordId,
+                        record = rDt.record,
+                        data = activeMarker,
+                    },
+                }
+
+                noteContent:add(iconContent)
+                noteContent:add{
+                    template = I.MWUI.templates.interval,
+                    events = eventsForRecord,
+                }
+
+                if #content[1].content[4] < 4 then
+                    local index = content[1].content[4].content:indexOf(name)
+                    if index then
+                        local elem = content[1].content[4].content[index]
+                        ---@type objectTrackingBD.markerRecord
+                        local record = elem.userData.record
+                        if record and (record.priority or 0) < (rec.priority or 0) then
+                            elem.userData.record = rec
+                            elem.userData.recordId = rDt.recordId
+                            elem.props.resource = texture
+                        end
+                    else
+                        content[1].content[4].content:add(iconContent)
+                    end
+                end
+            end
+
+            noteContent:add {
+                template = I.MWUI.templates.textNormal,
+                type = ui.TYPE.Text,
+                name = rDt.noteId,
+                props = {
+                    text = tostring(rec.note):sub(1, 50),
+                    color = noteColor,
+                    textSize = 24,
+                    multiline = false,
+                    wordWrap = false,
+                    visible = true,
+                    textAlignH = ui.ALIGNMENT.End,
+                },
+                events = eventsForRecord,
+                userData = {
+                    recordId = rDt.recordId,
+                    record = rDt.record,
+                    data = activeMarker,
+                },
+            }
+
+            content[2].content:add{
+                type = ui.TYPE.Flex,
+                props = {
+                    horizontal = true,
+                },
+                userData = {
+                    recordId = rDt.recordId,
+                    record = rDt.record
+                },
+                events = eventsForRecord,
+                content = noteContent,
+            }
+        end
+        if rec.icon then
+            
+        end
+    end
+
+    local uiData = {
+        type = ui.TYPE.Flex,
+        props = {
+            horizontal = false,
+            arrange = ui.ALIGNMENT.End,
+            alpha = 0,
+            visible = true,
+        },
+        userData = {
+            data = activeMarker,
+        },
+        name = elementId,
+        content = ui.content(content),
+    }
+
+    local parentContent = getMarkerParentElement().content
+    if not parentContent then return end
+
+    local parentIndex = parentContent:indexOf(elementId)
+    if parentIndex then
+        parentContent[parentIndex] = uiData
+    else
+        parentContent:add(uiData)
+    end
+end
+
+
+local function mainWindowBox(content, showBorder)
+    return {
+        template = showBorder and I.MWUI.templates.boxSolid or nil,
+        type = not showBorder and ui.TYPE.Flex or nil,
+        props = {
+            autoSize = true,
+        },
+        content = ui.content(content),
+    }
+end
+
+
+function this.create(params)
+    if not params then params = {} end
+    if this.element then
+        markerParentElement = nil
+        this.element:destroy()
+        mainMenuSafeContainer.element = nil
+    end
+
+    local header = {
+        template = I.MWUI.templates.textHeader,
+        type = ui.TYPE.Text,
+        props = {
+            text = "Tracking:  ",
+            textSize = 28,
+            multiline = false,
+            wordWrap = false,
+            textAlignH = ui.ALIGNMENT.End,
+            textShadow = true,
+            textShadowColor = util.color.rgb(0, 0, 0),
+        },
+        userData = {
+            lastMousePos = nil,
+        },
+        events = {
+            mousePress = async:callback(function(coord, layout)
+                layout.userData.doDrag = true
+                local screenSize = ui.screenSize()
+                layout.userData.lastMousePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
+            end),
+
+            mouseRelease = async:callback(function(_, layout)
+                layout.userData.lastMousePos = nil
+            end),
+
+            mouseMove = async:callback(function(coord, layout)
+                if not layout.userData.lastMousePos then return end
+
+                local screenSize = ui.screenSize()
+                local props = this.element.layout.props
+                local relativePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
+
+                props.relativePosition = props.relativePosition - (layout.userData.lastMousePos - relativePos)
+                elementRelPos = props.relativePosition
+                this.element:update()
+
+                layout.userData.lastMousePos = relativePos
+            end),
+        },
+    }
+
+    local screenSize = ui.screenSize()
+
+    local parentContent = {
+        {
+            type = ui.TYPE.Flex,
+            props = {
+                autoSize = false,
+                size = util.vector2(screenSize.x * 0.3, screenSize.y * 0.6),
+                horizontal = false,
+                arrange = ui.ALIGNMENT.End,
+            },
+            content = ui.content {
+                mainWindowBox({header}, params.showBorder),
+                {
+                    type = ui.TYPE.Flex,
+                    props = {
+                        autoSize = true,
+                        horizontal = false,
+                        arrange = ui.ALIGNMENT.End,
+                        anchor = util.vector2(1, 0),
+                    },
+                    content = ui.content {
+
+                    },
+                },
+            },
+        },
+    }
+
+
+    this.element = ui.create {
+        type = ui.TYPE.Flex,
+        layer = "Windows",
+        props = {
+            autoSize = true,
+            horizontal = false,
+            arrange = ui.ALIGNMENT.End,
+            relativePosition = elementRelPos,
+            anchor = util.vector2(1, 0),
+        },
+        content = ui.content {
+            mainWindowBox(parentContent, params.showBorder),
+        },
+    }
+
+    mainMenuSafeContainer.element = this.element
+
+    for _, activeMarker in pairs(activeMarkers.data) do
+        this.registerMarker(activeMarker)
+    end
+end
+
+---@class objectTrackingBD.mainMenu.update.params
+
+---@param params objectTrackingBD.mainMenu.update.params?
+function this.update(params)
+    if not params then params = {} end
+
+    local player = playerObj.object
+    local playerPos = player.position
+    local pitch, yaw  = player.rotation:getAnglesXZ()
+
+    local parentElement = getMarkerParentElement()
+
+    for i = #parentElement.content, 1, -1 do
+        local elem = parentElement.content[i]
+        if not elem or not elem.props or not elem.userData or not elem.userData.data then goto continue end
+
+        elem.userData.locked = false
+
+        ---@type objectTrackingBD.activeMarker
+        local trackingData = elem.userData.data
+
+        if not trackingData.isValid then
+            table.remove(parentElement.content, i)
+            goto continue
+        end
+
+        ---@type objectTrackingBD.activeMarkerData?
+        local topMarkerRecord = trackingData.topMarker
+        if not topMarkerRecord then goto continue end
+
+        local trackingPos
+
+        if topMarkerRecord.type == 1 and topMarkerRecord.objectId then
+            local trackerObjPositions = activeObjects.getObjectPositions(topMarkerRecord.objectId, player)
+            if not trackerObjPositions then
+                goto continue
+            end
+
+            table.sort(trackerObjPositions, function (a, b)
+                return (a.dif or math.huge) < (b.dif or math.huge)
+            end)
+
+            if #trackerObjPositions > 0 then
+                local posData = trackerObjPositions[1]
+                trackingPos = util.vector3(posData.x, posData.y, posData.z)
+            end
+
+        elseif topMarkerRecord.type == 2 and topMarkerRecord.object then
+            local objectRef = topMarkerRecord.object
+            local pos = activeObjects.getObjectPosition(objectRef.recordId, objectRef.id)
+            if not pos then goto continue end
+
+            trackingPos = pos
+
+        elseif topMarkerRecord.type == 3 and topMarkerRecord.position then
+            local posData = topMarkerRecord.position
+            trackingPos = util.vector3(posData.x, posData.y, posData.z) ---@diagnostic disable-line: need-check-nil
+
+        else
+            table.remove(parentElement.content, i)
+            goto continue
+        end
+
+
+        if not trackingPos then goto continue end
+
+        local distance = (playerPos - trackingPos):length()
+        local distance2D = math.sqrt((playerPos.x - trackingPos.x)^2 + (playerPos.y - trackingPos.y)^2)
+        local heightDiff = playerPos.z - trackingPos.z
+
+        elem.userData.distance = distance
+        elem.userData.distance2D = distance2D
+        elem.userData.heightDiff = heightDiff
+
+        -- for ordering
+        local priorityByDistance = 0
+        if distance < 150 then
+            priorityByDistance = 200
+        elseif distance < 600 then
+            priorityByDistance = math.floor((500 - distance) / 50) * 10
+        elseif distance > 10000 then
+            priorityByDistance = -math.floor(distance / 10000) * 10
+        end
+
+        elem.userData.priority = trackingData.priority + priorityByDistance
+
+        local hide = distance > trackingData.proximity
+        elem.userData.disabled = hide
+
+        local arrowImageIndex
+        local iconImage
+
+        if  distance2D < 200 then
+            if heightDiff > 200 then
+                iconImage = icons.arrowIcons_P[3]
+            elseif heightDiff < -200 then
+                iconImage = icons.arrowIcons_P[2]
+            else
+                iconImage = icons.arrowIcons_P[1]
+            end
+        else
+            local imageArr
+            if heightDiff > 200 then
+                imageArr = icons.arrowIcons_B
+            elseif heightDiff < -200 then
+                imageArr = icons.arrowIcons_A
+            else
+                imageArr = icons.arrowIcons
+            end
+
+            local angle = util.normalizeAngle(yaw - math.atan2(playerPos.x - trackingPos.x, playerPos.y - trackingPos.y) + math.pi * 1/16) ---@diagnostic disable-line: deprecated
+            arrowImageIndex = 1 + util.round((math.pi + angle) / (2 * math.pi) * 7)
+            iconImage = imageArr[arrowImageIndex]
+        end
+
+        elem.content[1].content[1].props.text = string.format("%.0fm", distance / 64 * 0.9144)
+        elem.content[1].content[2].props.resource = iconImage
+
+        ::continue::
+    end
+
+    -- ordering markers by their priority
+    local orderData = {}
+    for i, element in ipairs(parentElement.content) do
+        local priority = element.userData.priority or 0
+        table.insert(orderData, {element = element, priority = priority})
+    end
+    table.sort(orderData, function (a, b)
+        return a.priority > b.priority
+    end)
+
+    for i = #parentElement.content, 1, -1 do
+        local element = parentElement.content[i]
+        if not element then goto continue end
+
+        local disabled = element.userData.disabled
+
+        if disabled then
+            if element.props.visible then
+                element.props.alpha = element.props.alpha - 0.03
+                if element.props.alpha <= 0 then
+                    element.userData.locked = true
+                    element.props.alpha = 0
+                    element.props.visible = false
+                    local el = element
+                    for j = i + 1, #parentElement.content do
+                        parentElement.content[j - 1] = parentElement.content[j]
+                        parentElement.content.__nameIndex[parentElement.content[j].name] = j - 1
+                    end
+                    parentElement.content[#parentElement.content] = el
+                    parentElement.content.__nameIndex[el.name] = #parentElement.content
+                end
+            end
+        else
+            local orderElemData = orderData[i]
+
+            if element.props.alpha <= 0 then
+                for j, el in ipairs(parentElement.content) do
+                    if el.props.alpha <= 0 then
+                        parentElement.content[i], parentElement.content[j] = el, element
+                        parentElement.content.__nameIndex[el.name], parentElement.content.__nameIndex[element.name] =
+                            parentElement.content.__nameIndex[element.name], parentElement.content.__nameIndex[el.name]
+                        goto nextAction
+                    end
+                end
+            end
+
+            if orderElemData then
+                local elem2 = orderElemData.element
+                local index = parentElement.content:indexOf(elem2)
+                if not index or index <= i or element.userData.priority == elem2.userData.priority or element.userData.disabled or elem2.userData.disabled then goto nextAction end
+
+                local alpha1 = element.props.alpha
+                if alpha1 > 0.5 then
+                    alpha1 = math.max(0, alpha1 - 0.05)
+                    element.props.alpha = alpha1
+                end
+
+                local alpha2 = elem2.props.alpha
+                if alpha2 > 0.5 then
+                    alpha2 = math.max(0, alpha2 - 0.05)
+                    elem2.props.alpha = alpha2
+                end
+
+                if alpha1 < 0.51 and alpha2 < 0.51 then
+                    parentElement.content.__nameIndex[element.name], parentElement.content.__nameIndex[elem2.name] =
+                        parentElement.content.__nameIndex[elem2.name], parentElement.content.__nameIndex[element.name]
+                    parentElement.content[index], parentElement.content[i] = element, elem2
+                end
+
+                goto continue
+            end
+
+            ::nextAction::
+
+            element.props.alpha = element.props.alpha + 0.03
+            element.props.visible = true
+            if element.props.alpha > 1 then
+                element.props.alpha = 1
+            end
+        end
+
+        ::continue::
+    end
+
+    this.element:update()
+end
+
+
+return this

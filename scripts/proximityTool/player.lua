@@ -1,0 +1,253 @@
+---@diagnostic disable: undefined-doc-name
+local I = require('openmw.interfaces')
+local ui = require('openmw.ui')
+local util = require('openmw.util')
+local time = require('openmw_aux.time')
+local player = require('openmw.self')
+local async = require('openmw.async')
+
+local common = require("scripts.proximityTool.common")
+
+local log = require("scripts.proximityTool.log")
+local uniqueId = require("scripts.proximityTool.uniqueId")
+local activeObjects = require("scripts.proximityTool.activeObjects")
+
+local getObject = require("scripts.proximityTool.utils.getObject")
+local tableLib = require("scripts.proximityTool.utils.table")
+
+local icons = require("scripts.proximityTool.icons")
+
+local mainMenu = require("scripts.proximityTool.ui.mainMenu")
+local activeMarkers = require("scripts.proximityTool.activeMarkers")
+local safeUIContainers = require("scripts.proximityTool.ui.safeContainer")
+
+local mapData = require("scripts.proximityTool.data.mapDataHandler")
+
+
+local eventNames = {
+    "keyPress",
+    "keyRelease",
+    "mouseMove",
+    "mouseClick",
+    "mouseDoubleClick",
+    "mousePress",
+    "mouseRelease",
+    "focusGain",
+    "focusLoss",
+    "textInput"
+}
+
+---@class objectTrackingBD.cellData
+---@field id string?
+---@field gridX integer?
+---@field gridY integer?
+---@field isExterior boolean
+
+---@class objectTrackingBD.activeMarkerData
+---@field type integer 1 - object id, 2 - game object, 3 - position
+---@field marker objectTrackingBD.markerData
+---@field id string?
+---@field recordId string?
+---@field record objectTrackingBD.markerRecord
+---@field objectId string?
+---@field object any?
+---@field name string?
+---@field proximity number?
+---@field position Vector3|{x: number, y: number, z: number}?
+---@field cell objectTrackingBD.cellData?
+---@field priority number?
+---@field noteId string?
+---@field playerExteriorFlag boolean?
+---@field events table<string, function>?
+---@field isValid boolean?
+
+---@class objectTrackingBD.markerData
+---@field recordId string
+---@field id string?
+---@field groupId string?
+---@field position Vector3|{x: number, y: number, z: number}?
+---@field cell objectTrackingBD.cellData?
+---@field objectId string?
+---@field object any?
+---@field temporary boolean? if true, this marker will not be saved to the save file
+---@field shortTerm boolean? if true, this marker will be deleted after the cell has changed
+---@field invalid boolean?
+
+---@class objectTrackingBD.markerRecord
+---@field id string?
+---@field name string?
+---@field description string|string[]?
+---@field note string?
+---@field nameColor number[]?
+---@field descriptionColor number[]|number[][]?
+---@field noteColor number[]?
+---@field icon string?
+---@field iconColor number[]?
+---@field proximity number?
+---@field priority number?
+---@field temporary boolean? if true, this record will not be saved to the save file
+---@field events table<string, function>?
+---@field invalid boolean?
+
+local this = {}
+
+
+mainMenu.create{showBorder = false}
+
+local function updateTime()
+    mainMenu.update()
+end
+
+time.runRepeatedly(updateTime, 0.04 * time.second, { type = time.SimulationTime })
+
+
+---@param params objectTrackingBD.markerRecord
+local function addRecord(params)
+    local record = tableLib.deepcopy(params)
+    record.id = uniqueId.get()
+    mapData.addRecord(record.id, params)
+    return record.id
+end
+
+
+---@param markerData objectTrackingBD.markerData
+local function registerMarker(markerData)
+    if markerData.invalid then return end
+    if markerData.cell and markerData.position then
+        if player.cell.isExterior ~= markerData.cell.isExterior or
+                (not player.cell.isExterior and markerData.cell.id ~= player.cell.id) then
+            return
+        end
+    elseif markerData.objectId and not activeObjects.isContainValidRecordId(markerData.objectId) then
+        return
+    elseif markerData.object and not activeObjects.isContainRefId(markerData.object.recordId, markerData.object.id) then
+        return
+    end
+
+    local marker = activeMarkers.register(markerData)
+    if not marker then return end
+
+    mainMenu.registerMarker(marker)
+end
+
+
+local function registerMarkersForCell()
+    local cellId = player.cell.isExterior and common.worldCellLabel or player.cell.id
+    for id, data in mapData.iterMarkerGroup(cellId) do
+        registerMarker(data)
+    end
+    activeMarkers.update()
+end
+
+
+---@param data objectTrackingBD.markerData
+---@return string? id
+---@return string? groupId
+local function addMarker(data)
+    if not data then return end
+    if not data.recordId or (not (data.position and data.cell) and not data.objectId and not data.object) then return end
+
+    ---@type objectTrackingBD.markerData
+    local markerData = tableLib.deepcopy(data)
+
+    local groupId = common.worldCellLabel
+    if markerData.cell then
+        local c = markerData.cell
+        if not c.isExterior then ---@diagnostic disable-line: need-check-nil
+            groupId = c.id ---@diagnostic disable-line: need-check-nil
+        end
+        markerData.cell = {gridX = c.gridX, gridY = c.gridY, id = c.id, isExterior = c.isExterior} ---@diagnostic disable-line: need-check-nil
+    end
+
+    if markerData.objectId then
+        groupId = markerData.objectId
+    elseif markerData.position then
+        local p = markerData.position
+        markerData.position = {x = p.x, y = p.y, z = p.z} ---@diagnostic disable-line: need-check-nil
+    elseif markerData.object then
+        groupId = markerData.object.id
+    end
+
+    markerData.id = uniqueId.get()
+    markerData.groupId = groupId
+
+    mapData.addMarker(markerData.id, markerData.groupId, markerData)
+
+    registerMarker(markerData)
+
+    return markerData.id, markerData.groupId
+end
+
+
+return {
+    interfaceName = "ObjectTrackingBD",
+    interface = {
+        version = 1,
+        addMarker = addMarker,
+        addRecord = addRecord,
+        registerEvent = function (eventId, recordId, data)
+            local record = mapData.getRecord(recordId)
+            if not record then return end
+            if not record.events then record.events = {} end
+
+            record.events[eventId] = data
+            return true
+        end,
+        removeRecord = function (recordId)
+            return mapData.removeRecord(recordId)
+        end,
+        removeMarker = function (id, groupId)
+            return mapData.removeMarker(id, groupId)
+        end,
+    },
+    eventHandlers = {
+        UiModeChanged = function(data)
+            print('UiModeChanged from', data.oldMode , 'to', data.newMode, '('..tostring(data.arg)..')')
+            if data.newMode == nil then
+                mainMenu.create{showBorder = false}
+            elseif data.newMode == "Interface" then
+                mainMenu.create{showBorder = true}
+                for i = 1, 200 do -- just works
+                    mainMenu.update()
+                end
+            end
+        end,
+        addActiveObject = function(object)
+            activeObjects.add(object)
+            local registered = false
+            for id, data in mapData.iterMarkerGroup(object.id) do
+                data.invalid = false
+                registerMarker(data)
+                registered = true
+            end
+            for id, data in mapData.iterMarkerGroup(object.recordId) do
+                registerMarker(data)
+                registered = true
+            end
+        end,
+        removeActiveObject = function(object)
+            activeObjects.remove(object)
+            activeMarkers.remove(object.recordId)
+        end,
+        addMarker = addMarker,
+    },
+    engineHandlers = {
+        onFrame = function(dt)
+            safeUIContainers.update()
+        end,
+        onSave = function()
+            uniqueId.save()
+            mapData.save()
+        end,
+        onTeleported = function ()
+            async:newUnsavableGameTimer(0.0001, function ()
+                registerMarkersForCell()
+            end)
+            print("teleported")
+        end,
+        onActive = function ()
+            registerMarkersForCell()
+            print("active")
+        end
+    },
+}

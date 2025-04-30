@@ -1,0 +1,3 @@
+GLOBAL: scripts/proximityTool/main.lua
+PLAYER: scripts/proximityTool/player.lua
+CUSTOM: scripts/proximityTool/objectLocal.lua
