@@ -39,7 +39,7 @@ local eventNames = {
 }
 
 this.element = nil
----@type objectTrackingBD.elementSafeContainer
+---@type proximityTool.elementSafeContainer
 this.tooltip = nil
 
 local mainMenuSafeContainer = safeContainers.new("mainMenu")
@@ -57,7 +57,7 @@ local function getMarkerParentElement(element)
     end
 end
 
----@param activeMarker objectTrackingBD.activeMarker
+---@param activeMarker proximityTool.activeMarker
 function this.registerMarker(activeMarker)
     if not activeMarker or not this.element then return end
 
@@ -65,7 +65,7 @@ function this.registerMarker(activeMarker)
 
     activeMarker.markerId = elementId
 
-    ---@type objectTrackingBD.activeMarkerData
+    ---@type proximityTool.activeMarkerData
     local topRecord = activeMarker.topMarker
     local nameColor = topRecord.record.nameColor and util.color.rgb(
             topRecord.record.nameColor[1] or 1,
@@ -106,7 +106,7 @@ function this.registerMarker(activeMarker)
             tooltipFuncs.tooltipMoveOrCreate(coord, layout, true)
 
             if not layout.userData or not layout.userData.record then return end
-            ---@type objectTrackingBD.markerRecord
+            ---@type proximityTool.markerRecord
             local record = layout.userData.record
             if record.events and record.events["mouseMove"] then record.events["mouseMove"]() end
         end),
@@ -115,7 +115,7 @@ function this.registerMarker(activeMarker)
             tooltipFuncs.tooltipDestroy(layout)
 
             if not layout.userData or not layout.userData.record then return end
-            ---@type objectTrackingBD.markerRecord
+            ---@type proximityTool.markerRecord
             local record = layout.userData.record
             if record.events and record.events["focusLoss"] then record.events["focusLoss"]() end
         end),
@@ -124,7 +124,7 @@ function this.registerMarker(activeMarker)
     for _, eventName in pairs(eventNames) do
         eventsForRecord[eventName] = async:callback(function(e, layout)
             if not layout.userData or not layout.userData.record then return end
-            ---@type objectTrackingBD.markerRecord
+            ---@type proximityTool.markerRecord
             local record = layout.userData.record
             if record.events and record.events[eventName] then record.events[eventName]() end
         end)
@@ -220,7 +220,7 @@ function this.registerMarker(activeMarker)
         }
     }
 
-    ---@type objectTrackingBD.activeMarkerData[]
+    ---@type proximityTool.activeMarkerData[]
     local sortedRecords = tableLib.values(activeMarker.markers, function (a, b)
         return (a.record.priority or 0) > (b.record.priority or 0)
     end)
@@ -266,7 +266,7 @@ function this.registerMarker(activeMarker)
                     local index = content[1].content[4].content:indexOf(name)
                     if index then
                         local elem = content[1].content[4].content[index]
-                        ---@type objectTrackingBD.markerRecord
+                        ---@type proximityTool.markerRecord
                         local record = elem.userData.record
                         if record and (record.priority or 0) < (rec.priority or 0) then
                             elem.userData.record = rec
@@ -477,7 +477,7 @@ function this.update(params)
 
         elem.userData.locked = false
 
-        ---@type objectTrackingBD.activeMarker
+        ---@type proximityTool.activeMarker
         local trackingData = elem.userData.data
 
         if not trackingData.isValid then
@@ -485,7 +485,7 @@ function this.update(params)
             goto continue
         end
 
-        ---@type objectTrackingBD.activeMarkerData?
+        ---@type proximityTool.activeMarkerData?
         local topMarkerRecord = trackingData.topMarker
         if not topMarkerRecord then goto continue end
 

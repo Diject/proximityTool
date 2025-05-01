@@ -1,11 +1,11 @@
 ---@diagnostic disable: undefined-doc-name
 local this = {}
 
----@type table<string, objectTrackingBD.activeObject.objectHandler> by record id
+---@type table<string, proximityTool.activeObject.objectHandler> by record id
 this.data = {}
 
 
----@class objectTrackingBD.activeObject.objectHandler
+---@class proximityTool.activeObject.objectHandler
 local objectHandler = {}
 objectHandler.__index = objectHandler
 
@@ -64,7 +64,7 @@ end
 function this.add(object)
     local objHandler = this.data[object.recordId]
     if not objHandler then
-        ---@class objectTrackingBD.activeObject.objectHandler
+        ---@class proximityTool.activeObject.objectHandler
         objHandler = setmetatable({}, objectHandler)
         ---@type integer
         objHandler.count = 0

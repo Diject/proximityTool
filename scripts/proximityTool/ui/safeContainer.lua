@@ -5,9 +5,9 @@ local async = require('openmw.async')
 
 local this = {}
 
----@type table<string, objectTrackingBD.elementSafeContainer>
+---@type table<string, proximityTool.elementSafeContainer>
 this.containers = {}
----@type table<string, objectTrackingBD.elementSafeContainer>
+---@type table<string, proximityTool.elementSafeContainer>
 this.destroyedContainers = {}
 
 
@@ -19,7 +19,7 @@ this.commandType = {
 }
 
 
----@class objectTrackingBD.elementSafeContainer
+---@class proximityTool.elementSafeContainer
 local containerStruct = {}
 
 containerStruct.__index = containerStruct
@@ -96,7 +96,7 @@ end
 
 
 ---@param id string
----@return objectTrackingBD.elementSafeContainer
+---@return proximityTool.elementSafeContainer
 function this.new(id)
     local container = this.containers[id]
     if container then

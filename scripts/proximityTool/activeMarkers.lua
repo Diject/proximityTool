@@ -10,24 +10,24 @@ local activeObjects = require("scripts.proximityTool.activeObjects")
 
 local this = {}
 
----@class objectTrackingBD.activeMarker
+---@class proximityTool.activeMarker
 ---@field markerId string?
----@field markers table<string, objectTrackingBD.activeMarkerData> by marker id
----@field topMarker objectTrackingBD.activeMarkerData?
+---@field markers table<string, proximityTool.activeMarkerData> by marker id
+---@field topMarker proximityTool.activeMarkerData?
 ---@field id string
 ---@field isValid boolean
 
----@type table<string, objectTrackingBD.activeMarker> by record id
+---@type table<string, proximityTool.activeMarker> by record id
 this.data = {}
 
 
 
----@class objectTrackingBD.activeMarker
+---@class proximityTool.activeMarker
 local activeMarker = {}
 activeMarker.__index = activeMarker
 
 
----@return objectTrackingBD.activeMarkerData?
+---@return proximityTool.activeMarkerData?
 function activeMarker:getTopPriorityRecord()
     local topRecord
     for markerId, data in pairs(self.markers) do
@@ -119,8 +119,8 @@ end
 
 
 
----@param params objectTrackingBD.markerData
----@return objectTrackingBD.activeMarker?
+---@param params proximityTool.markerData
+---@return proximityTool.activeMarker?
 ---@return boolean? should create ui element for this marker data
 function this.register(params)
     if not params or (not (params.position and params.cell) and not params.objectId and not params.object) then return end
@@ -147,7 +147,7 @@ function this.register(params)
 
     if params.invalid then return end -- here to detect invalidated markers after the update
 
-    ---@type objectTrackingBD.activeMarkerData
+    ---@type proximityTool.activeMarkerData
     local activeMarkerData = marker and (marker.markers[markerId] or {}) or {} ---@diagnostic disable-line: missing-fields
 
     activeMarkerData.id = markerId
@@ -179,9 +179,9 @@ function this.register(params)
     local shouldCreateUIElement = false
 
     if not marker then
-        ---@class objectTrackingBD.activeMarker
+        ---@class proximityTool.activeMarker
         marker = setmetatable({}, activeMarker)
-        ---@type table<string, objectTrackingBD.activeMarkerData>
+        ---@type table<string, proximityTool.activeMarkerData>
         marker.markers = {[activeMarkerData.id] = activeMarkerData}
         ---@type string
         marker.id = activeMarkerId
@@ -195,7 +195,7 @@ function this.register(params)
         marker.markers[activeMarkerData.id] = activeMarkerData
     end
 
-    ---@type objectTrackingBD.activeMarkerData?
+    ---@type proximityTool.activeMarkerData?
     marker.topMarker = marker:getTopPriorityRecord()
     ---@type number
     marker.proximity = marker:calcProximityValue()
@@ -219,7 +219,7 @@ end
 
 
 ---@param recordId string
----@return objectTrackingBD.activeMarker?
+---@return proximityTool.activeMarker?
 function this.get(recordId)
     return this.data[recordId]
 end

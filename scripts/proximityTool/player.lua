@@ -23,57 +23,43 @@ local safeUIContainers = require("scripts.proximityTool.ui.safeContainer")
 
 local mapData = require("scripts.proximityTool.data.mapDataHandler")
 
-
-local eventNames = {
-    "keyPress",
-    "keyRelease",
-    "mouseMove",
-    "mouseClick",
-    "mouseDoubleClick",
-    "mousePress",
-    "mouseRelease",
-    "focusGain",
-    "focusLoss",
-    "textInput"
-}
-
----@class objectTrackingBD.cellData
+---@class proximityTool.cellData
 ---@field id string?
 ---@field gridX integer?
 ---@field gridY integer?
 ---@field isExterior boolean
 
----@class objectTrackingBD.activeMarkerData
+---@class proximityTool.activeMarkerData
 ---@field type integer 1 - object id, 2 - game object, 3 - position
----@field marker objectTrackingBD.markerData
+---@field marker proximityTool.markerData
 ---@field id string?
 ---@field recordId string?
----@field record objectTrackingBD.markerRecord
+---@field record proximityTool.markerRecord
 ---@field objectId string?
 ---@field object any?
 ---@field name string?
 ---@field proximity number?
 ---@field position Vector3|{x: number, y: number, z: number}?
----@field cell objectTrackingBD.cellData?
+---@field cell proximityTool.cellData?
 ---@field priority number?
 ---@field noteId string?
 ---@field playerExteriorFlag boolean?
 ---@field events table<string, function>?
 ---@field isValid boolean?
 
----@class objectTrackingBD.markerData
+---@class proximityTool.markerData
 ---@field recordId string
 ---@field id string?
 ---@field groupId string?
 ---@field position Vector3|{x: number, y: number, z: number}?
----@field cell objectTrackingBD.cellData?
+---@field cell proximityTool.cellData?
 ---@field objectId string?
 ---@field object any?
 ---@field temporary boolean? if true, this marker will not be saved to the save file
 ---@field shortTerm boolean? if true, this marker will be deleted after the cell has changed
 ---@field invalid boolean?
 
----@class objectTrackingBD.markerRecord
+---@class proximityTool.markerRecord
 ---@field id string?
 ---@field name string?
 ---@field description string|string[]?
@@ -101,7 +87,7 @@ end
 time.runRepeatedly(updateTime, 0.04 * time.second, { type = time.SimulationTime })
 
 
----@param params objectTrackingBD.markerRecord
+---@param params proximityTool.markerRecord
 local function addRecord(params)
     local record = tableLib.deepcopy(params)
     record.id = uniqueId.get()
@@ -110,7 +96,7 @@ local function addRecord(params)
 end
 
 
----@param markerData objectTrackingBD.markerData
+---@param markerData proximityTool.markerData
 local function registerMarker(markerData)
     if markerData.invalid then return end
     if markerData.cell and markerData.position then
@@ -140,14 +126,14 @@ local function registerMarkersForCell()
 end
 
 
----@param data objectTrackingBD.markerData
+---@param data proximityTool.markerData
 ---@return string? id
 ---@return string? groupId
 local function addMarker(data)
     if not data then return end
     if not data.recordId or (not (data.position and data.cell) and not data.objectId and not data.object) then return end
 
-    ---@type objectTrackingBD.markerData
+    ---@type proximityTool.markerData
     local markerData = tableLib.deepcopy(data)
 
     local groupId = common.worldCellLabel

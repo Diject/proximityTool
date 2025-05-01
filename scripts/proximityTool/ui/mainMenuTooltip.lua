@@ -138,17 +138,17 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
 
 
         if forRecord then
-            ---@type objectTrackingBD.markerRecord
+            ---@type proximityTool.markerRecord
             local record = layout.userData.record
             if not record or record.invalid then return end
 
             drawDescription(record)
         else
-            ---@type objectTrackingBD.activeMarker
+            ---@type proximityTool.activeMarker
             local markerHandler = layout.userData.data
             if not markerHandler then return end
 
-            ---@type objectTrackingBD.activeMarkerData[]
+            ---@type proximityTool.activeMarkerData[]
             local records = tableLib.values(markerHandler.markers, function (a, b)
                 return (a.record.priority or 0) > (b.record.priority or 0)
             end)

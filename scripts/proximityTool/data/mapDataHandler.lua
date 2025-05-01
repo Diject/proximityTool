@@ -6,10 +6,10 @@ local version = 0
 
 local this = {}
 
----@type table<string, table<string, objectTrackingBD.markerData>> by groupId or recordId, by id
+---@type table<string, table<string, proximityTool.markerData>> by groupId or recordId, by id
 this.markers = {}
 
----@type table<string, objectTrackingBD.markerRecord> by record id
+---@type table<string, proximityTool.markerRecord> by record id
 this.records = {}
 
 this.version = 0
@@ -24,7 +24,7 @@ end
 
 
 function this.save()
-    ---@type table<string, objectTrackingBD.markerRecord>
+    ---@type table<string, proximityTool.markerRecord>
     local records = tableLib.deepcopy(this.records)
     for id, data in pairs(records) do
         if data.invalid or data.temporary then
@@ -36,7 +36,7 @@ function this.save()
 
     local foundRecordIds = {}
 
-    ---@type table<string, table<string, objectTrackingBD.markerData>>
+    ---@type table<string, table<string, proximityTool.markerData>>
     local markers = tableLib.deepcopy(this.markers)
 
     for groupId, cellData in pairs(markers) do
@@ -63,7 +63,7 @@ end
 
 ---@param id string
 ---@param groupId string
----@return objectTrackingBD.markerData?
+---@return proximityTool.markerData?
 function this.getMarker(id, groupId)
     if not id or not groupId then return end
 
@@ -74,7 +74,7 @@ end
 
 
 ---@param id string
----@return objectTrackingBD.markerRecord?
+---@return proximityTool.markerRecord?
 function this.getRecord(id)
     if not id then return end
     return this.records[id]
@@ -82,7 +82,7 @@ end
 
 
 ---@param id string
----@param data objectTrackingBD.markerRecord
+---@param data proximityTool.markerRecord
 function this.addRecord(id, data)
     if not id then return end
     local record = this.records[id]
@@ -97,7 +97,7 @@ end
 
 ---@param id string
 ---@param groupId string
----@param data objectTrackingBD.markerData
+---@param data proximityTool.markerData
 function this.addMarker(id, groupId, data)
     if not id or not groupId then return end
 
@@ -135,7 +135,7 @@ end
 
 
 ---@param groupId string
----@return fun(): string, objectTrackingBD.markerData iterator marker id, marker data
+---@return fun(): string, proximityTool.markerData iterator marker id, marker data
 function this.iterMarkerGroup(groupId)
     local function iterator()
         for id, data in pairs(this.markers[groupId] or {}) do
