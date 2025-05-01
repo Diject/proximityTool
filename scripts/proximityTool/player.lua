@@ -194,7 +194,6 @@ return {
     },
     eventHandlers = {
         UiModeChanged = function(data)
-            print('UiModeChanged from', data.oldMode , 'to', data.newMode, '('..tostring(data.arg)..')')
             if data.newMode == nil then
                 mainMenu.create{showBorder = false}
             elseif data.newMode == "Interface" then
@@ -232,14 +231,12 @@ return {
             mapData.save()
         end,
         onTeleported = function ()
-            async:newUnsavableGameTimer(0.0001, function ()
+            async:newUnsavableSimulationTimer(0.0001, function () -- delay for the player cell data to be updated
                 registerMarkersForCell()
             end)
-            print("teleported")
         end,
         onActive = function ()
             registerMarkersForCell()
-            print("active")
         end
     },
 }
