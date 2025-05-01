@@ -40,7 +40,8 @@ end
 
 function activeMarker:triggerEvent(eventName, eventParams)
     for _, rec in pairs(self.markers) do
-        if rec.record.events and rec.record.events[eventName] then
+        if rec.record.events and rec.record.events[eventName] and
+                (not rec.record.options or rec.record.options.enableGroupEvent ~= false) then
             rec.record.events[eventName](eventParams, rec)
         end
     end

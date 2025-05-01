@@ -95,6 +95,7 @@ function this.registerMarker(activeMarker)
     for _, eventName in pairs(eventNames) do
         unitedEvents[eventName] = async:callback(function(e, layout)
             if not layout.userData or not layout.userData.data then return end
+            ---@type proximityTool.activeMarker
             local activeM = layout.userData.data
             activeM:triggerEvent(eventName, e)
         end)
@@ -256,13 +257,15 @@ function this.registerMarker(activeMarker)
                     },
                 }
 
-                noteContent:add(iconContent)
-                noteContent:add{
-                    template = I.MWUI.templates.interval,
-                    events = eventsForRecord,
-                }
+                if not rec.options or rec.options.showNoteIcon ~= false then
+                    noteContent:add(iconContent)
+                    noteContent:add{
+                        template = I.MWUI.templates.interval,
+                        events = eventsForRecord,
+                    }
+                end
 
-                if #content[1].content[4] < 4 then
+                if (not rec.options or rec.options.showGroupIcon ~= false) and #content[1].content[4] < 6 then
                     local index = content[1].content[4].content:indexOf(name)
                     if index then
                         local elem = content[1].content[4].content[index]
@@ -312,9 +315,6 @@ function this.registerMarker(activeMarker)
                 events = eventsForRecord,
                 content = noteContent,
             }
-        end
-        if rec.icon then
-            
         end
     end
 

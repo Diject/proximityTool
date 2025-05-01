@@ -59,6 +59,11 @@ local mapData = require("scripts.proximityTool.data.mapDataHandler")
 ---@field shortTerm boolean? if true, this marker will be deleted after the cell has changed
 ---@field invalid boolean?
 
+---@class proximityTool.markerRecord.options
+---@field showGroupIcon boolean? *true* by default
+---@field showNoteIcon boolean? *true* by default
+---@field enableGroupEvent boolean? *true* by default
+
 ---@class proximityTool.markerRecord
 ---@field id string?
 ---@field name string?
@@ -73,6 +78,7 @@ local mapData = require("scripts.proximityTool.data.mapDataHandler")
 ---@field priority number?
 ---@field temporary boolean? if true, this record will not be saved to the save file
 ---@field events table<string, function>?
+---@field options proximityTool.markerRecord.options?
 ---@field invalid boolean?
 
 local this = {}
