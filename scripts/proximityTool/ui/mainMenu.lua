@@ -6,8 +6,12 @@ local playerObj = require('openmw.self')
 
 local commonData = require("scripts.proximityTool.common")
 
+local config = require("scripts.proximityTool.config")
+
 local uniqueId = require("scripts.proximityTool.uniqueId")
 local tableLib = require("scripts.proximityTool.utils.table")
+
+local uiUtils = require("scripts.proximityTool.ui.utils")
 
 local log = require("scripts.proximityTool.log")
 
@@ -137,7 +141,7 @@ function this.registerMarker(activeMarker)
             type = ui.TYPE.Flex,
             props = {
                 horizontal = true,
-                arrange = ui.ALIGNMENT.End,
+                arrange = uiUtils.convertAlign(config.data.ui.align),
                 alpha = 1,
             },
             content = ui.content {
@@ -214,7 +218,7 @@ function this.registerMarker(activeMarker)
             type = ui.TYPE.Flex,
             props = {
                 horizontal = false,
-                arrange = ui.ALIGNMENT.End,
+                arrange = uiUtils.convertAlign(config.data.ui.align),
                 alpha = 1,
             },
             content = ui.content{},
@@ -322,7 +326,7 @@ function this.registerMarker(activeMarker)
         type = ui.TYPE.Flex,
         props = {
             horizontal = false,
-            arrange = ui.ALIGNMENT.End,
+            arrange = uiUtils.convertAlign(config.data.ui.align),
             alpha = 0,
             visible = true,
         },
@@ -371,9 +375,10 @@ function this.create(params)
         props = {
             text = "Tracking:  ",
             textSize = 28,
+            visible = config.data.ui.showHeader or params.showBorder,
             multiline = false,
             wordWrap = false,
-            textAlignH = ui.ALIGNMENT.End,
+            textAlignH = uiUtils.convertAlign(config.data.ui.align),
             textShadow = true,
             textShadowColor = util.color.rgb(0, 0, 0),
         },
@@ -414,9 +419,9 @@ function this.create(params)
             type = ui.TYPE.Flex,
             props = {
                 autoSize = false,
-                size = util.vector2(screenSize.x * 0.3, screenSize.y * 0.6),
+                size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100),
                 horizontal = false,
-                arrange = ui.ALIGNMENT.End,
+                arrange = uiUtils.convertAlign(config.data.ui.align),
             },
             content = ui.content {
                 mainWindowBox({header}, params.showBorder),
@@ -425,7 +430,7 @@ function this.create(params)
                     props = {
                         autoSize = true,
                         horizontal = false,
-                        arrange = ui.ALIGNMENT.End,
+                        arrange = uiUtils.convertAlign(config.data.ui.align),
                         anchor = util.vector2(1, 0),
                     },
                     content = ui.content {
@@ -443,7 +448,7 @@ function this.create(params)
         props = {
             autoSize = true,
             horizontal = false,
-            arrange = ui.ALIGNMENT.End,
+            arrange = uiUtils.convertAlign(config.data.ui.align),
             relativePosition = elementRelPos,
             anchor = util.vector2(1, 0),
         },
@@ -463,6 +468,7 @@ end
 
 ---@param params objectTrackingBD.mainMenu.update.params?
 function this.update(params)
+    if not this.element then return end
     if not params then params = {} end
 
     local player = playerObj.object
@@ -665,6 +671,16 @@ function this.update(params)
     end
 
     this.element:update()
+end
+
+
+function this.destroy()
+    if this.element then
+        markerParentElement = nil
+        this.element:destroy()
+        this.element = nil
+        mainMenuSafeContainer.element = nil
+    end
 end
 
 

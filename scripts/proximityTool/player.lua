@@ -5,6 +5,7 @@ local util = require('openmw.util')
 local time = require('openmw_aux.time')
 local player = require('openmw.self')
 local async = require('openmw.async')
+local storage = require('openmw.storage')
 
 local common = require("scripts.proximityTool.common")
 
@@ -22,6 +23,11 @@ local activeMarkers = require("scripts.proximityTool.activeMarkers")
 local safeUIContainers = require("scripts.proximityTool.ui.safeContainer")
 
 local mapData = require("scripts.proximityTool.data.mapDataHandler")
+
+local config = require("scripts.proximityTool.config")
+
+local settingStorage = storage.globalSection(common.settingStorageId)
+
 
 ---@class proximityTool.cellData
 ---@field id string?
@@ -84,13 +90,33 @@ local mapData = require("scripts.proximityTool.data.mapDataHandler")
 local this = {}
 
 
-mainMenu.create{showBorder = false}
+if config.data.enabled then
+    mainMenu.create{showBorder = false}
+end
 
 local function updateTime()
     mainMenu.update()
 end
 
-time.runRepeatedly(updateTime, 0.04 * time.second, { type = time.SimulationTime })
+local stopTimer = time.runRepeatedly(updateTime, config.data.updateInterval / 1000 * time.second, { type = time.SimulationTime })
+
+settingStorage:subscribe(async:callback(function(section, key)
+    local enabled = settingStorage:get("enabled")
+    if enabled then
+        mainMenu.create{showBorder = false}
+        if stopTimer then
+            stopTimer()
+        end
+        stopTimer = time.runRepeatedly(updateTime, config.data.updateInterval / 1000 * time.second, { type = time.SimulationTime })
+    else
+        if stopTimer then
+            stopTimer()
+            stopTimer = nil
+        end
+        mainMenu.destroy()
+    end
+end))
+
 
 
 ---@param params proximityTool.markerRecord
@@ -194,6 +220,8 @@ return {
     },
     eventHandlers = {
         UiModeChanged = function(data)
+            if not config.data.enabled then return end
+
             if data.newMode == nil then
                 mainMenu.create{showBorder = false}
             elseif data.newMode == "Interface" then

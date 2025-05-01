@@ -5,7 +5,9 @@ local this = {}
 
 this.worldCellLabel = "__world_cell__"
 
-this.playerStorageId = "QuestGuider:LocalStorage"
+this.playerStorageId = "proximityTool:LocalStorage"
+
+this.settingStorageId = "proximityTool:Settings"
 
 this.uniqueIdKey = "UniqueId"
 
