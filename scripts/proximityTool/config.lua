@@ -25,7 +25,7 @@ end))
 
 ---@class proximityTool.config
 local default = {
-    enabled = false,
+    enabled = true,
     updateInterval = 40, -- ms
     ui = {
         showHeader = false,
@@ -34,6 +34,7 @@ local default = {
             x = 25, -- %
             y = 40, -- %
         },
+        orderH = "Left to right", -- "Left to right", "Right to left"
     },
 }
 

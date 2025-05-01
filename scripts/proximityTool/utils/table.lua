@@ -131,5 +131,16 @@ function this.setValueByPath(table, path, newValue)
 end
 
 
+---@param t table
+---@return table
+function this.invertIndexes(t)
+	local out = {}
+	for i = #t, 1, -1 do
+        table.insert(out, t[i])
+	end
+	return out
+end
+
+
 
 return this

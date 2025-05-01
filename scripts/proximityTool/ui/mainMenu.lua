@@ -136,6 +136,76 @@ function this.registerMarker(activeMarker)
     end
 
 
+    local mainLine = {
+        {
+            template = I.MWUI.templates.textNormal,
+            type = ui.TYPE.Text,
+            props = {
+                text = "",
+                textSize = 24,
+                multiline = false,
+                wordWrap = false,
+                textAlignH = ui.ALIGNMENT.End,
+                textAlignV = ui.ALIGNMENT.Start,
+            },
+            events = unitedEvents,
+            userData = {
+                data = activeMarker,
+            },
+        },
+        {
+            type = ui.TYPE.Image,
+            props = {
+                resource = icons.arrowIcons[1],
+                size = util.vector2(24, 24),
+                color = defaultColor,
+            },
+            events = unitedEvents,
+            userData = {
+                data = activeMarker,
+            },
+        },
+        {
+            template = I.MWUI.templates.interval,
+            userData = {
+                data = activeMarker,
+            },
+            events = unitedEvents,
+        },
+        {
+            type = ui.TYPE.Flex,
+            props = {
+                horizontal = true,
+            },
+            userData = {
+                data = activeMarker,
+            },
+            content = ui.content {}
+        },
+        {
+            template = I.MWUI.templates.interval,
+            userData = {
+                data = activeMarker,
+            },
+            events = unitedEvents,
+        },
+        {
+            template = I.MWUI.templates.textNormal,
+            type = ui.TYPE.Text,
+            userData = {
+                data = activeMarker,
+            },
+            props = {
+                text = topRecord.name,
+                textSize = 24,
+                multiline = false,
+                wordWrap = false,
+                textAlignH = ui.ALIGNMENT.End,
+            },
+            events = unitedEvents,
+        },
+    }
+
     local content = {
         {
             type = ui.TYPE.Flex,
@@ -144,75 +214,11 @@ function this.registerMarker(activeMarker)
                 arrange = uiUtils.convertAlign(config.data.ui.align),
                 alpha = 1,
             },
-            content = ui.content {
-                {
-                    template = I.MWUI.templates.textNormal,
-                    type = ui.TYPE.Text,
-                    props = {
-                        text = "",
-                        textSize = 24,
-                        multiline = false,
-                        wordWrap = false,
-                        textAlignH = ui.ALIGNMENT.End,
-                        textAlignV = ui.ALIGNMENT.Start,
-                    },
-                    events = unitedEvents,
-                    userData = {
-                        data = activeMarker,
-                    },
-                },
-                {
-                    type = ui.TYPE.Image,
-                    props = {
-                        resource = icons.arrowIcons[1],
-                        size = util.vector2(24, 24),
-                        color = defaultColor,
-                    },
-                    events = unitedEvents,
-                    userData = {
-                        data = activeMarker,
-                    },
-                },
-                {
-                    template = I.MWUI.templates.interval,
-                    userData = {
-                        data = activeMarker,
-                    },
-                    events = unitedEvents,
-                },
-                {
-                    type = ui.TYPE.Flex,
-                    props = {
-                        horizontal = true,
-                    },
-                    userData = {
-                        data = activeMarker,
-                    },
-                    content = ui.content {}
-                },
-                {
-                    template = I.MWUI.templates.interval,
-                    userData = {
-                        data = activeMarker,
-                    },
-                    events = unitedEvents,
-                },
-                {
-                    template = I.MWUI.templates.textNormal,
-                    type = ui.TYPE.Text,
-                    userData = {
-                        data = activeMarker,
-                    },
-                    props = {
-                        text = topRecord.name,
-                        textSize = 24,
-                        multiline = false,
-                        wordWrap = false,
-                        textAlignH = ui.ALIGNMENT.End,
-                    },
-                    events = unitedEvents,
-                },
-            }
+            userData = {
+                distanceIndex = 1,
+                directionIconIndex = 2,
+            },
+            content = nil
         },
         {
             type = ui.TYPE.Flex,
@@ -269,10 +275,10 @@ function this.registerMarker(activeMarker)
                     }
                 end
 
-                if (not rec.options or rec.options.showGroupIcon ~= false) and #content[1].content[4] < 6 then
-                    local index = content[1].content[4].content:indexOf(name)
+                if (not rec.options or rec.options.showGroupIcon ~= false) and #mainLine[4].content < 6 then
+                    local index = mainLine[4].content:indexOf(name)
                     if index then
-                        local elem = content[1].content[4].content[index]
+                        local elem = mainLine[4].content[index]
                         ---@type proximityTool.markerRecord
                         local record = elem.userData.record
                         if record and (record.priority or 0) < (rec.priority or 0) then
@@ -281,7 +287,7 @@ function this.registerMarker(activeMarker)
                             elem.props.resource = texture
                         end
                     else
-                        content[1].content[4].content:add(iconContent)
+                        mainLine[4].content:add(iconContent)
                     end
                 end
             end
@@ -321,6 +327,13 @@ function this.registerMarker(activeMarker)
             }
         end
     end
+
+    if config.data.ui.orderH == "Right to left" then
+        mainLine = tableLib.invertIndexes(mainLine)
+        content[1].userData.distanceIndex = 6
+        content[1].userData.directionIconIndex = 5
+    end
+    content[1].content = ui.content(mainLine)
 
     local uiData = {
         type = ui.TYPE.Flex,
@@ -580,8 +593,10 @@ function this.update(params)
             iconImage = imageArr[arrowImageIndex]
         end
 
-        elem.content[1].content[1].props.text = string.format("%.0fm", distance / 64 * 0.9144)
-        elem.content[1].content[2].props.resource = iconImage
+        local distanceIndex = elem.content[1].userData.distanceIndex
+        local directionIndex = elem.content[1].userData.directionIconIndex
+        elem.content[1].content[distanceIndex or 1].props.text = string.format("%.0fm", distance / 64 * 0.9144)
+        elem.content[1].content[directionIndex or 2].props.resource = iconImage
 
         ::continue::
     end
