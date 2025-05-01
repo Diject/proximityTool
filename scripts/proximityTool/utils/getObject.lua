@@ -1,27 +1,7 @@
-local types = require('openmw.types')
-
-local typeList = {
-    types.NPC,
-    types.Creature,
-    types.Apparatus,
-    types.Armor,
-    types.Book,
-    types.Clothing,
-    types.Container,
-    types.Door,
-    types.Ingredient,
-    types.Light,
-    types.Lockpick,
-    types.Miscellaneous,
-    types.Potion,
-    types.Probe,
-    types.Repair,
-    types.Weapon,
-    types.Static,
-}
+local common = require("scripts.proximityTool.common")
 
 return function(id)
-    for _, tp in pairs(typeList) do
+    for tp, _ in pairs(common.supportedObjectTypes) do
         local rec = tp.record(id)
         if rec then return rec end
     end

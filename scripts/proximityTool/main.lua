@@ -2,9 +2,11 @@ local async = require('openmw.async')
 local types = require('openmw.types')
 local world = require('openmw.world')
 
+local common = require("scripts.proximityTool.common")
+
 
 local function onObjectActive(object)
-    if object.type == types.NPC and object.enabled then
+    if common.supportedObjectTypes[object.type] and object.enabled then
         object:addScript("scripts/proximityTool/objectLocal.lua")
         world.players[1]:sendEvent("addActiveObject", object)
     end
