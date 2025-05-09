@@ -10,6 +10,7 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 
 local this = {}
 
+this.storage = settingStorage
 
 settingStorage:subscribe(async:callback(function(section, key)
     if key then
@@ -34,6 +35,10 @@ local default = {
             x = 25, -- %
             y = 40, -- %
         },
+        position = {
+            x = 100,
+            y = 30,
+        },
         orderH = "Left to right", -- "Left to right", "Right to left"
     },
 }
@@ -42,6 +47,12 @@ local default = {
 this.data = settingStorage:asTable() or {}
 
 tableLib.addMissing(this.data, default)
+
+
+-- TODO
+function this.save()
+
+end
 
 
 return this

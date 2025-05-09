@@ -24,6 +24,8 @@ local safeContainers = require("scripts.proximityTool.ui.safeContainer")
 
 local tooltipFuncs = require("scripts.proximityTool.ui.mainMenuTooltip")
 
+local addButton = require("scripts.proximityTool.ui.button")
+
 
 local this = {}
 
@@ -383,46 +385,73 @@ function this.create(params)
     end
 
     local header = {
-        template = I.MWUI.templates.textHeader,
-        type = ui.TYPE.Text,
+        type = ui.TYPE.Flex,
         props = {
-            text = "Tracking:  ",
-            textSize = 28,
+            horizontal = true,
             visible = config.data.ui.showHeader or params.showBorder,
-            multiline = false,
-            wordWrap = false,
-            textAlignH = uiUtils.convertAlign(config.data.ui.align),
-            textShadow = true,
-            textShadowColor = util.color.rgb(0, 0, 0),
         },
-        userData = {
-            lastMousePos = nil,
-        },
-        events = {
-            mousePress = async:callback(function(coord, layout)
-                layout.userData.doDrag = true
-                local screenSize = ui.screenSize()
-                layout.userData.lastMousePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
-            end),
+        content = ui.content {
+            addButton{menu = this, textSize = 24, text = "P",
+                event = function (layout)
+                    local position = this.element.layout.props.relativePosition
+                    config.data.ui.position.x = position.x * 100
+                    config.data.ui.position.y = position.y * 100
+                    config.save()
+                end,
+                tooltipContent = ui.content {
+                    {
+                        template = I.MWUI.templates.textNormal,
+                        props = {
+                            text = "[PH] Set position",
+                            textSize = 24,
+                        },
+                    }
+                }
+            },
+            mainWindowBox({
+                {
+                    template = I.MWUI.templates.textHeader,
+                    type = ui.TYPE.Text,
+                    props = {
+                        text = "Tracking:  ",
+                        textSize = 28,
+                        multiline = false,
+                        wordWrap = false,
+                        textAlignH = uiUtils.convertAlign(config.data.ui.align),
+                        textShadow = true,
+                        textShadowColor = util.color.rgb(0, 0, 0),
+                    },
+                    userData = {
+                        lastMousePos = nil,
+                    },
+                    events = {
+                        mousePress = async:callback(function(coord, layout)
+                            layout.userData.doDrag = true
+                            local screenSize = ui.screenSize()
+                            layout.userData.lastMousePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
+                        end),
 
-            mouseRelease = async:callback(function(_, layout)
-                layout.userData.lastMousePos = nil
-            end),
+                        mouseRelease = async:callback(function(_, layout)
+                            layout.userData.lastMousePos = nil
+                        end),
 
-            mouseMove = async:callback(function(coord, layout)
-                if not layout.userData.lastMousePos then return end
+                        mouseMove = async:callback(function(coord, layout)
+                            if not layout.userData.lastMousePos then return end
 
-                local screenSize = ui.screenSize()
-                local props = this.element.layout.props
-                local relativePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
+                            local screenSize = ui.screenSize()
+                            local props = this.element.layout.props
+                            local relativePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
 
-                props.relativePosition = props.relativePosition - (layout.userData.lastMousePos - relativePos)
-                elementRelPos = props.relativePosition
-                this.element:update()
+                            props.relativePosition = props.relativePosition - (layout.userData.lastMousePos - relativePos)
+                            elementRelPos = props.relativePosition
+                            this.element:update()
 
-                layout.userData.lastMousePos = relativePos
-            end),
-        },
+                            layout.userData.lastMousePos = relativePos
+                        end),
+                    },
+                }
+            }, params.showBorder),
+        }
     }
 
     local screenSize = ui.screenSize()
@@ -437,7 +466,7 @@ function this.create(params)
                 arrange = uiUtils.convertAlign(config.data.ui.align),
             },
             content = ui.content {
-                mainWindowBox({header}, params.showBorder),
+                header,
                 {
                     type = ui.TYPE.Flex,
                     props = {
@@ -454,6 +483,12 @@ function this.create(params)
         },
     }
 
+    local position
+    if params.showBorder and elementRelPos then
+        position = elementRelPos
+    else
+        position = util.vector2(config.data.ui.position.x / 100, config.data.ui.position.y / 100)
+    end
 
     this.element = ui.create {
         type = ui.TYPE.Flex,
@@ -462,7 +497,7 @@ function this.create(params)
             autoSize = true,
             horizontal = false,
             arrange = uiUtils.convertAlign(config.data.ui.align),
-            relativePosition = elementRelPos,
+            relativePosition = position,
             anchor = util.vector2(1, 0),
         },
         content = ui.content {

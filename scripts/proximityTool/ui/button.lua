@@ -3,6 +3,7 @@ local util = require('openmw.util')
 local async = require('openmw.async')
 local input = require('openmw.input')
 local templates = require('openmw.interfaces').MWUI.templates
+local tooltip = require("scripts.proximityTool.ui.tooltip")
 
 ---@class proximityTool.ui.button.params
 ---@field menu any
@@ -11,6 +12,7 @@ local templates = require('openmw.interfaces').MWUI.templates
 ---@field textColor any?
 ---@field size any? -- util.vector2
 ---@field event function?
+---@field tooltipContent any?
 
 ---@param params proximityTool.ui.button.params?
 return function (params)
@@ -41,7 +43,13 @@ return function (params)
 
             focusLoss = async:callback(function(e, layout)
                 layout.userData.pressed = false
-            end)
+                tooltip.destroy(layout)
+            end),
+
+            mouseMove = async:callback(function(coord, layout)
+                if not params.tooltipContent then return end
+                tooltip.createOrMove(coord, layout, params.tooltipContent)
+            end),
         },
         userData = {
             pressed = false,
