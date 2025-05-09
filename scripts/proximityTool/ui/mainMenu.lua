@@ -25,6 +25,7 @@ local safeContainers = require("scripts.proximityTool.ui.safeContainer")
 local tooltipFuncs = require("scripts.proximityTool.ui.mainMenuTooltip")
 
 local addButton = require("scripts.proximityTool.ui.button")
+local addInterval = require("scripts.proximityTool.ui.interval")
 
 
 local this = {}
@@ -404,7 +405,7 @@ function this.create(params)
             }
         },
     }
-log(I.MWUI.templates.interval)
+
     local header = {
         type = ui.TYPE.Flex,
         props = {
@@ -429,6 +430,7 @@ log(I.MWUI.templates.interval)
                     }
                 }
             },
+            addInterval(8, 8),
             addButton{menu = this, textSize = 24, text = "|<",
                 event = function (layout)
                     local pos = mainContent.content[1].props.position
@@ -447,6 +449,7 @@ log(I.MWUI.templates.interval)
                     }
                 }
             },
+            addInterval(4, 4),
             addButton{menu = this, textSize = 24, text = "<<",
                 event = function (layout)
                     local pos = mainContent.content[1].props.position
@@ -465,6 +468,7 @@ log(I.MWUI.templates.interval)
                     }
                 }
             },
+            addInterval(4, 4),
             addButton{menu = this, textSize = 24, text = ">>",
                 event = function (layout)
                     local pos = mainContent.content[1].props.position
@@ -483,6 +487,7 @@ log(I.MWUI.templates.interval)
                     }
                 }
             },
+            addInterval(8, 8),
             mainWindowBox({
                 {
                     template = I.MWUI.templates.textHeader,
