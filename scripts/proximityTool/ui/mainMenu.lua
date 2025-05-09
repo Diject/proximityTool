@@ -54,6 +54,8 @@ local markerParentElement = nil
 
 
 local function getMarkerParentElement(element)
+    if not this.element or not this.element.layout then return end
+
     if markerParentElement and not element then
         return markerParentElement
     elseif element then
@@ -353,7 +355,7 @@ function this.registerMarker(activeMarker)
         content = ui.content(content),
     }
 
-    local parentContent = getMarkerParentElement().content
+    local parentContent = (getMarkerParentElement() or {}).content
     if not parentContent then return end
 
     local parentIndex = parentContent:indexOf(elementId)
@@ -384,6 +386,9 @@ function this.create(params)
         this.element:destroy()
         mainMenuSafeContainer.element = nil
     end
+
+    if config.data.ui.hideHUD and not params.showBorder then return end
+    if config.data.ui.hideWindow and params.showBorder then return end
 
     local screenSize = ui.screenSize()
 
@@ -587,11 +592,12 @@ function this.update(params)
     if not this.element then return end
     if not params then params = {} end
 
+    local parentElement = getMarkerParentElement()
+    if not parentElement then return end
+
     local player = playerObj.object
     local playerPos = player.position
     local pitch, yaw  = player.rotation:getAnglesXZ()
-
-    local parentElement = getMarkerParentElement()
 
     for i = #parentElement.content, 1, -1 do
         local elem = parentElement.content[i]
