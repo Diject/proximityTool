@@ -7,59 +7,18 @@ local commonData = require("scripts.proximityTool.common")
 local tableLib = require("scripts.proximityTool.utils.table")
 local safeContainers = require("scripts.proximityTool.ui.safeContainer")
 
+local tooltip = require("scripts.proximityTool.ui.tooltip")
+
 local this = {}
-
-
-local function calcTooltipPosAnchor(cursorPos)
-    local screenSize = ui.screenSize()
-
-    local halfWidth = screenSize.x / 2
-    local halfHeight = screenSize.y / 2
-
-    local anchorX = cursorPos.x > halfWidth and 1 or 0
-    local anchorY = cursorPos.y > halfHeight and 1 or 0
-    local anchor = util.vector2 (anchorX, anchorY)
-
-    local posX = cursorPos.x
-    if anchorX <= 0 and anchorY <= 0 then
-        posX = posX + 30
-    end
-    local tooltipPos = util.vector2(posX, cursorPos.y)
-
-    return tooltipPos, anchor
-end
-
 
 ---@param forRecord boolean?
 function this.tooltipMoveOrCreate(coord, layout, forRecord)
     if not layout.userData or not layout.userData.data then return end
 
-    local position, anchor = calcTooltipPosAnchor(coord.position)
-
-    if not layout.userData.tooltip or not layout.userData.tooltip.valid then
-        local tooltipHandler = safeContainers.new("mainMenuElementTooltip")
-
-        layout.userData["tooltip"] = tooltipHandler
-
-        local tooltipLayout = {
-            template = I.MWUI.templates.boxSolid,
-            layer = "Notification",
-            props = {
-                position = position,
-                anchor = anchor,
-            },
-            content = ui.content {
-                {
-                    type = ui.TYPE.Flex,
-                    props = {
-                        horizontal = false,
-                    },
-                    content = ui.content {}
-                }
-            }
-        }
-
+    if not tooltip.isExists(layout) then
         local foundDescription = false
+
+        local tooltipLayoutContent = ui.content {}
 
         local function drawDescription(record)
             if not record.description then return end
@@ -126,14 +85,14 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
             if not added then return end
 
             if foundDescription then
-                tooltipLayout.content[1].content:add{
+                tooltipLayoutContent:add{
                     template = I.MWUI.templates.interval,
                 }
             end
 
             foundDescription = true
 
-            tooltipLayout.content[1].content:add(line)
+            tooltipLayoutContent:add(line)
         end
 
 
@@ -162,31 +121,17 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
         end
 
         if foundDescription then
-            tooltipHandler:create(tooltipLayout)
+            tooltip.createOrMove(coord, layout, tooltipLayoutContent)
         end
 
-        return
+    else
+        tooltip.createOrMove(coord, layout, nil)
     end
-
-
-    if not layout.userData or not layout.userData.tooltip then return end
-    local tooltipHandler = layout.userData.tooltip
-    if not tooltipHandler.element then return end
-
-    local props = tooltipHandler.element.layout.props
-
-    props.position, props.anchor = position, anchor
-
-    tooltipHandler:update()
 end
 
 
 function this.tooltipDestroy(layout)
-    if not layout.userData or not layout.userData.tooltip then return end
-    local tooltipHandler = layout.userData.tooltip
-    layout.userData.tooltip = nil
-    if not tooltipHandler.valid then return end
-    tooltipHandler:destroy()
+    tooltip.destroy(layout)
 end
 
 return this
