@@ -560,7 +560,7 @@ function this.create(params)
 
     this.element = ui.create {
         type = ui.TYPE.Flex,
-        layer = "Windows",
+        layer = params.showBorder and "Windows" or "HUD",
         props = {
             autoSize = true,
             horizontal = false,
