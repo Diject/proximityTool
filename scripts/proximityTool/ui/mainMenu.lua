@@ -56,9 +56,9 @@ local function getMarkerParentElement(element)
     if markerParentElement and not element then
         return markerParentElement
     elseif element then
-        return element.layout.content[1].content[1].content[2]
+        return element.layout.content[1].content[1].content[2].content[1]
     else
-        markerParentElement = this.element.layout.content[1].content[1].content[2]
+        markerParentElement = this.element.layout.content[1].content[1].content[2].content[1]
         return markerParentElement
     end
 end
@@ -384,6 +384,27 @@ function this.create(params)
         mainMenuSafeContainer.element = nil
     end
 
+    local screenSize = ui.screenSize()
+
+    local mainContent = {
+        type = ui.TYPE.Container,
+        content = ui.content {
+            {
+                type = ui.TYPE.Flex,
+                props = {
+                    position = util.vector2(0, 0),
+                    size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100),
+                    autoSize = false,
+                    horizontal = false,
+                    arrange = uiUtils.convertAlign(config.data.ui.align),
+                },
+                content = ui.content {
+
+                },
+            }
+        },
+    }
+log(I.MWUI.templates.interval)
     local header = {
         type = ui.TYPE.Flex,
         props = {
@@ -403,6 +424,60 @@ function this.create(params)
                         template = I.MWUI.templates.textNormal,
                         props = {
                             text = "[PH] Set position",
+                            textSize = 24,
+                        },
+                    }
+                }
+            },
+            addButton{menu = this, textSize = 24, text = "|<",
+                event = function (layout)
+                    local pos = mainContent.content[1].props.position
+                    if not pos then return end
+
+                    mainContent.content[1].props.position = util.vector2(0, 0)
+                    this.element:update()
+                end,
+                tooltipContent = ui.content {
+                    {
+                        template = I.MWUI.templates.textNormal,
+                        props = {
+                            text = "[PH] Scroll to start",
+                            textSize = 24,
+                        },
+                    }
+                }
+            },
+            addButton{menu = this, textSize = 24, text = "<<",
+                event = function (layout)
+                    local pos = mainContent.content[1].props.position
+                    if not pos then return end
+
+                    mainContent.content[1].props.position = util.vector2(0, math.min(0, pos.y + 24))
+                    this.element:update()
+                end,
+                tooltipContent = ui.content {
+                    {
+                        template = I.MWUI.templates.textNormal,
+                        props = {
+                            text = "[PH] Scroll up",
+                            textSize = 24,
+                        },
+                    }
+                }
+            },
+            addButton{menu = this, textSize = 24, text = ">>",
+                event = function (layout)
+                    local pos = mainContent.content[1].props.position
+                    if not pos then return end
+
+                    mainContent.content[1].props.position = util.vector2(0, pos.y - 24)
+                    this.element:update()
+                end,
+                tooltipContent = ui.content {
+                    {
+                        template = I.MWUI.templates.textNormal,
+                        props = {
+                            text = "[PH] Scroll down",
                             textSize = 24,
                         },
                     }
@@ -454,7 +529,6 @@ function this.create(params)
         }
     }
 
-    local screenSize = ui.screenSize()
 
     local parentContent = {
         {
@@ -467,18 +541,7 @@ function this.create(params)
             },
             content = ui.content {
                 header,
-                {
-                    type = ui.TYPE.Flex,
-                    props = {
-                        autoSize = true,
-                        horizontal = false,
-                        arrange = uiUtils.convertAlign(config.data.ui.align),
-                        anchor = util.vector2(1, 0),
-                    },
-                    content = ui.content {
-
-                    },
-                },
+                mainContent,
             },
         },
     }
