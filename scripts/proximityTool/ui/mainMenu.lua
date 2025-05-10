@@ -236,7 +236,7 @@ function this.registerMarker(activeMarker)
 
     for _, rDt in ipairs(sortedRecords) do
         local rec = rDt.record
-        if rec.note then
+        if rec.note and rec.alpha ~= 0 then
             rDt.noteId = uniqueId.get()
 
             local noteColor = rec.noteColor and

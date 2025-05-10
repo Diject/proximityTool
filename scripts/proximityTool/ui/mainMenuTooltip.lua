@@ -99,7 +99,7 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
         if forRecord then
             ---@type proximityTool.markerRecord
             local record = layout.userData.record
-            if not record or record.invalid then return end
+            if not record or record.invalid or record.alpha == 0 then return end
 
             drawDescription(record)
         else
@@ -114,7 +114,7 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
 
             for _, recDt in ipairs(records) do
                 local record = recDt.record
-                if record and not record.invalid then
+                if record and not record.invalid and record.alpha ~= 0 then
                     drawDescription(record)
                 end
             end
