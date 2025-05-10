@@ -85,6 +85,16 @@ function activeMarker:calcPriorityValue()
     return res
 end
 
+function activeMarker:calcAlphaValue()
+    local res = 0
+    for _, rec in pairs(self.markers) do
+        res = math.max(res, rec.record.alpha or 1)
+    end
+
+    self.alpha = res
+    return res
+end
+
 function activeMarker:update()
     local foundValid = false
     for id, data in pairs(self.markers) do
@@ -202,6 +212,8 @@ function this.register(params)
     marker.proximity = marker:calcProximityValue()
     ---@type number
     marker.priority = marker:calcPriorityValue()
+    ---@type number
+    marker.alpha = marker:calcAlphaValue()
 
 
     this.data[activeMarkerId] = marker

@@ -80,6 +80,7 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field noteColor number[]?
 ---@field icon string?
 ---@field iconColor number[]?
+---@field alpha number?
 ---@field proximity number?
 ---@field priority number?
 ---@field temporary boolean? if true, this record will not be saved to the save file

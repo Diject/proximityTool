@@ -655,6 +655,7 @@ function this.update(params)
         elem.userData.distance = distance
         elem.userData.distance2D = distance2D
         elem.userData.heightDiff = heightDiff
+        elem.userData.alpha = trackingData.alpha
 
         -- for ordering
         local priorityByDistance = 0
@@ -668,7 +669,7 @@ function this.update(params)
 
         elem.userData.priority = trackingData.priority + priorityByDistance
 
-        local hide = distance > trackingData.proximity
+        local hide = (distance > trackingData.proximity) or (trackingData.alpha <= 0)
         elem.userData.disabled = hide
 
         local arrowImageIndex
@@ -779,11 +780,12 @@ function this.update(params)
 
             ::nextAction::
 
-            element.props.alpha = element.props.alpha + 0.03
-            element.props.visible = true
-            if element.props.alpha > 1 then
-                element.props.alpha = 1
+            if element.props.alpha < element.userData.alpha then
+                element.props.alpha = math.min(element.props.alpha + 0.03, element.userData.alpha)
+            elseif element.props.alpha > element.userData.alpha then
+                element.props.alpha = math.max(element.props.alpha - 0.03, element.userData.alpha)
             end
+            element.props.visible = true
         end
 
         ::continue::
