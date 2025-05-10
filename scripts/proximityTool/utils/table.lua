@@ -86,6 +86,22 @@ function this.addMissing(toTable, fromTable)
 end
 
 
+function this.applyChanges(toTable, fromTable)
+    for label, val in pairs(fromTable) do
+        if type(val) == "table" then
+            if toTable[label] == nil then
+                toTable[label] = this.deepcopy(val)
+            else
+                if type(toTable[label]) ~= "table" then toTable[label] = {} end
+                this.applyChanges(toTable[label], val)
+            end
+        else
+            toTable[label] = val
+        end
+    end
+end
+
+
 ---@param table table
 ---@param path string
 ---@return any

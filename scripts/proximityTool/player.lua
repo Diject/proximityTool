@@ -121,6 +121,7 @@ end))
 
 
 ---@param params proximityTool.markerRecord
+---@return string?
 local function addRecord(params)
     local record = tableLib.deepcopy(params)
     record.id = uniqueId.get()
@@ -198,12 +199,39 @@ local function addMarker(data)
 end
 
 
+---@param id string
+---@param data proximityTool.markerRecord
+---@return boolean?
+local function updateRecord(id, data)
+    if not id then return end
+    if not data then data = {} end
+
+    local recordData = mapData.getRecord(id)
+    if not recordData then return end
+
+    local dt = tableLib.deepcopy(data)
+    dt.id = nil
+
+    tableLib.applyChanges(recordData, dt)
+
+    return true
+end
+
+
+local function updateMarkers()
+    activeMarkers.update()
+end
+
+
+
 return {
     interfaceName = "ObjectTrackingBD",
     interface = {
         version = 1,
         addMarker = addMarker,
         addRecord = addRecord,
+        update = updateMarkers,
+        updateRecord = updateRecord,
         registerEvent = function (eventId, recordId, data)
             local record = mapData.getRecord(recordId)
             if not record then return end
