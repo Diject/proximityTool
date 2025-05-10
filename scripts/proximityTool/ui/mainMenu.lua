@@ -30,7 +30,6 @@ local addInterval = require("scripts.proximityTool.ui.interval")
 
 local this = {}
 
-local defaultColorData = commonData.defaultColorData
 local defaultColor = commonData.defaultColor
 local elementRelPos = util.vector2(config.localConfig.ui.positionAlt.x / 100, config.localConfig.ui.positionAlt.y / 100)
 
@@ -76,12 +75,6 @@ function this.registerMarker(activeMarker)
 
     ---@type proximityTool.activeMarkerData
     local topRecord = activeMarker.topMarker
-    local nameColor = topRecord.record.nameColor and util.color.rgb(
-            topRecord.record.nameColor[1] or 1,
-            topRecord.record.nameColor[2] or 1,
-            topRecord.record.nameColor[3] or 1)
-
-    local markerRecId = activeMarker.id
 
     local unitedEvents = {
         mouseMove = async:callback(function(coord, layout)
