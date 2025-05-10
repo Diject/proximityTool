@@ -121,6 +121,7 @@ function activeMarker:update()
         self.topMarker = self:getTopPriorityRecord()
         self.proximity = self:calcProximityValue()
         self.priority = self:calcPriorityValue()
+        self.alpha = self:calcAlphaValue()
         self.isValid = true
     else
         self.isValid = false
