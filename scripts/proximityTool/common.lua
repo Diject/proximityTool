@@ -9,6 +9,8 @@ this.playerStorageId = "proximityTool:LocalStorage"
 
 this.settingStorageId = "proximityTool:Settings"
 
+this.localSettingStorageId = "proximityTool:LocalSettings"
+
 this.uniqueIdKey = "UniqueId"
 
 this.mapMarkersKey = "MapMarkers"

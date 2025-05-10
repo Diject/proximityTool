@@ -32,7 +32,7 @@ local this = {}
 
 local defaultColorData = commonData.defaultColorData
 local defaultColor = commonData.defaultColor
-local elementRelPos = util.vector2(0.5, 0.5)
+local elementRelPos = util.vector2(config.localConfig.ui.positionAlt.x / 100, config.localConfig.ui.positionAlt.y / 100)
 
 local eventNames = {
     "keyPress",
@@ -529,6 +529,8 @@ function this.create(params)
 
                             props.relativePosition = props.relativePosition - (layout.userData.lastMousePos - relativePos)
                             elementRelPos = props.relativePosition
+                            config.setLocal("ui.positionAlt.x", elementRelPos.x * 100)
+                            config.setLocal("ui.positionAlt.y", elementRelPos.y * 100)
                             this.element:update()
 
                             layout.userData.lastMousePos = relativePos
