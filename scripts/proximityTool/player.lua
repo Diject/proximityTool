@@ -260,7 +260,7 @@ return {
                 end
             end
         end,
-        addActiveObject = function(object)
+        ["proximityTool:addActiveObject"] = function(object)
             activeObjects.add(object)
             local registered = false
             for id, data in mapData.iterMarkerGroup(object.id) do
@@ -273,11 +273,10 @@ return {
                 registered = true
             end
         end,
-        removeActiveObject = function(object)
+        ["proximityTool:removeActiveObject"] = function(object)
             activeObjects.remove(object)
             activeMarkers.remove(object.recordId)
         end,
-        addMarker = addMarker,
     },
     engineHandlers = {
         onFrame = function(dt)

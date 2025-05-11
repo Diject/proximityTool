@@ -3,7 +3,7 @@ local core = require('openmw.core')
 
 
 local function onInactive()
-    core.sendGlobalEvent("objectInactive", self)
+    core.sendGlobalEvent("proximityTool:objectInactive", self)
 end
 
 

@@ -8,12 +8,12 @@ local common = require("scripts.proximityTool.common")
 local function onObjectActive(object)
     if common.supportedObjectTypes[object.type] and object.enabled then
         object:addScript("scripts/proximityTool/objectLocal.lua")
-        world.players[1]:sendEvent("addActiveObject", object)
+        world.players[1]:sendEvent("proximityTool:addActiveObject", object)
     end
 end
 
 local function objectInactive(object)
-    world.players[1]:sendEvent("removeActiveObject", object)
+    world.players[1]:sendEvent("proximityTool:removeActiveObject", object)
 end
 
 
@@ -22,6 +22,6 @@ return {
         onObjectActive = async:callback(onObjectActive),
     },
     eventHandlers = {
-        objectInactive = async:callback(objectInactive),
+        ["proximityTool:objectInactive"] = async:callback(objectInactive),
     },
 }
