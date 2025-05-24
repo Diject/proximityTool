@@ -275,7 +275,7 @@ return {
         end,
         ["proximityTool:removeActiveObject"] = function(object)
             activeObjects.remove(object)
-            activeMarkers.remove(object.recordId)
+            activeMarkers.update(object.recordId)
         end,
     },
     engineHandlers = {

@@ -103,7 +103,7 @@ function activeMarker:update()
         if data.marker.invalid or record.invalid then
             self.markers[id] = nil
         elseif marker.cell and
-                ((marker.cell.isExterior ~= player.cell.isExterior) or (not player.cell.isExterior and marker.cell.id ~= player.cell.id)) then
+                ((marker.cell.isExterior ~= player.cell.isExterior) or (not player.cell.isExterior and marker.cell.id ~= player.cell.id:lower())) then
             self.markers[id] = nil
         elseif marker.objectId and not activeObjects.isContainValidRecordId(marker.objectId) then
             self.markers[id] = nil
@@ -239,7 +239,20 @@ function this.get(recordId)
 end
 
 
-function this.update()
+---@param recordId string?
+function this.update(recordId)
+    if recordId then
+        local actMarker = this.data[recordId]
+        if actMarker then
+            actMarker:update()
+
+            if not actMarker.isValid then
+                this.data[recordId] = nil
+            end
+        end
+
+        return
+    end
     for activeMarkerId, actMarker in pairs(this.data) do
         actMarker:update()
         if not actMarker.isValid then
