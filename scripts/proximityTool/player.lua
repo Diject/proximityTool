@@ -264,7 +264,6 @@ return {
             activeObjects.add(object)
             local registered = false
             for id, data in mapData.iterMarkerGroup(object.id) do
-                data.invalid = false
                 registerMarker(data)
                 registered = true
             end
