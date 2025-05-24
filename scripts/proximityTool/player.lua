@@ -225,7 +225,7 @@ end
 
 
 return {
-    interfaceName = "ObjectTrackingBD",
+    interfaceName = "proximityTool",
     interface = {
         version = 1,
         addMarker = addMarker,
