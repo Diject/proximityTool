@@ -57,6 +57,7 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field recordId string
 ---@field id string?
 ---@field groupId string?
+---@field groupName string?
 ---@field position Vector3|{x: number, y: number, z: number}?
 ---@field cell proximityTool.cellData?
 ---@field objectId string?

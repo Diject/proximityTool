@@ -52,18 +52,107 @@ local mainMenuSafeContainer = safeContainers.new("mainMenu")
 local markerParentElement = nil
 
 
-local function getMarkerParentElement(element)
+local function getMainFlex()
     if not this.element or not this.element.layout then return end
 
-    if markerParentElement and not element then
+    if markerParentElement then
         return markerParentElement
-    elseif element then
-        return element.layout.content[1].content[1].content[2].content[1]
     else
         markerParentElement = this.element.layout.content[1].content[1].content[2].content[1]
         return markerParentElement
     end
 end
+
+
+local function getMarkerParentElement(groupName)
+    if not this.element or not this.element.layout then return end
+
+    if markerParentElement and not groupName then
+        return getMainFlex()
+    elseif groupName then
+        local parent = getMainFlex()
+        if not parent then return end
+
+        local index = parent.content:indexOf(groupName)
+        if not index then return end
+
+        return parent.content[index].content[2]
+    else
+        return getMainFlex()
+    end
+end
+
+
+---@param groupName string
+---@param params {priority : number?}?
+local function createGroup(groupName, params)
+    if not params then params = {} end
+
+    local parent = getMarkerParentElement()
+    if not parent or not parent.content then return end
+
+    local parentContent = parent.content
+
+    local parentIndex = parentContent:indexOf(groupName)
+    if parentIndex then return end
+
+    local groupNameText = groupName
+    if groupNameText == commonData.hiddenGroupId or groupNameText == commonData.defaultGroupId then
+        groupNameText = ""
+    end
+
+    local uiData = {
+        type = ui.TYPE.Flex,
+        props = {
+            horizontal = false,
+            autoSize = true,
+            arrange = uiUtils.convertAlign(config.data.ui.align),
+            alpha = 1,
+            visible = true,
+        },
+        userData = {
+            priority = params.priority or 0,
+            groupName = groupName,
+        },
+        name = groupName,
+        content = ui.content{
+            {
+                template = I.MWUI.templates.textNormal,
+                type = ui.TYPE.Text,
+                props = {
+                    text = groupNameText,
+                    textSize = 24,
+                    multiline = false,
+                    wordWrap = false,
+                    textAlignH = uiUtils.convertAlign(config.data.ui.align),
+                    textShadow = true,
+                    textShadowColor = util.color.rgb(0, 0, 0),
+                },
+                userData = {
+
+                },
+            },
+            {
+                type = ui.TYPE.Flex,
+                props = {
+                    position = util.vector2(0, 0),
+                    autoSize = true,
+                    horizontal = false,
+                    arrange = uiUtils.convertAlign(config.data.ui.align),
+                },
+                userData = {
+                    groupName = groupName,
+                },
+                content = ui.content {
+
+                },
+            }
+        },
+    }
+
+    parentContent:add(uiData)
+end
+
 
 ---@param activeMarker proximityTool.activeMarker
 function this.registerMarker(activeMarker)
@@ -338,7 +427,7 @@ function this.registerMarker(activeMarker)
         props = {
             horizontal = false,
             arrange = uiUtils.convertAlign(config.data.ui.align),
-            alpha = 0,
+            alpha = 1,
             visible = true,
         },
         userData = {
@@ -348,7 +437,10 @@ function this.registerMarker(activeMarker)
         content = ui.content(content),
     }
 
-    local parentContent = (getMarkerParentElement() or {}).content
+    local groupName = activeMarker.groupName
+    createGroup(groupName)
+
+    local parentContent = (getMarkerParentElement(groupName) or {}).content
     if not parentContent then return end
 
     local parentIndex = parentContent:indexOf(elementId)
@@ -575,6 +667,9 @@ function this.create(params)
 
     mainMenuSafeContainer.element = this.element
 
+    createGroup(commonData.defaultGroupId)
+    createGroup(commonData.hiddenGroupId, {priority = -math.huge})
+
     for _, activeMarker in pairs(activeMarkers.data) do
         this.registerMarker(activeMarker)
     end
@@ -588,208 +683,221 @@ function this.update(params)
     if not params then params = {} end
 
     local parentElement = getMarkerParentElement()
-    if not parentElement then return end
+    local hiddenGroupElement = getMarkerParentElement(commonData.hiddenGroupId)
+    if not parentElement or not hiddenGroupElement then return end
 
     local player = playerObj.object
     local playerPos = player.position
     local pitch, yaw  = player.rotation:getAnglesXZ()
 
+
+    local function processGroup(parent)
+        if not parent then return end
+        for i = #parent.content, 1, -1 do
+            local elem = parent.content[i]
+            if not elem or not elem.props or not elem.userData or not elem.userData.data then goto continue end
+
+            elem.userData.locked = false
+
+            ---@type proximityTool.activeMarker
+            local trackingData = elem.userData.data
+
+            if not trackingData.isValid then
+                table.remove(parent.content, i)
+                goto continue
+            end
+
+            ---@type proximityTool.activeMarkerData?
+            local topMarkerRecord = trackingData.topMarker
+            if not topMarkerRecord then goto continue end
+
+            local trackingPos
+
+            if topMarkerRecord.type == 1 and topMarkerRecord.objectId then
+                local trackerObjPositions = activeObjects.getObjectPositions(topMarkerRecord.objectId, player)
+                if not trackerObjPositions then
+                    goto continue
+                end
+
+                table.sort(trackerObjPositions, function (a, b)
+                    return (a.dif or math.huge) < (b.dif or math.huge)
+                end)
+
+                if #trackerObjPositions > 0 then
+                    local posData = trackerObjPositions[1]
+                    trackingPos = util.vector3(posData.x, posData.y, posData.z)
+                end
+
+            elseif topMarkerRecord.type == 2 and topMarkerRecord.object then
+                local objectRef = topMarkerRecord.object
+                local pos = activeObjects.getObjectPosition(objectRef.recordId, objectRef.id)
+                if not pos then goto continue end
+
+                trackingPos = pos
+
+            elseif topMarkerRecord.type == 3 and topMarkerRecord.position then
+                local posData = topMarkerRecord.position
+                trackingPos = util.vector3(posData.x, posData.y, posData.z) ---@diagnostic disable-line: need-check-nil
+
+            else
+                table.remove(parent.content, i)
+                goto continue
+            end
+
+
+            if not trackingPos then goto continue end
+
+            local distance = (playerPos - trackingPos):length()
+            local distance2D = math.sqrt((playerPos.x - trackingPos.x)^2 + (playerPos.y - trackingPos.y)^2)
+            local heightDiff = playerPos.z - trackingPos.z
+
+            elem.userData.distance = distance
+            elem.userData.distance2D = distance2D
+            elem.userData.heightDiff = heightDiff
+            elem.userData.alpha = trackingData.alpha
+
+            -- for ordering
+            local priorityByDistance = 0
+            if distance < 150 then
+                priorityByDistance = 200
+            elseif distance < 600 then
+                priorityByDistance = math.floor((500 - distance) / 50) * 10
+            elseif distance > 10000 then
+                priorityByDistance = -math.floor(distance / 10000) * 10
+            end
+
+            elem.userData.priority = trackingData.priority + priorityByDistance
+
+            local hide = (distance > trackingData.proximity) or (trackingData.alpha <= 0)
+            elem.userData.disabled = hide
+
+            local arrowImageIndex
+            local iconImage
+
+            if  distance2D < 200 then
+                if heightDiff > 200 then
+                    iconImage = icons.arrowIcons_P[3]
+                elseif heightDiff < -200 then
+                    iconImage = icons.arrowIcons_P[2]
+                else
+                    iconImage = icons.arrowIcons_P[1]
+                end
+            else
+                local imageArr
+                if heightDiff > 200 then
+                    imageArr = icons.arrowIcons_B
+                elseif heightDiff < -200 then
+                    imageArr = icons.arrowIcons_A
+                else
+                    imageArr = icons.arrowIcons
+                end
+
+                local angle = util.normalizeAngle(yaw - math.atan2(playerPos.x - trackingPos.x, playerPos.y - trackingPos.y) + math.pi * 1/16) ---@diagnostic disable-line: deprecated
+                arrowImageIndex = 1 + util.round((math.pi + angle) / (2 * math.pi) * 7)
+                iconImage = imageArr[arrowImageIndex]
+            end
+
+            local distanceIndex = elem.content[1].userData.distanceIndex
+            local directionIndex = elem.content[1].userData.directionIconIndex
+            elem.content[1].content[distanceIndex or 1].props.text = string.format("%.0fm", distance / 64 * 0.9144)
+            elem.content[1].content[directionIndex or 2].props.resource = iconImage
+
+            ::continue::
+        end
+
+        -- ordering markers by their priority
+        local orderData = {}
+        for i, element in ipairs(parent.content) do
+            local priority = element.userData.priority or 0
+            table.insert(orderData, {element = element, priority = priority})
+        end
+        table.sort(orderData, function (a, b)
+            return a.priority > b.priority
+        end)
+
+        for i = #parent.content, 1, -1 do
+            local element = parent.content[i]
+            if not element or not element.userData or not element.userData.data then goto continue end
+
+            local disabled = element.userData.disabled
+
+            if disabled then
+                if element.props.visible then
+                    element.props.alpha = element.props.alpha - 0.03
+                    if element.props.alpha <= 0 then
+                        element.userData.locked = true
+                        element.props.alpha = 0
+                        element.props.visible = false
+
+                        parent.content.__nameIndex[element.name] = nil
+                        table.remove(parent.content, i)
+                        hiddenGroupElement.content:add(element)
+                        goto continue
+                    end
+                end
+            else
+                local orderElemData = orderData[i]
+
+                if orderElemData then
+                    local elem2 = orderElemData.element
+                    local index = parent.content:indexOf(elem2)
+                    if not index or index <= i or element.userData.priority == elem2.userData.priority or element.userData.disabled or elem2.userData.disabled then goto nextAction end
+
+                    local alpha1 = element.props.alpha
+                    if alpha1 > 0.5 then
+                        alpha1 = math.max(0, alpha1 - 0.05)
+                        element.props.alpha = alpha1
+                    end
+
+                    local alpha2 = elem2.props.alpha
+                    if alpha2 > 0.5 then
+                        alpha2 = math.max(0, alpha2 - 0.05)
+                        elem2.props.alpha = alpha2
+                    end
+
+                    if alpha1 < 0.51 and alpha2 < 0.51 then
+                        parent.content.__nameIndex[element.name], parent.content.__nameIndex[elem2.name] =
+                            parent.content.__nameIndex[elem2.name], parent.content.__nameIndex[element.name]
+                        parent.content[index], parent.content[i] = element, elem2
+                    end
+
+                    goto continue
+                end
+
+                ::nextAction::
+
+                if element.props.alpha < element.userData.alpha then
+                    element.props.alpha = math.min(element.props.alpha + 0.03, element.userData.alpha)
+                elseif element.props.alpha > element.userData.alpha then
+                    element.props.alpha = math.max(element.props.alpha - 0.03, element.userData.alpha)
+                end
+                element.props.visible = true
+
+                if parent.userData.groupName == commonData.hiddenGroupId then
+                    local groupElement = getMarkerParentElement(element.userData.data.groupName)
+                    if groupElement then
+                        parent.content.__nameIndex[element.name] = nil
+                        groupElement.content:add(element)
+                        table.remove(parent.content, i)
+                        goto continue
+                    end
+                end
+            end
+
+            ::continue::
+        end
+    end
+
+
     for i = #parentElement.content, 1, -1 do
         local elem = parentElement.content[i]
-        if not elem or not elem.props or not elem.userData or not elem.userData.data then goto continue end
+        if not elem or not elem.userData or not elem.userData.groupName then goto continue end
 
-        elem.userData.locked = false
-
-        ---@type proximityTool.activeMarker
-        local trackingData = elem.userData.data
-
-        if not trackingData.isValid then
-            table.remove(parentElement.content, i)
-            goto continue
-        end
-
-        ---@type proximityTool.activeMarkerData?
-        local topMarkerRecord = trackingData.topMarker
-        if not topMarkerRecord then goto continue end
-
-        local trackingPos
-
-        if topMarkerRecord.type == 1 and topMarkerRecord.objectId then
-            local trackerObjPositions = activeObjects.getObjectPositions(topMarkerRecord.objectId, player)
-            if not trackerObjPositions then
-                goto continue
-            end
-
-            table.sort(trackerObjPositions, function (a, b)
-                return (a.dif or math.huge) < (b.dif or math.huge)
-            end)
-
-            if #trackerObjPositions > 0 then
-                local posData = trackerObjPositions[1]
-                trackingPos = util.vector3(posData.x, posData.y, posData.z)
-            end
-
-        elseif topMarkerRecord.type == 2 and topMarkerRecord.object then
-            local objectRef = topMarkerRecord.object
-            local pos = activeObjects.getObjectPosition(objectRef.recordId, objectRef.id)
-            if not pos then goto continue end
-
-            trackingPos = pos
-
-        elseif topMarkerRecord.type == 3 and topMarkerRecord.position then
-            local posData = topMarkerRecord.position
-            trackingPos = util.vector3(posData.x, posData.y, posData.z) ---@diagnostic disable-line: need-check-nil
-
-        else
-            table.remove(parentElement.content, i)
-            goto continue
-        end
-
-
-        if not trackingPos then goto continue end
-
-        local distance = (playerPos - trackingPos):length()
-        local distance2D = math.sqrt((playerPos.x - trackingPos.x)^2 + (playerPos.y - trackingPos.y)^2)
-        local heightDiff = playerPos.z - trackingPos.z
-
-        elem.userData.distance = distance
-        elem.userData.distance2D = distance2D
-        elem.userData.heightDiff = heightDiff
-        elem.userData.alpha = trackingData.alpha
-
-        -- for ordering
-        local priorityByDistance = 0
-        if distance < 150 then
-            priorityByDistance = 200
-        elseif distance < 600 then
-            priorityByDistance = math.floor((500 - distance) / 50) * 10
-        elseif distance > 10000 then
-            priorityByDistance = -math.floor(distance / 10000) * 10
-        end
-
-        elem.userData.priority = trackingData.priority + priorityByDistance
-
-        local hide = (distance > trackingData.proximity) or (trackingData.alpha <= 0)
-        elem.userData.disabled = hide
-
-        local arrowImageIndex
-        local iconImage
-
-        if  distance2D < 200 then
-            if heightDiff > 200 then
-                iconImage = icons.arrowIcons_P[3]
-            elseif heightDiff < -200 then
-                iconImage = icons.arrowIcons_P[2]
-            else
-                iconImage = icons.arrowIcons_P[1]
-            end
-        else
-            local imageArr
-            if heightDiff > 200 then
-                imageArr = icons.arrowIcons_B
-            elseif heightDiff < -200 then
-                imageArr = icons.arrowIcons_A
-            else
-                imageArr = icons.arrowIcons
-            end
-
-            local angle = util.normalizeAngle(yaw - math.atan2(playerPos.x - trackingPos.x, playerPos.y - trackingPos.y) + math.pi * 1/16) ---@diagnostic disable-line: deprecated
-            arrowImageIndex = 1 + util.round((math.pi + angle) / (2 * math.pi) * 7)
-            iconImage = imageArr[arrowImageIndex]
-        end
-
-        local distanceIndex = elem.content[1].userData.distanceIndex
-        local directionIndex = elem.content[1].userData.directionIconIndex
-        elem.content[1].content[distanceIndex or 1].props.text = string.format("%.0fm", distance / 64 * 0.9144)
-        elem.content[1].content[directionIndex or 2].props.resource = iconImage
+        processGroup(getMarkerParentElement(elem.userData.groupName))
 
         ::continue::
     end
 
-    -- ordering markers by their priority
-    local orderData = {}
-    for i, element in ipairs(parentElement.content) do
-        local priority = element.userData.priority or 0
-        table.insert(orderData, {element = element, priority = priority})
-    end
-    table.sort(orderData, function (a, b)
-        return a.priority > b.priority
-    end)
-
-    for i = #parentElement.content, 1, -1 do
-        local element = parentElement.content[i]
-        if not element then goto continue end
-
-        local disabled = element.userData.disabled
-
-        if disabled then
-            if element.props.visible then
-                element.props.alpha = element.props.alpha - 0.03
-                if element.props.alpha <= 0 then
-                    element.userData.locked = true
-                    element.props.alpha = 0
-                    element.props.visible = false
-                    local el = element
-                    for j = i + 1, #parentElement.content do
-                        parentElement.content[j - 1] = parentElement.content[j]
-                        parentElement.content.__nameIndex[parentElement.content[j].name] = j - 1
-                    end
-                    parentElement.content[#parentElement.content] = el
-                    parentElement.content.__nameIndex[el.name] = #parentElement.content
-                end
-            end
-        else
-            local orderElemData = orderData[i]
-
-            if element.props.alpha <= 0 then
-                for j, el in ipairs(parentElement.content) do
-                    if el.props.alpha <= 0 then
-                        parentElement.content[i], parentElement.content[j] = el, element
-                        parentElement.content.__nameIndex[el.name], parentElement.content.__nameIndex[element.name] =
-                            parentElement.content.__nameIndex[element.name], parentElement.content.__nameIndex[el.name]
-                        goto nextAction
-                    end
-                end
-            end
-
-            if orderElemData then
-                local elem2 = orderElemData.element
-                local index = parentElement.content:indexOf(elem2)
-                if not index or index <= i or element.userData.priority == elem2.userData.priority or element.userData.disabled or elem2.userData.disabled then goto nextAction end
-
-                local alpha1 = element.props.alpha
-                if alpha1 > 0.5 then
-                    alpha1 = math.max(0, alpha1 - 0.05)
-                    element.props.alpha = alpha1
-                end
-
-                local alpha2 = elem2.props.alpha
-                if alpha2 > 0.5 then
-                    alpha2 = math.max(0, alpha2 - 0.05)
-                    elem2.props.alpha = alpha2
-                end
-
-                if alpha1 < 0.51 and alpha2 < 0.51 then
-                    parentElement.content.__nameIndex[element.name], parentElement.content.__nameIndex[elem2.name] =
-                        parentElement.content.__nameIndex[elem2.name], parentElement.content.__nameIndex[element.name]
-                    parentElement.content[index], parentElement.content[i] = element, elem2
-                end
-
-                goto continue
-            end
-
-            ::nextAction::
-
-            if element.props.alpha < element.userData.alpha then
-                element.props.alpha = math.min(element.props.alpha + 0.03, element.userData.alpha)
-            elseif element.props.alpha > element.userData.alpha then
-                element.props.alpha = math.max(element.props.alpha - 0.03, element.userData.alpha)
-            end
-            element.props.visible = true
-        end
-
-        ::continue::
-    end
 
     this.element:update()
 end

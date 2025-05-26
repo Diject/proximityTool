@@ -5,6 +5,9 @@ local this = {}
 
 this.worldCellLabel = "__world_cell__"
 
+this.defaultGroupId = "__default__"
+this.hiddenGroupId = "__hidden__"
+
 this.playerStorageId = "proximityTool:LocalStorage"
 
 this.settingStorageId = "proximityTool:Settings"

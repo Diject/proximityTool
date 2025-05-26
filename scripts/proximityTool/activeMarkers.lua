@@ -4,6 +4,7 @@ local log = require("scripts.proximityTool.log")
 local tableLib = require("scripts.proximityTool.utils.table")
 local getObject = require("scripts.proximityTool.utils.getObject")
 local uniqueId = require("scripts.proximityTool.uniqueId")
+local common = require("scripts.proximityTool.common")
 
 local mapData = require("scripts.proximityTool.data.mapDataHandler")
 local activeObjects = require("scripts.proximityTool.activeObjects")
@@ -14,6 +15,7 @@ local this = {}
 ---@field markerId string?
 ---@field markers table<string, proximityTool.activeMarkerData> by marker id
 ---@field topMarker proximityTool.activeMarkerData?
+---@field groupName string
 ---@field id string
 ---@field isValid boolean
 
@@ -152,6 +154,10 @@ function this.register(params)
         activeMarkerId = uniqueId.get()
     end
 
+    if params.groupName then
+        activeMarkerId = params.groupName..activeMarkerId
+    end
+
     local marker = this.data[activeMarkerId]
     if marker then
         marker:update()
@@ -201,6 +207,8 @@ function this.register(params)
         marker.isValid = true
         ---@type integer
         marker.type = activeMarkerData.type or 0
+
+        marker.groupName = params.groupName or common.defaultGroupId
 
         shouldCreateUIElement = true
     else
