@@ -770,10 +770,12 @@ function this.update(params)
 
                 ::nextAction::
 
-                if element.props.alpha < element.userData.alpha then
-                    element.props.alpha = math.min(element.props.alpha + 0.03, element.userData.alpha)
-                elseif element.props.alpha > element.userData.alpha then
-                    element.props.alpha = math.max(element.props.alpha - 0.03, element.userData.alpha)
+                if element.userData.alpha then
+                    if element.props.alpha < element.userData.alpha then
+                        element.props.alpha = math.min(element.props.alpha + 0.03, element.userData.alpha)
+                    elseif element.props.alpha > element.userData.alpha then
+                        element.props.alpha = math.max(element.props.alpha - 0.03, element.userData.alpha)
+                    end
                 end
                 element.props.visible = true
 
