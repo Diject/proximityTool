@@ -229,6 +229,8 @@ function this.registerMarker(activeMarker)
         end)
     end
 
+    local nameColorData = topRecord.record.nameColor
+    local nameColor = nameColorData and util.color.rgb(nameColorData[1] or 1, nameColorData[2] or 1, nameColorData[3] or 1) or defaultColor
 
     local mainLine = {
         {
@@ -284,7 +286,6 @@ function this.registerMarker(activeMarker)
             events = unitedEvents,
         },
         {
-            template = I.MWUI.templates.textNormal,
             type = ui.TYPE.Text,
             userData = {
                 data = activeMarker,
@@ -295,6 +296,7 @@ function this.registerMarker(activeMarker)
                 multiline = false,
                 wordWrap = false,
                 textAlignH = ui.ALIGNMENT.End,
+                textColor = nameColor,
             },
             events = unitedEvents,
         },
@@ -387,12 +389,11 @@ function this.registerMarker(activeMarker)
             end
 
             noteContent:add {
-                template = I.MWUI.templates.textNormal,
                 type = ui.TYPE.Text,
                 name = rDt.noteId,
                 props = {
                     text = tostring(rec.note):sub(1, 50),
-                    color = noteColor,
+                    textColor = noteColor,
                     textSize = 24,
                     multiline = false,
                     wordWrap = false,
