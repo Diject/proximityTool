@@ -742,7 +742,7 @@ function this.update(params)
                 if orderElemData then
                     local elem2 = orderElemData.element
                     local index = parent.content:indexOf(elem2)
-                    if not index or index <= i or element.userData.priority == elem2.userData.priority or
+                    if not index or index <= i or math.floor(element.userData.priority or 0) == math.floor(elem2.userData.priority or 0) or
                         element.userData.disabled or elem2.userData.disabled then
                             goto nextAction
                     end
