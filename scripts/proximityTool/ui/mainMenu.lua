@@ -84,7 +84,7 @@ end
 
 
 ---@param groupName string
----@param params {priority : number?}?
+---@param params {priority : number?, protected : boolean?}?
 local function createGroup(groupName, params)
     if not params then params = {} end
 
@@ -97,8 +97,10 @@ local function createGroup(groupName, params)
     if parentIndex then return end
 
     local groupNameText = groupName
+    local groupNameFontSize = 24
     if groupNameText == commonData.hiddenGroupId or groupNameText == commonData.defaultGroupId then
         groupNameText = ""
+        groupNameFontSize = 0
     end
 
     local uiData = {
@@ -107,11 +109,16 @@ local function createGroup(groupName, params)
             horizontal = false,
             autoSize = true,
             arrange = uiUtils.convertAlign(config.data.ui.align),
-            alpha = 1,
+            alpha = 0,
             visible = true,
         },
         userData = {
+            isGroupParent = true,
+            isProtected = params.protected,
             priority = params.priority or 0,
+            orderIndex = 0,
+            orderCounter = 0,
+            alpha = 1,
             groupName = groupName,
         },
         name = groupName,
@@ -121,7 +128,7 @@ local function createGroup(groupName, params)
                 type = ui.TYPE.Text,
                 props = {
                     text = groupNameText,
-                    textSize = 24,
+                    textSize = groupNameFontSize,
                     multiline = false,
                     wordWrap = false,
                     textAlignH = uiUtils.convertAlign(config.data.ui.align),
@@ -427,7 +434,7 @@ function this.registerMarker(activeMarker)
         props = {
             horizontal = false,
             arrange = uiUtils.convertAlign(config.data.ui.align),
-            alpha = 1,
+            alpha = 0,
             visible = true,
         },
         userData = {
@@ -437,16 +444,24 @@ function this.registerMarker(activeMarker)
         content = ui.content(content),
     }
 
+    local function updateInGroupIfExists(grName)
+        local grContent = (getMarkerParentElement(grName) or {}).content
+        if not grContent then return end
+
+        local grIndex = grContent:indexOf(elementId)
+        if grIndex then
+            grContent[grIndex] = uiData
+            return grIndex
+        end
+    end
+
     local groupName = activeMarker.groupName
-    createGroup(groupName)
 
-    local parentContent = (getMarkerParentElement(groupName) or {}).content
-    if not parentContent then return end
+    if not updateInGroupIfExists(groupName) and not updateInGroupIfExists(commonData.hiddenGroupId) then
+        createGroup(groupName)
+        local parentContent = (getMarkerParentElement(groupName) or {}).content
+        if not parentContent then return end
 
-    local parentIndex = parentContent:indexOf(elementId)
-    if parentIndex then
-        parentContent[parentIndex] = uiData
-    else
         parentContent:add(uiData)
     end
 end
@@ -668,7 +683,7 @@ function this.create(params)
     mainMenuSafeContainer.element = this.element
 
     createGroup(commonData.defaultGroupId)
-    createGroup(commonData.hiddenGroupId, {priority = -math.huge})
+    createGroup(commonData.hiddenGroupId, {priority = -math.huge, protected = true})
 
     for _, activeMarker in pairs(activeMarkers.data) do
         this.registerMarker(activeMarker)
@@ -691,10 +706,100 @@ function this.update(params)
     local pitch, yaw  = player.rotation:getAnglesXZ()
 
 
-    local function processGroup(parent)
-        if not parent then return end
+    local function orderAndOpacity(parent)
+        local sortedData = {}
+        for i, element in ipairs(parent.content) do
+            local priority = element.userData.priority or 0
+            table.insert(sortedData, {element = element, priority = priority})
+        end
+        table.sort(sortedData, function (a, b)
+            return a.priority > b.priority
+        end)
+
         for i = #parent.content, 1, -1 do
-            local elem = parent.content[i]
+            local element = parent.content[i]
+            if not element or not element.userData or not element.userData then goto continue end
+
+            local disabled = element.userData.disabled
+
+            if disabled then
+                if element.props.visible then
+                    element.props.alpha = element.props.alpha - 0.03
+                    if element.props.alpha <= 0 then
+                        element.userData.locked = true
+                        element.props.alpha = 0
+                        element.props.visible = false
+
+                        uiUtils.removeFromContent(parent.content, i)
+                        hiddenGroupElement.content:add(element)
+                        goto continue
+                    end
+                end
+            else
+                local orderElemData = sortedData[i]
+
+                if orderElemData then
+                    local elem2 = orderElemData.element
+                    local index = parent.content:indexOf(elem2)
+                    if not index or index <= i or element.userData.priority == elem2.userData.priority or
+                        element.userData.disabled or elem2.userData.disabled then
+                            goto nextAction
+                    end
+
+                    local alpha1 = element.props.alpha
+                    if alpha1 > 0.5 then
+                        alpha1 = math.max(0, alpha1 - 0.05)
+                        element.props.alpha = alpha1
+                    end
+
+                    local alpha2 = elem2.props.alpha
+                    if alpha2 > 0.5 then
+                        alpha2 = math.max(0, alpha2 - 0.05)
+                        elem2.props.alpha = alpha2
+                    end
+
+                    if alpha1 < 0.51 and alpha2 < 0.51 then
+                        parent.content.__nameIndex[element.name], parent.content.__nameIndex[elem2.name] =
+                            parent.content.__nameIndex[elem2.name], parent.content.__nameIndex[element.name]
+                        parent.content[index], parent.content[i] = element, elem2
+                    end
+
+                    goto continue
+                end
+
+                ::nextAction::
+
+                if element.props.alpha < element.userData.alpha then
+                    element.props.alpha = math.min(element.props.alpha + 0.03, element.userData.alpha)
+                elseif element.props.alpha > element.userData.alpha then
+                    element.props.alpha = math.max(element.props.alpha - 0.03, element.userData.alpha)
+                end
+                element.props.visible = true
+
+                if parent.userData and parent.userData.groupName and parent.userData.groupName == commonData.hiddenGroupId then
+                    local groupElement = getMarkerParentElement(element.userData.data.groupName)
+                    if not groupElement then
+                        createGroup(element.userData.data.groupName)
+                        groupElement = getMarkerParentElement(element.userData.data.groupName)
+                    end
+
+                    if groupElement then
+                        uiUtils.removeFromContent(parent.content, i)
+                        groupElement.content:add(element)
+                        goto continue
+                    end
+                end
+            end
+
+            ::continue::
+        end
+    end
+
+
+    local function processGroup(contentOwner, parent)
+        if not contentOwner then return end
+        for i = #contentOwner.content, 1, -1 do
+            local elem = contentOwner.content[i]
             if not elem or not elem.props or not elem.userData or not elem.userData.data then goto continue end
 
             elem.userData.locked = false
@@ -703,7 +808,7 @@ function this.update(params)
             local trackingData = elem.userData.data
 
             if not trackingData.isValid then
-                table.remove(parent.content, i)
+                uiUtils.removeFromContent(contentOwner.content, i)
                 goto continue
             end
 
@@ -740,7 +845,7 @@ function this.update(params)
                 trackingPos = util.vector3(posData.x, posData.y, posData.z) ---@diagnostic disable-line: need-check-nil
 
             else
-                table.remove(parent.content, i)
+                uiUtils.removeFromContent(contentOwner.content, i)
                 goto continue
             end
 
@@ -767,6 +872,9 @@ function this.update(params)
             end
 
             elem.userData.priority = trackingData.priority + priorityByDistance
+            if parent and not parent.userData.isProtected then
+                parent.userData.priority = math.max(elem.userData.priority, parent.userData.priority)
+            end
 
             local hide = (distance > trackingData.proximity) or (trackingData.alpha <= 0)
             elem.userData.disabled = hide
@@ -805,87 +913,7 @@ function this.update(params)
             ::continue::
         end
 
-        -- ordering markers by their priority
-        local orderData = {}
-        for i, element in ipairs(parent.content) do
-            local priority = element.userData.priority or 0
-            table.insert(orderData, {element = element, priority = priority})
-        end
-        table.sort(orderData, function (a, b)
-            return a.priority > b.priority
-        end)
-
-        for i = #parent.content, 1, -1 do
-            local element = parent.content[i]
-            if not element or not element.userData or not element.userData.data then goto continue end
-
-            local disabled = element.userData.disabled
-
-            if disabled then
-                if element.props.visible then
-                    element.props.alpha = element.props.alpha - 0.03
-                    if element.props.alpha <= 0 then
-                        element.userData.locked = true
-                        element.props.alpha = 0
-                        element.props.visible = false
-
-                        parent.content.__nameIndex[element.name] = nil
-                        table.remove(parent.content, i)
-                        hiddenGroupElement.content:add(element)
-                        goto continue
-                    end
-                end
-            else
-                local orderElemData = orderData[i]
-
-                if orderElemData then
-                    local elem2 = orderElemData.element
-                    local index = parent.content:indexOf(elem2)
-                    if not index or index <= i or element.userData.priority == elem2.userData.priority or element.userData.disabled or elem2.userData.disabled then goto nextAction end
-
-                    local alpha1 = element.props.alpha
-                    if alpha1 > 0.5 then
-                        alpha1 = math.max(0, alpha1 - 0.05)
-                        element.props.alpha = alpha1
-                    end
-
-                    local alpha2 = elem2.props.alpha
-                    if alpha2 > 0.5 then
-                        alpha2 = math.max(0, alpha2 - 0.05)
-                        elem2.props.alpha = alpha2
-                    end
-
-                    if alpha1 < 0.51 and alpha2 < 0.51 then
-                        parent.content.__nameIndex[element.name], parent.content.__nameIndex[elem2.name] =
-                            parent.content.__nameIndex[elem2.name], parent.content.__nameIndex[element.name]
-                        parent.content[index], parent.content[i] = element, elem2
-                    end
-
-                    goto continue
-                end
-
-                ::nextAction::
-
-                if element.props.alpha < element.userData.alpha then
-                    element.props.alpha = math.min(element.props.alpha + 0.03, element.userData.alpha)
-                elseif element.props.alpha > element.userData.alpha then
-                    element.props.alpha = math.max(element.props.alpha - 0.03, element.userData.alpha)
-                end
-                element.props.visible = true
-
-                if parent.userData.groupName == commonData.hiddenGroupId then
-                    local groupElement = getMarkerParentElement(element.userData.data.groupName)
-                    if groupElement then
-                        parent.content.__nameIndex[element.name] = nil
-                        groupElement.content:add(element)
-                        table.remove(parent.content, i)
-                        goto continue
-                    end
-                end
-            end
-
-            ::continue::
-        end
+        orderAndOpacity(contentOwner)
     end
 
 
@@ -893,11 +921,24 @@ function this.update(params)
         local elem = parentElement.content[i]
         if not elem or not elem.userData or not elem.userData.groupName then goto continue end
 
-        processGroup(getMarkerParentElement(elem.userData.groupName))
+        if not elem.userData.isProtected then
+            elem.userData.priority = 0
+        end
+
+        local contentElement = getMarkerParentElement(elem.userData.groupName)
+        if not contentElement then goto continue end
+
+        if not elem.userData.isProtected and #contentElement.content == 0 then
+            uiUtils.removeFromContent(parentElement.content, i)
+            goto continue
+        end
+
+        processGroup(contentElement, elem)
 
         ::continue::
     end
 
+    orderAndOpacity(parentElement)
 
     this.element:update()
 end
