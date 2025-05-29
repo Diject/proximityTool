@@ -55,7 +55,7 @@ end
 function objectHandler:positions(refObject, itemId)
     local ret = {}
     for id, object in pairs(self.objects) do
-        if object:isValid() then
+        if object:isValid() and object.enabled and object.cell then
             if not itemId or inventoryLib.countOf(object, itemId, true, 1) > 0 then
                 table.insert(ret, {
                     x = object.position.x,

@@ -817,13 +817,17 @@ function this.update(params)
 
             ---@type proximityTool.activeMarkerData?
             local topMarkerRecord = trackingData.topMarker
-            if not topMarkerRecord then goto continue end
+            if not topMarkerRecord then
+                uiUtils.removeFromContent(contentOwner.content, i)
+                goto continue
+            end
 
             local trackingPos
 
             if topMarkerRecord.type == 1 and topMarkerRecord.objectId then
                 local trackerObjPositions = activeObjects.getObjectPositions(topMarkerRecord.objectId, player, topMarkerRecord.marker.itemId)
                 if not trackerObjPositions then
+                    uiUtils.removeFromContent(contentOwner.content, i)
                     goto continue
                 end
 
@@ -839,7 +843,10 @@ function this.update(params)
             elseif topMarkerRecord.type == 2 and topMarkerRecord.object then
                 local objectRef = topMarkerRecord.object
                 local pos = activeObjects.getObjectPosition(objectRef.recordId, objectRef.id)
-                if not pos then goto continue end
+                if not pos then
+                    uiUtils.removeFromContent(contentOwner.content, i)
+                    goto continue
+                end
 
                 trackingPos = pos
 
@@ -850,6 +857,7 @@ function this.update(params)
             elseif topMarkerRecord.type == 4 and topMarkerRecord.objectIds then
                 local trackerObjPositions = activeObjects.getObjectPositionsByGroupName(topMarkerRecord.id, player, topMarkerRecord.marker.itemId)
                 if not trackerObjPositions then
+                    uiUtils.removeFromContent(contentOwner.content, i)
                     goto continue
                 end
 
@@ -868,7 +876,10 @@ function this.update(params)
             end
 
 
-            if not trackingPos then goto continue end
+            if not trackingPos then
+                uiUtils.removeFromContent(contentOwner.content, i)
+                goto continue
+            end
 
             local distance = (playerPos - trackingPos):length()
             local distance2D = math.sqrt((playerPos.x - trackingPos.x)^2 + (playerPos.y - trackingPos.y)^2)

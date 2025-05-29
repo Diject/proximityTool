@@ -164,7 +164,7 @@ local function registerMarkersForCell()
         registerMarker(data)
     end
 
-    async:newUnsavableSimulationTimer(0.0001, function () -- 1 frame delay
+    async:newUnsavableSimulationTimer(1, function ()
         activeMarkers.update()
     end)
 end
