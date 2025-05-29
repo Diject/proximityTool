@@ -1,13 +1,23 @@
+local tableLib = require("scripts.proximityTool.utils.table")
+
 ---@diagnostic disable: undefined-doc-name
 local this = {}
 
 ---@type table<string, proximityTool.activeObject.objectHandler> by record id
 this.data = {}
 
+---@type table<string, table<string, string>>
+this.groupIdsByObjectRecordId = {}
+
+---@type table<string, table<string, string>>
+this.objectRecordIdsByGroupId = {}
+
 
 ---@class proximityTool.activeObject.objectHandler
 local objectHandler = {}
 objectHandler.__index = objectHandler
+---@type table<string, string>
+objectHandler.groups = {}
 
 function objectHandler:add(object)
     if not self.objects[object.id] then
@@ -75,6 +85,12 @@ function this.add(object)
 
         this.data[object.recordId] = objHandler
     end
+
+    local groups = this.groupIdsByObjectRecordId[object.recordId]
+    if groups then
+        objHandler.groups = groups
+    end
+
     objHandler:add(object)
 end
 
@@ -96,6 +112,27 @@ function this.getObjectPositions(recordId, refToCompare)
     if not objHandler then return end
 
     return objHandler:positions(refToCompare)
+end
+
+
+---@param groupName string
+---@return {x: number, y: number, z: number, dif : number?}[]?
+function this.getObjectPositionsByGroupName(groupName, refToCompare)
+    local found = false
+    local res = {}
+    for _, recordId in pairs(this.objectRecordIdsByGroupId[groupName] or {}) do
+        local objHandler = this.data[recordId]
+        if not objHandler then goto continue end
+
+        local positions = objHandler:positions(refToCompare)
+        tableLib.copy(positions, res)
+
+        found = true
+
+        ::continue::
+    end
+
+    return found and res or nil
 end
 
 
@@ -121,6 +158,18 @@ function this.isContainValidRecordId(recordId)
 end
 
 
+---@param recordIds string[]
+---@return boolean
+function this.isContainValidRecordIds(recordIds)
+    for _, id in pairs(recordIds or {}) do
+        local recordData = this.data[id]
+        if recordData and recordData.count ~= 0 then return true end
+    end
+
+    return false
+end
+
+
 ---@param recordId string
 ---@param refId string
 ---@return boolean
@@ -129,6 +178,56 @@ function this.isContainRefId(recordId, refId)
     if not data then return false end
     local ref = data:get(refId)
     return ref ~= nil
+end
+
+
+---@param name string
+---@return boolean
+function this.isContainGroup(name)
+    local nameData = this.objectRecordIdsByGroupId[name]
+    return nameData ~= nil and (tableLib.count(nameData) > 0)
+end
+
+
+---@param groupName string
+---@param objects table<string, string>
+function this.registerGroup(groupName, objects)
+    if this.objectRecordIdsByGroupId[groupName] then return end
+    this.objectRecordIdsByGroupId[groupName] = objects
+    for _, id in pairs(objects) do
+        this.groupIdsByObjectRecordId[id] = this.groupIdsByObjectRecordId[id] or {}
+        this.groupIdsByObjectRecordId[id][groupName] = groupName
+    end
+end
+
+
+---@param groupName string
+function this.unregisterGroup(groupName)
+    local objects = this.objectRecordIdsByGroupId[groupName]
+    if objects then return end
+
+    for id, _ in pairs(objects) do
+        if this.groupIdsByObjectRecordId[id] then
+            this.groupIdsByObjectRecordId[id][groupName] = nil
+        end
+        if this.data[id] then
+            this.data[id].groups[groupName] = nil
+        end
+    end
+
+    this.objectRecordIdsByGroupId[groupName] = nil
+end
+
+
+function this.updateGroups()
+    for recId, dt in pairs(this.data) do
+        local groups = this.groupIdsByObjectRecordId[recId]
+        if not groups then goto continue end
+
+        dt.groups = groups
+
+        ::continue::
+    end
 end
 
 

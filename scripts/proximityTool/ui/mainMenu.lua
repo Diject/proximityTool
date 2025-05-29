@@ -847,6 +847,21 @@ function this.update(params)
                 local posData = topMarkerRecord.position
                 trackingPos = util.vector3(posData.x, posData.y, posData.z) ---@diagnostic disable-line: need-check-nil
 
+            elseif topMarkerRecord.type == 4 and topMarkerRecord.objectIds then
+                local trackerObjPositions = activeObjects.getObjectPositionsByGroupName(topMarkerRecord.id, player)
+                if not trackerObjPositions then
+                    goto continue
+                end
+
+                table.sort(trackerObjPositions, function (a, b)
+                    return (a.dif or math.huge) < (b.dif or math.huge)
+                end)
+
+                if #trackerObjPositions > 0 then
+                    local posData = trackerObjPositions[1]
+                    trackingPos = util.vector3(posData.x, posData.y, posData.z)
+                end
+
             else
                 uiUtils.removeFromContent(contentOwner.content, i)
                 goto continue

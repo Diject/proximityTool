@@ -109,6 +109,8 @@ function activeMarker:update()
             self.markers[id] = nil
         elseif marker.objectId and not activeObjects.isContainValidRecordId(marker.objectId) then
             self.markers[id] = nil
+        elseif marker.objects and not activeObjects.isContainValidRecordIds(marker.objects) then
+            self.markers[id] = nil
         elseif marker.object and not marker.object:isValid() then
             self.markers[id] = nil
         elseif marker.shortTerm and data.playerExteriorFlag ~= player.cell.isExterior then
@@ -137,7 +139,7 @@ end
 ---@return proximityTool.activeMarker?
 ---@return boolean? should create ui element for this marker data
 function this.register(params)
-    if not params or (not (params.position and params.cell) and not params.objectId and not params.object) then return end
+    if not params or (not (params.position and params.cell) and not params.objectId and not params.object and not params.objects) then return end
 
     local record = mapData.getRecord(params.recordId)
     if not record or record.invalid then return end
@@ -149,7 +151,10 @@ function this.register(params)
         activeMarkerId = params.objectId
     elseif params.object then
         activeMarkerId = params.object.id
+    elseif params.objects then
+        activeMarkerId = params.id
     end
+
     if not activeMarkerId then
         activeMarkerId = uniqueId.get()
     end
@@ -188,6 +193,9 @@ function this.register(params)
         activeMarkerData.type = 3
         activeMarkerData.position = params.position
         activeMarkerData.cell = params.cell
+    elseif params.objects then
+        activeMarkerData.type = 4
+        activeMarkerData.objectIds = params.objects
     end
 
     activeMarkerData.playerExteriorFlag = player.cell.isExterior
@@ -207,6 +215,10 @@ function this.register(params)
         marker.isValid = true
         ---@type integer
         marker.type = activeMarkerData.type or 0
+
+        if marker.type == 4 then
+            activeObjects.registerGroup(markerId, params.objects)
+        end
 
         marker.groupName = params.groupName or common.defaultGroupId
 
@@ -235,6 +247,11 @@ function this.remove(recordId)
     local marker = this.data[recordId]
     if marker then
         marker.isValid = false
+
+        if marker.topMarker and marker.topMarker.objectIds then
+            activeObjects.unregisterGroup(recordId)
+        end
+
         this.data[recordId] = nil
     end
 end

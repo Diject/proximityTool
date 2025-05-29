@@ -36,12 +36,13 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field isExterior boolean
 
 ---@class proximityTool.activeMarkerData
----@field type integer 1 - object id, 2 - game object, 3 - position
+---@field type integer 1 - object id, 2 - game object, 3 - position, 4 - group of objects
 ---@field marker proximityTool.markerData
 ---@field id string?
 ---@field recordId string?
 ---@field record proximityTool.markerRecord
 ---@field objectId string?
+---@field objectIds string[]?
 ---@field object any?
 ---@field name string?
 ---@field proximity number?
@@ -62,6 +63,7 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field cell proximityTool.cellData?
 ---@field objectId string?
 ---@field object any?
+---@field objects string[]?
 ---@field temporary boolean? if true, this marker will not be saved to the save file
 ---@field shortTerm boolean? if true, this marker will be deleted after the cell has changed
 ---@field invalid boolean?
@@ -143,6 +145,8 @@ local function registerMarker(markerData)
         return
     elseif markerData.object and not activeObjects.isContainRefId(markerData.object.recordId, markerData.object.id) then
         return
+    elseif markerData.objects and not activeObjects.isContainValidRecordIds(markerData.objects) then
+        return
     end
 
     local marker = activeMarkers.register(markerData)
@@ -157,7 +161,10 @@ local function registerMarkersForCell()
     for id, data in mapData.iterMarkerGroup(cellId) do
         registerMarker(data)
     end
-    activeMarkers.update()
+
+    async:newUnsavableSimulationTimer(0.0001, function () -- 1 frame delay
+        activeMarkers.update()
+    end)
 end
 
 
@@ -166,33 +173,44 @@ end
 ---@return string? groupId
 local function addMarker(data)
     if not data then return end
-    if not data.recordId or (not (data.position and data.cell) and not data.objectId and not data.object) then return end
+    if not data.recordId or (not (data.position and data.cell) and not data.objectId and not data.object and not data.objects) then return end
 
     ---@type proximityTool.markerData
     local markerData = tableLib.deepcopy(data)
 
-    local groupId = common.worldCellLabel
-    if markerData.cell then
-        local c = markerData.cell
-        if not c.isExterior then ---@diagnostic disable-line: need-check-nil
-            groupId = c.id ---@diagnostic disable-line: need-check-nil
+    if not markerData.objects then
+        local groupId = common.worldCellLabel
+
+        if markerData.cell then
+            local c = markerData.cell
+            if not c.isExterior then ---@diagnostic disable-line: need-check-nil
+                groupId = c.id ---@diagnostic disable-line: need-check-nil
+            end
+            markerData.cell = {gridX = c.gridX, gridY = c.gridY, id = c.id, isExterior = c.isExterior} ---@diagnostic disable-line: need-check-nil
         end
-        markerData.cell = {gridX = c.gridX, gridY = c.gridY, id = c.id, isExterior = c.isExterior} ---@diagnostic disable-line: need-check-nil
+
+        if markerData.objectId then
+            groupId = markerData.objectId
+        elseif markerData.position then
+            local p = markerData.position
+            markerData.position = {x = p.x, y = p.y, z = p.z} ---@diagnostic disable-line: need-check-nil
+        elseif markerData.object then
+            groupId = markerData.object.id
+        end
+
+        markerData.id = uniqueId.get()
+        markerData.groupId = groupId
+
+        mapData.addMarker(markerData.id, markerData.groupId, markerData)
+
+    else
+        markerData.id = uniqueId.get()
+        for _, objId in pairs(markerData.objects) do
+            local dt = tableLib.deepcopy(markerData)
+            dt.groupId = objId
+            mapData.addMarker(markerData.id, dt.groupId, dt)
+        end
     end
-
-    if markerData.objectId then
-        groupId = markerData.objectId
-    elseif markerData.position then
-        local p = markerData.position
-        markerData.position = {x = p.x, y = p.y, z = p.z} ---@diagnostic disable-line: need-check-nil
-    elseif markerData.object then
-        groupId = markerData.object.id
-    end
-
-    markerData.id = uniqueId.get()
-    markerData.groupId = groupId
-
-    mapData.addMarker(markerData.id, markerData.groupId, markerData)
 
     registerMarker(markerData)
 
