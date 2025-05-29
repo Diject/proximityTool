@@ -139,9 +139,12 @@ end
 ---@return proximityTool.activeMarker?
 ---@return boolean? should create ui element for this marker data
 function this.register(params)
-    if not params or (not (params.position and params.cell) and not params.objectId and not params.object and not params.objects) then return end
+    if not params then return end
+    if not params.record then return end
+    if not (params.position and params.cell) and not params.objectId and not params.object and not params.objects then return end
 
-    local record = mapData.getRecord(params.recordId)
+    ---@diagnostic disable-next-line: param-type-mismatch
+    local record = type(params.record) == "string" and mapData.getRecord(params.record) or params.record
     if not record or record.invalid then return end
 
     local activeMarkerId
@@ -175,7 +178,7 @@ function this.register(params)
 
     activeMarkerData.id = markerId
     activeMarkerData.marker = params
-    activeMarkerData.record = record
+    activeMarkerData.record = record ---@diagnostic disable-line: assign-type-mismatch
     activeMarkerData.name = record.name or "???"
     record.priority = record.priority or 0
 

@@ -41,10 +41,12 @@ function this.save()
 
     for groupId, cellData in pairs(markers) do
         for id, data in pairs(cellData) do
-            if not records[data.recordId] or data.temporary or data.shortTerm or data.object or data.invalid then
+            if not data.record or
+                    (type(data.record) == "string" and not records[data.record]) or
+                    data.temporary or data.shortTerm or data.object or data.invalid then
                 cellData[id] = nil
             else
-                foundRecordIds[data.recordId] = true
+                foundRecordIds[data.record] = true
             end
         end
     end

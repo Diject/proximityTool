@@ -55,7 +55,7 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field isValid boolean?
 
 ---@class proximityTool.markerData
----@field recordId string
+---@field record proximityTool.markerRecord|string
 ---@field id string?
 ---@field groupId string?
 ---@field groupName string?
@@ -127,6 +127,7 @@ end))
 ---@param params proximityTool.markerRecord
 ---@return string?
 local function addRecord(params)
+    ---@type proximityTool.markerRecord
     local record = tableLib.deepcopy(params)
     record.id = uniqueId.get()
     mapData.addRecord(record.id, params)
@@ -174,7 +175,7 @@ end
 ---@return string? groupId
 local function addMarker(data)
     if not data then return end
-    if not data.recordId or (not (data.position and data.cell) and not data.objectId and not data.object and not data.objects) then return end
+    if not data.record or (not (data.position and data.cell) and not data.objectId and not data.object and not data.objects) then return end
 
     ---@type proximityTool.markerData
     local markerData = tableLib.deepcopy(data)
@@ -252,8 +253,9 @@ return {
         addRecord = addRecord,
         update = updateMarkers,
         updateRecord = updateRecord,
-        registerEvent = function (eventId, recordId, data)
-            local record = mapData.getRecord(recordId)
+        --TODO chage event sys
+        registerEvent = function (eventId, id, groupId, data)
+            local record = mapData.getRecord(id)
             if not record then return end
             if not record.events then record.events = {} end
 
