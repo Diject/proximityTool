@@ -64,6 +64,7 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field objectId string?
 ---@field object any?
 ---@field objects string[]?
+---@field itemId string?
 ---@field temporary boolean? if true, this marker will not be saved to the save file
 ---@field shortTerm boolean? if true, this marker will be deleted after the cell has changed
 ---@field invalid boolean?

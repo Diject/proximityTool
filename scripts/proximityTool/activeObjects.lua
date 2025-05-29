@@ -1,4 +1,5 @@
 local tableLib = require("scripts.proximityTool.utils.table")
+local inventoryLib = require("scripts.proximityTool.utils.inventory")
 
 ---@diagnostic disable: undefined-doc-name
 local this = {}
@@ -51,16 +52,18 @@ local function calc2DDistance(obj1, obj2)
 end
 
 ---@return {x: number, y: number, z: number, dif : number?}[]
-function objectHandler:positions(refObject)
+function objectHandler:positions(refObject, itemId)
     local ret = {}
     for id, object in pairs(self.objects) do
         if object:isValid() then
-            table.insert(ret, {
-                x = object.position.x,
-                y = object.position.y,
-                z = object.position.z,
-                dif = refObject and calc2DDistance(refObject, object)
-            })
+            if not itemId or inventoryLib.countOf(object, itemId, true, 1) > 0 then
+                table.insert(ret, {
+                    x = object.position.x,
+                    y = object.position.y,
+                    z = object.position.z,
+                    dif = refObject and calc2DDistance(refObject, object)
+                })
+            end
         else
             self.objects[id] = nil
             self.count = self.count - 1
@@ -107,24 +110,24 @@ end
 
 ---@param recordId string
 ---@return {x: number, y: number, z: number, dif : number?}[]?
-function this.getObjectPositions(recordId, refToCompare)
+function this.getObjectPositions(recordId, refToCompare, itemId)
     local objHandler = this.data[recordId]
     if not objHandler then return end
 
-    return objHandler:positions(refToCompare)
+    return objHandler:positions(refToCompare, itemId)
 end
 
 
 ---@param groupName string
 ---@return {x: number, y: number, z: number, dif : number?}[]?
-function this.getObjectPositionsByGroupName(groupName, refToCompare)
+function this.getObjectPositionsByGroupName(groupName, refToCompare, itemId)
     local found = false
     local res = {}
     for _, recordId in pairs(this.objectRecordIdsByGroupId[groupName] or {}) do
         local objHandler = this.data[recordId]
         if not objHandler then goto continue end
 
-        local positions = objHandler:positions(refToCompare)
+        local positions = objHandler:positions(refToCompare, itemId)
         tableLib.copy(positions, res)
 
         found = true

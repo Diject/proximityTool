@@ -822,7 +822,7 @@ function this.update(params)
             local trackingPos
 
             if topMarkerRecord.type == 1 and topMarkerRecord.objectId then
-                local trackerObjPositions = activeObjects.getObjectPositions(topMarkerRecord.objectId, player)
+                local trackerObjPositions = activeObjects.getObjectPositions(topMarkerRecord.objectId, player, topMarkerRecord.marker.itemId)
                 if not trackerObjPositions then
                     goto continue
                 end
@@ -848,7 +848,7 @@ function this.update(params)
                 trackingPos = util.vector3(posData.x, posData.y, posData.z) ---@diagnostic disable-line: need-check-nil
 
             elseif topMarkerRecord.type == 4 and topMarkerRecord.objectIds then
-                local trackerObjPositions = activeObjects.getObjectPositionsByGroupName(topMarkerRecord.id, player)
+                local trackerObjPositions = activeObjects.getObjectPositionsByGroupName(topMarkerRecord.id, player, topMarkerRecord.marker.itemId)
                 if not trackerObjPositions then
                     goto continue
                 end
