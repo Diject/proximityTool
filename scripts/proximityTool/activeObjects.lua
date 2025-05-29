@@ -128,7 +128,7 @@ function this.getObjectPositionsByGroupName(groupName, refToCompare, itemId)
         if not objHandler then goto continue end
 
         local positions = objHandler:positions(refToCompare, itemId)
-        tableLib.copy(positions, res)
+        tableLib.add(positions, res)
 
         found = true
 
