@@ -16,6 +16,7 @@ local this = {}
 ---@field markers table<string, proximityTool.activeMarkerData> by marker id
 ---@field topMarker proximityTool.activeMarkerData?
 ---@field groupName string
+---@field hidden boolean
 ---@field id string
 ---@field isValid boolean
 
@@ -97,6 +98,19 @@ function activeMarker:calcAlphaValue()
     return res
 end
 
+function activeMarker:calcHiddenFlag()
+    local res = true
+    for _, rec in pairs(self.markers) do
+        if rec.record.hidden ~= true then
+            res = false
+            break;
+        end
+    end
+
+    self.hidden = res
+    return res
+end
+
 function activeMarker:update()
     local foundValid = false
     for id, data in pairs(self.markers) do
@@ -126,6 +140,7 @@ function activeMarker:update()
         self.proximity = self:calcProximityValue()
         self.priority = self:calcPriorityValue()
         self.alpha = self:calcAlphaValue()
+        self.hidden = self:calcHiddenFlag()
         self.isValid = true
     else
         self.isValid = false
@@ -219,6 +234,8 @@ function this.register(params)
         ---@type integer
         marker.type = activeMarkerData.type or 0
 
+        marker.hidden = record.hidden or false
+
         if marker.type == 4 then
             activeObjects.registerGroup(markerId, params.objects)
         end
@@ -238,6 +255,8 @@ function this.register(params)
     marker.priority = marker:calcPriorityValue()
     ---@type number
     marker.alpha = marker:calcAlphaValue()
+
+    marker.hidden = marker:calcHiddenFlag()
 
 
     this.data[activeMarkerId] = marker

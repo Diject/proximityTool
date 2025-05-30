@@ -905,7 +905,7 @@ function this.update(params)
                 parent.userData.priority = math.max(elem.userData.priority, parent.userData.priority)
             end
 
-            local hide = (distance > trackingData.proximity) or (trackingData.alpha <= 0)
+            local hide = (distance > trackingData.proximity) or (trackingData.alpha <= 0) or trackingData.hidden
             elem.userData.disabled = hide
 
             local arrowImageIndex

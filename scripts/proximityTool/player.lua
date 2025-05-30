@@ -84,6 +84,7 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field noteColor number[]?
 ---@field icon string?
 ---@field iconColor number[]?
+---@field hidden boolean?
 ---@field alpha number?
 ---@field proximity number?
 ---@field priority number?
@@ -239,6 +240,29 @@ local function updateRecord(id, data)
 end
 
 
+---@param id string
+---@param groupId string?
+---@param val boolean
+---@return boolean?
+local function setVisibility(id, groupId, val)
+    local record
+    if groupId then
+        local markerData = mapData.getMarker(id, groupId)
+        if not markerData then return end
+        if type(markerData.record) == "string" then return end
+
+        record = markerData.record
+    else
+        record = mapData.getRecord(id)
+    end
+
+    if not record then return end
+
+    record.hidden = not val
+    return true
+end
+
+
 local function updateMarkers()
     activeMarkers.update()
 end
@@ -253,6 +277,7 @@ return {
         addRecord = addRecord,
         update = updateMarkers,
         updateRecord = updateRecord,
+        setVisibility = setVisibility,
         --TODO chage event sys
         registerEvent = function (eventId, id, groupId, data)
             local record = mapData.getRecord(id)
