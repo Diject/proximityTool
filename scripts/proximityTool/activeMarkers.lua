@@ -158,9 +158,18 @@ function this.register(params)
     if not params.record then return end
     if not (params.position and params.cell) and not params.objectId and not params.object and not params.objects then return end
 
-    ---@diagnostic disable-next-line: param-type-mismatch
-    local record = type(params.record) == "string" and mapData.getRecord(params.record) or params.record
-    if not record or record.invalid then return end
+    local record
+    if type(params.record) == "string" then
+        ---@diagnostic disable-next-line: param-type-mismatch, cast-local-type
+        record = mapData.getRecord(params.record)
+    else
+        record = params.record
+    end
+
+    if not record or record.invalid then
+        params.invalid = true
+        return
+    end
 
     local activeMarkerId
     local markerId = params.id or uniqueId.get()
