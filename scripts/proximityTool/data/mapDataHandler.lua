@@ -1,4 +1,3 @@
-local storage = require('openmw.storage')
 local common = require("scripts.proximityTool.common")
 local tableLib = require("scripts.proximityTool.utils.table")
 
@@ -15,15 +14,16 @@ this.records = {}
 this.version = 0
 
 
-local storageSection = storage.playerSection(common.playerStorageId)
-if storageSection then
-    this.markers = storageSection:getCopy(common.mapMarkersKey) or this.markers
-    this.records = storageSection:getCopy(common.mapRecordsKey) or this.records
-    this.version = storageSection:getCopy(common.mapDataVersion) or this.version
+
+function this.load(dataTable)
+    if not dataTable then return end
+    this.markers = dataTable[common.mapMarkersKey] or {}
+    this.records = dataTable[common.mapRecordsKey] or {}
+    this.version = dataTable[common.mapDataVersionKey] or version
 end
 
 
-function this.save()
+function this.save(dataTable)
     ---@type table<string, proximityTool.markerRecord>
     local records = tableLib.deepcopy(this.records)
     for id, data in pairs(records) do
@@ -57,9 +57,9 @@ function this.save()
         end
     end
 
-    storageSection:set(common.mapMarkersKey, markers)
-    storageSection:set(common.mapRecordsKey, records)
-    storageSection:set(common.mapDataVersion, version)
+    dataTable[common.mapMarkersKey] = markers
+    dataTable[common.mapRecordsKey] = records
+    dataTable[common.mapDataVersionKey] = version
 end
 
 

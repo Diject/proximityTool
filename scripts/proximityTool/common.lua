@@ -20,7 +20,7 @@ this.mapMarkersKey = "MapMarkers"
 
 this.mapRecordsKey = "MapRecords"
 
-this.mapDataVersion = "MapVersion"
+this.mapDataVersionKey = "MapVersion"
 
 
 this.defaultColorData = {202/255, 165/255, 96/255}

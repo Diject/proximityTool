@@ -330,8 +330,15 @@ return {
             safeUIContainers.update()
         end,
         onSave = function()
+            local data = {}
+
             uniqueId.save()
-            mapData.save()
+            mapData.save(data)
+
+            return data
+        end,
+        onLoad = function (data)
+            mapData.load(data)
         end,
         onTeleported = function ()
             async:newUnsavableSimulationTimer(0.0001, function () -- delay for the player cell data to be updated
