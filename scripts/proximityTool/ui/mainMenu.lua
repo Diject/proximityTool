@@ -153,7 +153,8 @@ local function createGroup(groupName, params)
                 content = ui.content {
 
                 },
-            }
+            },
+            addInterval(8, 8),
         },
     }
 
