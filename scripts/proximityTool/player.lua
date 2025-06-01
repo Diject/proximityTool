@@ -84,6 +84,7 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field noteColor number[]?
 ---@field icon string?
 ---@field iconColor number[]?
+---@field iconRatio number? image height to width ratio
 ---@field hidden boolean?
 ---@field alpha number?
 ---@field proximity number?

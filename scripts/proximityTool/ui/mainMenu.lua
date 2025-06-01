@@ -384,11 +384,21 @@ function this.registerMarker(activeMarker)
             local iconColor = rec.iconColor and util.color.rgb(rec.iconColor[1] or 1, rec.iconColor[2] or 1, rec.iconColor[3] or 1) or nil
             local name = rec.icon..tostring(iconColor)
 
+            local size = {24, 24}
+            local iconRatio = rec.iconRatio or 1
+            if iconRatio > 1 then
+                size[1] = size[1] / iconRatio
+            else
+                size[2] = size[2] * iconRatio
+            end
+
+            local iconSize = util.vector2(math.floor(size[1]), math.floor(size[2]))
+
             local iconContent = {
                 type = ui.TYPE.Image,
                 props = {
                     resource = texture,
-                    size = util.vector2(24, 24),
+                    size = iconSize,
                     color = iconColor,
                 },
                 name = name,
