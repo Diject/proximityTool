@@ -114,6 +114,14 @@ function this.new(id)
 end
 
 
+function this.destroy(id)
+    local container = this.containers[id]
+    if not container then return end
+    table.insert(this.destroyedContainers, container)
+    return true
+end
+
+
 function this.update()
     for _, container in pairs(this.destroyedContainers) do
         container:forceDestroy()

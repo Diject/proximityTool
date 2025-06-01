@@ -299,6 +299,8 @@ return {
         UiModeChanged = function(data)
             if not config.data.enabled then return end
 
+            safeUIContainers.destroy("tooltip")
+
             if data.newMode == nil then
                 mainMenu.create{showBorder = false}
             elseif data.newMode == "Interface" then
