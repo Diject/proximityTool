@@ -334,59 +334,16 @@ function this.registerMarker(activeMarker)
 
     for _, rDt in ipairs(sortedRecords) do
         local rec = rDt.record
+
+        local noteContent
+
         if rec.note and rec.alpha ~= 0 then
             rDt.noteId = uniqueId.get()
 
             local noteColor = rec.noteColor and
                 util.color.rgb(rec.noteColor[1] or 1, rec.noteColor[2] or 1, rec.noteColor[3] or 1) or defaultColor
 
-            local noteContent = ui.content {}
-
-            if rec.icon then
-                local texture = ui.texture{path = rec.icon}
-                local iconColor = rec.iconColor and util.color.rgb(rec.iconColor[1] or 1, rec.iconColor[2] or 1, rec.iconColor[3] or 1) or nil
-                local name = rec.icon..tostring(iconColor)
-
-                local iconContent = {
-                    type = ui.TYPE.Image,
-                    props = {
-                        resource = texture,
-                        size = util.vector2(24, 24),
-                        color = iconColor,
-                    },
-                    name = name,
-                    events = eventsForRecord,
-                    userData = {
-                        recordId = rDt.recordId,
-                        record = rDt.record,
-                        data = activeMarker,
-                    },
-                }
-
-                if not rec.options or rec.options.showNoteIcon ~= false then
-                    noteContent:add(iconContent)
-                    noteContent:add{
-                        template = I.MWUI.templates.interval,
-                        events = eventsForRecord,
-                    }
-                end
-
-                if (not rec.options or rec.options.showGroupIcon ~= false) and #mainLine[4].content < 6 then
-                    local index = mainLine[4].content:indexOf(name)
-                    if index then
-                        local elem = mainLine[4].content[index]
-                        ---@type proximityTool.markerRecord
-                        local record = elem.userData.record
-                        if record and (record.priority or 0) < (rec.priority or 0) then
-                            elem.userData.record = rec
-                            elem.userData.recordId = rDt.recordId
-                            elem.props.resource = texture
-                        end
-                    else
-                        mainLine[4].content:add(iconContent)
-                    end
-                end
-            end
+            noteContent = ui.content {}
 
             noteContent:add {
                 type = ui.TYPE.Text,
@@ -420,6 +377,52 @@ function this.registerMarker(activeMarker)
                 events = eventsForRecord,
                 content = noteContent,
             }
+        end
+
+        if rec.icon then
+            local texture = ui.texture{path = rec.icon}
+            local iconColor = rec.iconColor and util.color.rgb(rec.iconColor[1] or 1, rec.iconColor[2] or 1, rec.iconColor[3] or 1) or nil
+            local name = rec.icon..tostring(iconColor)
+
+            local iconContent = {
+                type = ui.TYPE.Image,
+                props = {
+                    resource = texture,
+                    size = util.vector2(24, 24),
+                    color = iconColor,
+                },
+                name = name,
+                events = eventsForRecord,
+                userData = {
+                    recordId = rDt.recordId,
+                    record = rDt.record,
+                    data = activeMarker,
+                },
+            }
+
+            if noteContent and (not rec.options or rec.options.showNoteIcon ~= false) then
+                noteContent:add(iconContent)
+                noteContent:add{
+                    template = I.MWUI.templates.interval,
+                    events = eventsForRecord,
+                }
+            end
+
+            if (not rec.options or rec.options.showGroupIcon ~= false) and #mainLine[4].content < 6 then
+                local index = mainLine[4].content:indexOf(name)
+                if index then
+                    local elem = mainLine[4].content[index]
+                    ---@type proximityTool.markerRecord
+                    local record = elem.userData.record
+                    if record and (record.priority or 0) < (rec.priority or 0) then
+                        elem.userData.record = rec
+                        elem.userData.recordId = rDt.recordId
+                        elem.props.resource = texture
+                    end
+                else
+                    mainLine[4].content:add(iconContent)
+                end
+            end
         end
     end
 
