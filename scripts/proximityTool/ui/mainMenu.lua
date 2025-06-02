@@ -19,6 +19,7 @@ local icons = require("scripts.proximityTool.icons")
 
 local activeObjects = require("scripts.proximityTool.activeObjects")
 local activeMarkers = require("scripts.proximityTool.activeMarkers")
+local cellLib = require("scripts.proximityTool.cell")
 
 local safeContainers = require("scripts.proximityTool.ui.safeContainer")
 
@@ -864,9 +865,8 @@ function this.update(params)
 
                 trackingPos = pos
 
-            elseif topMarkerRecord.type == 3 and topMarkerRecord.position then
-                local posData = topMarkerRecord.position
-                trackingPos = util.vector3(posData.x, posData.y, posData.z) ---@diagnostic disable-line: need-check-nil
+            elseif topMarkerRecord.type == 3 and topMarkerRecord.positions then
+                trackingPos = cellLib.getClosestPosition(topMarkerRecord.positions)
 
             elseif topMarkerRecord.type == 4 and topMarkerRecord.objectIds then
                 local trackerObjPositions = activeObjects.getObjectPositionsByGroupName(topMarkerRecord.id, player, topMarkerRecord.marker.itemId)

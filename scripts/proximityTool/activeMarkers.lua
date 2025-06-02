@@ -8,6 +8,7 @@ local common = require("scripts.proximityTool.common")
 
 local mapData = require("scripts.proximityTool.data.mapDataHandler")
 local activeObjects = require("scripts.proximityTool.activeObjects")
+local cellLib = require("scripts.proximityTool.cell")
 
 local this = {}
 
@@ -118,8 +119,7 @@ function activeMarker:update()
         local marker = data.marker
         if data.marker.invalid or record.invalid then
             self.markers[id] = nil
-        elseif marker.cell and
-                ((marker.cell.isExterior ~= player.cell.isExterior) or (not player.cell.isExterior and marker.cell.id ~= player.cell.id:lower())) then
+        elseif marker.positions and not cellLib.isContainValidPosition(marker.positions) then
             self.markers[id] = nil
         elseif marker.objectId and not activeObjects.isContainValidRecordId(marker.objectId) then
             self.markers[id] = nil
@@ -156,7 +156,7 @@ end
 function this.register(params)
     if not params then return end
     if not params.record then return end
-    if not (params.position and params.cell) and not params.objectId and not params.object and not params.objects then return end
+    if not params.positions and not params.objectId and not params.object and not params.objects then return end
 
     local record
     if type(params.record) == "string" then
@@ -179,6 +179,8 @@ function this.register(params)
     elseif params.object then
         activeMarkerId = params.object.id
     elseif params.objects then
+        activeMarkerId = params.id
+    elseif params.positions then
         activeMarkerId = params.id
     end
 
@@ -216,10 +218,9 @@ function this.register(params)
     elseif params.object then
         activeMarkerData.object = params.object
         activeMarkerData.type = 2
-    elseif params.position then
+    elseif params.positions then
         activeMarkerData.type = 3
-        activeMarkerData.position = params.position
-        activeMarkerData.cell = params.cell
+        activeMarkerData.positions = params.positions
     elseif params.objects then
         activeMarkerData.type = 4
         activeMarkerData.objectIds = params.objects

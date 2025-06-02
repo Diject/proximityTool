@@ -12,6 +12,7 @@ local common = require("scripts.proximityTool.common")
 local log = require("scripts.proximityTool.log")
 local uniqueId = require("scripts.proximityTool.uniqueId")
 local activeObjects = require("scripts.proximityTool.activeObjects")
+local cellLib = require("scripts.proximityTool.cell")
 
 local getObject = require("scripts.proximityTool.utils.getObject")
 local tableLib = require("scripts.proximityTool.utils.table")
@@ -35,6 +36,10 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field gridY integer?
 ---@field isExterior boolean
 
+---@class proximityTool.position
+---@field cell proximityTool.cellData
+---@field position {x: number, y: number, z: number}
+
 ---@class proximityTool.activeMarkerData
 ---@field type integer 1 - object id, 2 - game object, 3 - position, 4 - group of objects
 ---@field marker proximityTool.markerData
@@ -46,8 +51,7 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field object any?
 ---@field name string?
 ---@field proximity number?
----@field position Vector3|{x: number, y: number, z: number}?
----@field cell proximityTool.cellData?
+---@field positions proximityTool.position[]?
 ---@field priority number?
 ---@field noteId string?
 ---@field playerExteriorFlag boolean?
@@ -59,8 +63,7 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field id string?
 ---@field groupId string?
 ---@field groupName string?
----@field position Vector3|{x: number, y: number, z: number}?
----@field cell proximityTool.cellData?
+---@field positions proximityTool.position[]?
 ---@field objectId string?
 ---@field object any?
 ---@field objects string[]?
@@ -140,11 +143,8 @@ end
 ---@param markerData proximityTool.markerData
 local function registerMarker(markerData)
     if markerData.invalid then return end
-    if markerData.cell and markerData.position then
-        if player.cell.isExterior ~= markerData.cell.isExterior or
-                (not player.cell.isExterior and markerData.cell.id ~= player.cell.id) then
-            return
-        end
+    if markerData.positions and not cellLib.isContainValidPosition(markerData.positions) then
+        return
     elseif markerData.objectId and not activeObjects.isContainValidRecordId(markerData.objectId) then
         return
     elseif markerData.object and not activeObjects.isContainRefId(markerData.object.recordId, markerData.object.id) then
@@ -177,27 +177,34 @@ end
 ---@return string? groupId
 local function addMarker(data)
     if not data then return end
-    if not data.record or (not (data.position and data.cell) and not data.objectId and not data.object and not data.objects) then return end
+    if not data.record or (not data.positions and not data.objectId and not data.object and not data.objects) then return end
 
     ---@type proximityTool.markerData
     local markerData = tableLib.deepcopy(data)
 
-    if not markerData.objects then
-        local groupId = common.worldCellLabel
-
-        if markerData.cell then
-            local c = markerData.cell
-            if not c.isExterior then ---@diagnostic disable-line: need-check-nil
-                groupId = c.id ---@diagnostic disable-line: need-check-nil
-            end
-            markerData.cell = {gridX = c.gridX, gridY = c.gridY, id = c.id, isExterior = c.isExterior} ---@diagnostic disable-line: need-check-nil
+    if markerData.objects then
+        markerData.id = uniqueId.get()
+        for _, objId in pairs(markerData.objects) do
+            local dt = tableLib.deepcopy(markerData)
+            dt.groupId = objId
+            mapData.addMarker(markerData.id, dt.groupId, dt)
         end
+
+    elseif markerData.positions then
+        markerData.id = uniqueId.get()
+        for _, posData in pairs(markerData.positions) do
+            local dt = tableLib.deepcopy(markerData)
+            dt.groupId = posData.cell.isExterior and common.worldCellLabel or posData.cell.id
+            if dt.groupId then
+                mapData.addMarker(markerData.id, dt.groupId, dt)
+            end
+        end
+
+    else
+        local groupId = common.worldCellLabel
 
         if markerData.objectId then
             groupId = markerData.objectId
-        elseif markerData.position then
-            local p = markerData.position
-            markerData.position = {x = p.x, y = p.y, z = p.z} ---@diagnostic disable-line: need-check-nil
         elseif markerData.object then
             groupId = markerData.object.id
         end
@@ -207,13 +214,6 @@ local function addMarker(data)
 
         mapData.addMarker(markerData.id, markerData.groupId, markerData)
 
-    else
-        markerData.id = uniqueId.get()
-        for _, objId in pairs(markerData.objects) do
-            local dt = tableLib.deepcopy(markerData)
-            dt.groupId = objId
-            mapData.addMarker(markerData.id, dt.groupId, dt)
-        end
     end
 
     registerMarker(markerData)
