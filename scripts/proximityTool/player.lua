@@ -264,6 +264,20 @@ local function setVisibility(id, groupId, val)
 end
 
 
+---@param id string
+---@param groupId string?
+local function getMarkerData(id, groupId)
+    local markerData
+    if groupId then
+        markerData = mapData.getMarker(id, groupId)
+    else
+        markerData = mapData.getRecord(id)
+    end
+
+    return markerData
+end
+
+
 local function updateMarkers()
     activeMarkers.update()
 end
@@ -278,6 +292,7 @@ return {
         addRecord = addRecord,
         update = updateMarkers,
         updateRecord = updateRecord,
+        getMarkerData = getMarkerData,
         setVisibility = setVisibility,
         --TODO chage event sys
         registerEvent = function (eventId, id, groupId, data)
