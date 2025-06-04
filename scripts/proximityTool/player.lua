@@ -184,14 +184,17 @@ local function addMarker(data)
 
     if markerData.objects then
         markerData.id = uniqueId.get()
+        markerData.groupId = common.objectsLabel
         for _, objId in pairs(markerData.objects) do
             local dt = tableLib.deepcopy(markerData)
             dt.groupId = objId
             mapData.addMarker(markerData.id, dt.groupId, dt)
         end
+        mapData.addMarker(markerData.id, markerData.groupId, markerData)
 
     elseif markerData.positions then
         markerData.id = uniqueId.get()
+        markerData.groupId = common.positionsLabel
         for _, posData in pairs(markerData.positions) do
             local dt = tableLib.deepcopy(markerData)
             dt.groupId = posData.cell.isExterior and common.worldCellLabel or posData.cell.id
@@ -199,6 +202,7 @@ local function addMarker(data)
                 mapData.addMarker(markerData.id, dt.groupId, dt)
             end
         end
+        mapData.addMarker(markerData.id, markerData.groupId, markerData)
 
     else
         local groupId = common.worldCellLabel

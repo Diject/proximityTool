@@ -5,6 +5,9 @@ local this = {}
 
 this.worldCellLabel = "__world_cell__"
 
+this.objectsLabel = "__objects__"
+this.positionsLabel = "__positions__"
+
 this.defaultGroupId = "__default__"
 this.hiddenGroupId = "__hidden__"
 

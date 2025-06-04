@@ -129,8 +129,39 @@ function this.removeMarker(id, groupId)
     local marker = this.getMarker(id, groupId)
     if not marker then return false end
 
-    marker.invalid = true
-    this.markers[groupId][id] = nil
+    if marker.positions then
+        for _, posData in pairs(marker.positions) do
+            local grId = posData.cell.isExterior and common.worldCellLabel or posData.cell.id
+            if grId and this.markers[grId] and this.markers[grId][id] then
+                this.markers[grId][id].invalid = true
+                this.markers[grId][id] = nil
+            end
+        end
+        if groupId ~= common.positionsLabel then
+            local mk = this.getMarker(id, common.positionsLabel)
+            if not mk then return false end
+
+            mk.invalid = true
+            this.markers[common.positionsLabel][id] = nil
+        end
+    elseif marker.objects then
+        for _, objId in pairs(marker.objects) do
+            if this.markers[objId] and this.markers[objId][id] then
+                this.markers[objId][id].invalid = true
+                this.markers[objId][id] = nil
+            end
+        end
+        if groupId ~= common.objectsLabel then
+            local mk = this.getMarker(id, common.objectsLabel)
+            if not mk then return false end
+
+            mk.invalid = true
+            this.markers[common.objectsLabel][id] = nil
+        end
+    else
+        marker.invalid = true
+        this.markers[groupId][id] = nil
+    end
 
     return true
 end

@@ -119,6 +119,9 @@ function activeMarker:update()
         local marker = data.marker
         if data.marker.invalid or record.invalid then
             self.markers[id] = nil
+        elseif marker.shortTerm and data.playerExteriorFlag ~= player.cell.isExterior then
+            mapData.removeMarker(marker.id, marker.groupId)
+            self.markers[id] = nil
         elseif marker.positions and not cellLib.isContainValidPosition(marker.positions) then
             self.markers[id] = nil
         elseif marker.objectId and not activeObjects.isContainValidRecordId(marker.objectId) then
@@ -126,9 +129,6 @@ function activeMarker:update()
         elseif marker.objects and not activeObjects.isContainValidRecordIds(marker.objects) then
             self.markers[id] = nil
         elseif marker.object and not marker.object:isValid() then
-            self.markers[id] = nil
-        elseif marker.shortTerm and data.playerExteriorFlag ~= player.cell.isExterior then
-            marker.invalid = true
             self.markers[id] = nil
         else
             foundValid = true
