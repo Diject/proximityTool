@@ -34,7 +34,7 @@ function this.save(dataTable)
         end
     end
 
-    local foundRecordIds = {}
+    -- local foundRecordIds = {}
 
     ---@type table<string, table<string, proximityTool.markerData>>
     local markers = tableLib.deepcopy(this.markers)
@@ -45,17 +45,17 @@ function this.save(dataTable)
                     (type(data.record) == "string" and not records[data.record]) or
                     data.temporary or data.shortTerm or data.object or data.invalid then
                 cellData[id] = nil
-            else
-                foundRecordIds[data.record] = true
+            -- else
+            --     foundRecordIds[data.record] = true
             end
         end
     end
 
-    for recordId, _ in pairs(records) do
-        if not foundRecordIds[recordId] then
-            records[recordId] = nil
-        end
-    end
+    -- for recordId, _ in pairs(records) do
+    --     if not foundRecordIds[recordId] then
+    --         records[recordId] = nil
+    --     end
+    -- end
 
     dataTable[common.mapMarkersKey] = markers
     dataTable[common.mapRecordsKey] = records
