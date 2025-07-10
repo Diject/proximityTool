@@ -65,7 +65,7 @@ local function getMainFlex()
     if markerParentElement then
         return markerParentElement
     else
-        markerParentElement = this.element.layout.content[1].content[1].content[2].content[1]
+        markerParentElement = this.element.layout.content[1].content[2].content[1]
         return markerParentElement
     end
 end
@@ -687,20 +687,17 @@ function this.create(params)
         position = util.vector2(config.data.ui.position.x / 100, config.data.ui.position.y / 100)
     end
 
-    this.element = ui.create {
-        type = ui.TYPE.Flex,
-        layer = params.showBorder and "Windows" or "HUD",
-        props = {
-            autoSize = true,
-            horizontal = false,
-            arrange = uiUtils.convertAlign(config.data.ui.align),
-            relativePosition = position,
-            anchor = util.vector2(1, 0),
-        },
-        content = ui.content {
-            mainWindowBox(parentContent, params.showBorder),
-        },
+    local base = mainWindowBox(parentContent, params.showBorder)
+    base.props = {
+        autoSize = true,
+        horizontal = false,
+        arrange = uiUtils.convertAlign(config.data.ui.align),
+        relativePosition = position,
+        anchor = util.vector2(1, 0),
     }
+    base.layer = params.showBorder and "Windows" or "HUD"
+
+    this.element = ui.create(base)
 
     mainMenuSafeContainer.element = this.element
 
