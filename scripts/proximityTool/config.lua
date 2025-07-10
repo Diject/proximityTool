@@ -43,6 +43,7 @@ end))
 local default = {
     enabled = true,
     updateInterval = 40, -- ms
+    objectPosUpdateInterval = 3, -- s,
     ui = {
         hideHUD = false,
         hideWindow = false,

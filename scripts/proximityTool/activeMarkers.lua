@@ -17,6 +17,8 @@ local this = {}
 ---@field markers table<string, proximityTool.activeMarkerData> by marker id
 ---@field topMarker proximityTool.activeMarkerData?
 ---@field groupName string
+---@field nextUpdate number
+---@field lastTrackedObject any
 ---@field hidden boolean
 ---@field id string
 ---@field isValid boolean
@@ -251,6 +253,8 @@ function this.register(params)
         end
 
         marker.groupName = params.groupName or common.defaultGroupId
+
+        marker.nextUpdate = 0
 
         shouldCreateUIElement = true
     else

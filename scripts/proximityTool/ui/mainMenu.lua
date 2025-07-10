@@ -2,6 +2,7 @@ local I = require('openmw.interfaces')
 local ui = require('openmw.ui')
 local util = require('openmw.util')
 local async = require('openmw.async')
+local core = require('openmw.core')
 local playerObj = require('openmw.self')
 
 local commonData = require("scripts.proximityTool.common")
@@ -51,6 +52,11 @@ this.tooltip = nil
 
 local mainMenuSafeContainer = safeContainers.new("mainMenu")
 local markerParentElement = nil
+
+
+local function getNexUpdateTimestamp(val)
+    return val + config.data.objectPosUpdateInterval * (1 + (math.random() - 0.5) * 0.5)
+end
 
 
 local function getMainFlex()
@@ -816,6 +822,9 @@ function this.update(params)
 
     local function processGroup(contentOwner, parent)
         if not contentOwner then return end
+
+        local timestamp = core.getRealTime()
+
         for i = #contentOwner.content, 1, -1 do
             local elem = contentOwner.content[i]
             if not elem or not elem.props or not elem.userData or not elem.userData.data then goto continue end
@@ -840,48 +849,78 @@ function this.update(params)
             local trackingPos
 
             if topMarkerRecord.type == 1 and topMarkerRecord.objectId then
-                local trackerObjPositions = activeObjects.getObjectPositions(topMarkerRecord.objectId, player, topMarkerRecord.marker.itemId)
-                if not trackerObjPositions then
-                    uiUtils.removeFromContent(contentOwner.content, i)
-                    goto continue
-                end
+                if trackingData.nextUpdate < timestamp or not trackingData.lastTrackedObject then
+                    local trackerObjPositions = activeObjects.getObjectPositions(topMarkerRecord.objectId, player, topMarkerRecord.marker.itemId)
+                    if not trackerObjPositions then
+                        uiUtils.removeFromContent(contentOwner.content, i)
+                        goto continue
+                    end
 
-                table.sort(trackerObjPositions, function (a, b)
-                    return (a.dif or math.huge) < (b.dif or math.huge)
-                end)
+                    table.sort(trackerObjPositions, function (a, b)
+                        return (a.dif or math.huge) < (b.dif or math.huge)
+                    end)
 
-                if #trackerObjPositions > 0 then
-                    local posData = trackerObjPositions[1]
-                    trackingPos = util.vector3(posData.x, posData.y, posData.z)
+                    if #trackerObjPositions > 0 then
+                        local posData = trackerObjPositions[1]
+                        trackingPos = util.vector3(posData.x, posData.y, posData.z)
+                        trackingData.lastTrackedObject = posData.object
+                    end
+
+                    trackingData.nextUpdate = getNexUpdateTimestamp(timestamp)
+                else
+                    local posData = activeObjects.getObjectPositionData(trackingData.lastTrackedObject, nil, topMarkerRecord.marker.itemId)
+                    if posData then
+                        trackingPos = util.vector3(posData.x, posData.y, posData.z)
+                    else
+                        trackingData.nextUpdate = 0
+                    end
                 end
 
             elseif topMarkerRecord.type == 2 and topMarkerRecord.object then
                 local objectRef = topMarkerRecord.object
-                local pos = activeObjects.getObjectPosition(objectRef.recordId, objectRef.id)
-                if not pos then
+                local posData = activeObjects.getObjectPositionData(objectRef, nil, topMarkerRecord.marker.itemId)
+                if posData then
+                    trackingPos = util.vector3(posData.x, posData.y, posData.z)
+                else
                     uiUtils.removeFromContent(contentOwner.content, i)
                     goto continue
                 end
-
-                trackingPos = pos
 
             elseif topMarkerRecord.type == 3 and topMarkerRecord.positions then
-                trackingPos = cellLib.getClosestPosition(topMarkerRecord.positions)
-
-            elseif topMarkerRecord.type == 4 and topMarkerRecord.objectIds then
-                local trackerObjPositions = activeObjects.getObjectPositionsByGroupName(topMarkerRecord.id, player, topMarkerRecord.marker.itemId)
-                if not trackerObjPositions then
-                    uiUtils.removeFromContent(contentOwner.content, i)
-                    goto continue
+                if trackingData.nextUpdate < timestamp or not trackingData.lastTrackedObject then
+                    trackingPos = cellLib.getClosestPosition(topMarkerRecord.positions)
+                    trackingData.lastTrackedObject = trackingPos
+                    trackingData.nextUpdate = getNexUpdateTimestamp(timestamp)
+                else
+                    trackingPos = trackingData.lastTrackedObject
                 end
 
-                table.sort(trackerObjPositions, function (a, b)
-                    return (a.dif or math.huge) < (b.dif or math.huge)
-                end)
+            elseif topMarkerRecord.type == 4 and topMarkerRecord.objectIds then
+                if trackingData.nextUpdate < timestamp or not trackingData.lastTrackedObject then
+                    local trackerObjPositions = activeObjects.getObjectPositionsByGroupName(topMarkerRecord.id, player, topMarkerRecord.marker.itemId)
+                    if not trackerObjPositions then
+                        uiUtils.removeFromContent(contentOwner.content, i)
+                        goto continue
+                    end
 
-                if #trackerObjPositions > 0 then
-                    local posData = trackerObjPositions[1]
-                    trackingPos = util.vector3(posData.x, posData.y, posData.z)
+                    table.sort(trackerObjPositions, function (a, b)
+                        return (a.dif or math.huge) < (b.dif or math.huge)
+                    end)
+
+                    if #trackerObjPositions > 0 then
+                        local posData = trackerObjPositions[1]
+                        trackingPos = util.vector3(posData.x, posData.y, posData.z)
+                        trackingData.lastTrackedObject = posData.object
+                    end
+
+                    trackingData.nextUpdate = getNexUpdateTimestamp(timestamp)
+                else
+                    local posData = activeObjects.getObjectPositionData(trackingData.lastTrackedObject, nil, topMarkerRecord.marker.itemId)
+                    if posData then
+                        trackingPos = util.vector3(posData.x, posData.y, posData.z)
+                    else
+                        trackingData.nextUpdate = 0
+                    end
                 end
 
             else

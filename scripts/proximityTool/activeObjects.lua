@@ -51,18 +51,14 @@ local function calc2DDistance(obj1, obj2)
     return math.sqrt((pos2.x - pos1.x)^2 + (pos2.y - pos1.y)^2)
 end
 
----@return {x: number, y: number, z: number, dif : number?}[]
+---@return {object: any, x: number, y: number, z: number, dif : number?}[]
 function objectHandler:positions(refObject, itemId)
     local ret = {}
     for id, object in pairs(self.objects) do
         if object:isValid() and object.enabled and object.cell then
-            if not itemId or inventoryLib.countOf(object, itemId, true, 1) > 0 then
-                table.insert(ret, {
-                    x = object.position.x,
-                    y = object.position.y,
-                    z = object.position.z,
-                    dif = refObject and calc2DDistance(refObject, object)
-                })
+            local posData = this.getObjectPositionData(object, refObject, itemId)
+            if posData then
+                table.insert(ret, posData)
             end
         else
             self.objects[id] = nil
@@ -72,6 +68,22 @@ function objectHandler:positions(refObject, itemId)
     return ret
 end
 
+
+---@return {object: any, x: number, y: number, z: number, dif : number?}?
+function this.getObjectPositionData(object, refObject, itemId)
+    if not object then return end
+    if object:isValid() and object.enabled and object.cell then
+        if not itemId or inventoryLib.countOf(object, itemId, true, 1) > 0 then
+            return {
+                object = object,
+                x = object.position.x,
+                y = object.position.y,
+                z = object.position.z,
+                dif = refObject and calc2DDistance(refObject, object)
+            }
+        end
+    end
+end
 
 
 function this.add(object)
@@ -109,7 +121,7 @@ end
 
 
 ---@param recordId string
----@return {x: number, y: number, z: number, dif : number?}[]?
+---@return {object: any, x: number, y: number, z: number, dif : number?}[]?
 function this.getObjectPositions(recordId, refToCompare, itemId)
     local objHandler = this.data[recordId]
     if not objHandler then return end
@@ -119,7 +131,7 @@ end
 
 
 ---@param groupName string
----@return {x: number, y: number, z: number, dif : number?}[]?
+---@return {object: any, x: number, y: number, z: number, dif : number?}[]?
 function this.getObjectPositionsByGroupName(groupName, refToCompare, itemId)
     local found = false
     local res = {}
