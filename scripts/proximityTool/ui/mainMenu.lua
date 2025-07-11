@@ -724,6 +724,7 @@ function this.create(params)
 end
 
 ---@class objectTrackingBD.mainMenu.update.params
+---@field force boolean?
 
 ---@param params objectTrackingBD.mainMenu.update.params?
 function this.update(params)
@@ -738,6 +739,7 @@ function this.update(params)
     local playerPos = player.position
     local pitch, yaw  = player.rotation:getAnglesXZ()
 
+    local doUpdate = params.force or false
 
     local function orderAndOpacity(parent)
         local sortedData = {}
@@ -765,6 +767,7 @@ function this.update(params)
 
                         uiUtils.removeFromContent(parent.content, i)
                         hiddenGroupElement.content:add(element)
+                        doUpdate = true
                         goto continue
                     end
                 end
@@ -783,18 +786,21 @@ function this.update(params)
                     if alpha1 > 0.5 then
                         alpha1 = math.max(0, alpha1 - 0.05)
                         element.props.alpha = alpha1
+                        doUpdate = true
                     end
 
                     local alpha2 = elem2.props.alpha
                     if alpha2 > 0.5 then
                         alpha2 = math.max(0, alpha2 - 0.05)
                         elem2.props.alpha = alpha2
+                        doUpdate = true
                     end
 
                     if alpha1 < 0.51 and alpha2 < 0.51 then
                         parent.content.__nameIndex[element.name], parent.content.__nameIndex[elem2.name] =
                             parent.content.__nameIndex[elem2.name], parent.content.__nameIndex[element.name]
                         parent.content[index], parent.content[i] = element, elem2
+                        doUpdate = true
                     end
 
                     goto continue
@@ -805,8 +811,10 @@ function this.update(params)
                 if element.userData.alpha then
                     if element.props.alpha < element.userData.alpha then
                         element.props.alpha = math.min(element.props.alpha + 0.03, element.userData.alpha)
+                        doUpdate = true
                     elseif element.props.alpha > element.userData.alpha then
                         element.props.alpha = math.max(element.props.alpha - 0.03, element.userData.alpha)
+                        doUpdate = true
                     end
                 end
                 element.props.visible = true
@@ -821,6 +829,7 @@ function this.update(params)
                     if groupElement then
                         uiUtils.removeFromContent(parent.content, i)
                         groupElement.content:add(element)
+                        doUpdate = true
                         goto continue
                     end
                 end
@@ -847,6 +856,7 @@ function this.update(params)
 
             if not trackingData.isValid then
                 uiUtils.removeFromContent(contentOwner.content, i)
+                doUpdate = true
                 goto continue
             end
 
@@ -854,6 +864,7 @@ function this.update(params)
             local topMarkerRecord = trackingData.topMarker
             if not topMarkerRecord then
                 uiUtils.removeFromContent(contentOwner.content, i)
+                doUpdate = true
                 goto continue
             end
 
@@ -864,6 +875,7 @@ function this.update(params)
                     local trackerObjPositions = activeObjects.getObjectPositions(topMarkerRecord.objectId, player, topMarkerRecord.marker.itemId)
                     if not trackerObjPositions then
                         uiUtils.removeFromContent(contentOwner.content, i)
+                        doUpdate = true
                         goto continue
                     end
 
@@ -894,6 +906,7 @@ function this.update(params)
                     trackingPos = util.vector3(posData.x, posData.y, posData.z)
                 else
                     uiUtils.removeFromContent(contentOwner.content, i)
+                    doUpdate = true
                     goto continue
                 end
 
@@ -911,6 +924,7 @@ function this.update(params)
                     local trackerObjPositions = activeObjects.getObjectPositionsByGroupName(topMarkerRecord.id, player, topMarkerRecord.marker.itemId)
                     if not trackerObjPositions then
                         uiUtils.removeFromContent(contentOwner.content, i)
+                        doUpdate = true
                         goto continue
                     end
 
@@ -936,12 +950,14 @@ function this.update(params)
 
             else
                 uiUtils.removeFromContent(contentOwner.content, i)
+                doUpdate = true
                 goto continue
             end
 
 
             if not trackingPos then
                 uiUtils.removeFromContent(contentOwner.content, i)
+                doUpdate = true
                 goto continue
             end
 
@@ -970,6 +986,9 @@ function this.update(params)
             end
 
             local hide = (distance > trackingData.proximity) or (trackingData.alpha <= 0) or trackingData.hidden
+            if elem.userData.disabled ~= hide then
+                doUpdate = true
+            end
             elem.userData.disabled = hide
 
             local arrowImageIndex
@@ -1000,8 +1019,15 @@ function this.update(params)
 
             local distanceIndex = elem.content[1].userData.distanceIndex
             local directionIndex = elem.content[1].userData.directionIconIndex
-            elem.content[1].content[distanceIndex or 1].props.text = string.format("%.0fm", distance / 64 * 0.9144)
-            elem.content[1].content[directionIndex or 2].props.resource = iconImage
+            local newText = string.format("%.0fm", distance / 64 * 0.9144)
+            if elem.content[1].content[distanceIndex or 1].props.text ~= newText then
+                elem.content[1].content[distanceIndex or 1].props.text = newText
+                doUpdate = true
+            end
+            if elem.content[1].content[directionIndex or 2].props.resource ~= iconImage then
+                elem.content[1].content[directionIndex or 2].props.resource = iconImage
+                doUpdate = true
+            end
 
             ::continue::
         end
@@ -1035,7 +1061,11 @@ function this.update(params)
 
     orderAndOpacity(parentElement)
 
-    this.element:update()
+    if doUpdate then
+        this.element:update()
+    else
+        print("test")
+    end
 end
 
 
