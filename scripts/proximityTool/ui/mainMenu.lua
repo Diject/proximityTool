@@ -35,6 +35,13 @@ local this = {}
 local defaultColor = commonData.defaultColor
 local elementRelPos = util.vector2(config.localConfig.ui.positionAlt.x / 100, config.localConfig.ui.positionAlt.y / 100)
 
+this.hiddenGroupElement = {
+    userData = {
+        groupName = commonData.hiddenGroupId,
+    },
+    content = ui.content{}
+}
+
 local eventNames = {
     "keyPress",
     "keyRelease",
@@ -76,6 +83,8 @@ local function getMarkerParentElement(groupName)
 
     if markerParentElement and not groupName then
         return getMainFlex()
+    elseif groupName == commonData.hiddenGroupId then
+        return this.hiddenGroupElement
     elseif groupName then
         local parent = getMainFlex()
         if not parent then return end
@@ -94,6 +103,11 @@ end
 ---@param params {priority : number?, protected : boolean?}?
 local function createGroup(groupName, params)
     if not params then params = {} end
+
+    if groupName == commonData.hiddenGroupId then
+        this.hiddenGroupElement.content = ui.content{}
+        return
+    end
 
     local parent = getMarkerParentElement()
     if not parent or not parent.content then return end
@@ -1016,6 +1030,8 @@ function this.update(params)
 
         ::continue::
     end
+
+    processGroup(hiddenGroupElement)
 
     orderAndOpacity(parentElement)
 
