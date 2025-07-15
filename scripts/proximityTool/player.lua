@@ -325,8 +325,8 @@ return {
                 mainMenu.create{showBorder = false}
             elseif data.newMode == "Interface" then
                 mainMenu.create{showBorder = true}
-                for i = 1, 200 do -- just works
-                    mainMenu.update()
+                for i = 1, 3 do
+                    mainMenu.update{force = true}
                 end
             end
 

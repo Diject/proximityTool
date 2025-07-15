@@ -759,7 +759,7 @@ function this.update(params)
 
             if disabled then
                 if element.props.visible then
-                    element.props.alpha = element.props.alpha - 0.03
+                    element.props.alpha = params.force and 0 or element.props.alpha - 0.03
                     if element.props.alpha <= 0 then
                         element.userData.locked = true
                         element.props.alpha = 0
@@ -784,14 +784,14 @@ function this.update(params)
 
                     local alpha1 = element.props.alpha
                     if alpha1 > 0.5 then
-                        alpha1 = math.max(0, alpha1 - 0.05)
+                        alpha1 = params.force and 0.5 or math.max(0, alpha1 - 0.05)
                         element.props.alpha = alpha1
                         doUpdate = true
                     end
 
                     local alpha2 = elem2.props.alpha
                     if alpha2 > 0.5 then
-                        alpha2 = math.max(0, alpha2 - 0.05)
+                        alpha2 = params.force and 0.5 or math.max(0, alpha2 - 0.05)
                         elem2.props.alpha = alpha2
                         doUpdate = true
                     end
@@ -810,10 +810,10 @@ function this.update(params)
 
                 if element.userData.alpha then
                     if element.props.alpha < element.userData.alpha then
-                        element.props.alpha = math.min(element.props.alpha + 0.03, element.userData.alpha)
+                        element.props.alpha = params.force and 1 or math.min(element.props.alpha + 0.03, element.userData.alpha)
                         doUpdate = true
                     elseif element.props.alpha > element.userData.alpha then
-                        element.props.alpha = math.max(element.props.alpha - 0.03, element.userData.alpha)
+                        element.props.alpha = params.force and 0 or math.max(element.props.alpha - 0.03, element.userData.alpha)
                         doUpdate = true
                     end
                 end
