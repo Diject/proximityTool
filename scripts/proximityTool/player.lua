@@ -97,7 +97,8 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field options proximityTool.markerRecord.options?
 ---@field invalid boolean?
 
-local this = {}
+
+local lastUIMode
 
 
 if config.data.enabled then
@@ -320,7 +321,7 @@ return {
 
             safeUIContainers.destroy("tooltip")
 
-            if data.newMode == nil then
+            if data.newMode == nil and lastUIMode ~= nil or mainMenu.element == nil then
                 mainMenu.create{showBorder = false}
             elseif data.newMode == "Interface" then
                 mainMenu.create{showBorder = true}
@@ -328,6 +329,8 @@ return {
                     mainMenu.update()
                 end
             end
+
+            lastUIMode = data.newMode
         end,
         ["proximityTool:addActiveObject"] = function(object)
             activeObjects.add(object)
