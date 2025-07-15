@@ -1063,8 +1063,6 @@ function this.update(params)
 
     if doUpdate then
         this.element:update()
-    else
-        print("test")
     end
 end
 
