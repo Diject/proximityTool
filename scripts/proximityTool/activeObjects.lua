@@ -246,4 +246,21 @@ function this.updateGroups()
 end
 
 
+---@params recordId string
+---@return any[]?
+function this.getValidObjects(recordId)
+    local data = this.data[recordId]
+    if not data then return end
+
+    local out = {}
+    for _, obj in pairs(data.objects) do
+        if obj:isValid() then
+            table.insert(out, obj)
+        end
+    end
+
+    return out
+end
+
+
 return this
