@@ -12,6 +12,7 @@ local common = require("scripts.proximityTool.common")
 local log = require("scripts.proximityTool.log")
 local uniqueId = require("scripts.proximityTool.uniqueId")
 local activeObjects = require("scripts.proximityTool.activeObjects")
+local hudmHandler = require("scripts.proximityTool.hudmHandler")
 local cellLib = require("scripts.proximityTool.cell")
 
 local getObject = require("scripts.proximityTool.utils.getObject")
@@ -59,7 +60,8 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field isValid boolean?
 
 ---@class proximityTool.markerData
----@field record proximityTool.markerRecord|string
+---@field record proximityTool.markerRecord|string?
+---@field HUDMRecord proximityTool.HUDMarkersRecord|string?
 ---@field id string?
 ---@field groupId string?
 ---@field groupName string?
@@ -95,6 +97,19 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field temporary boolean? if true, this record will not be saved to the save file
 ---@field events table<string, function>?
 ---@field options proximityTool.markerRecord.options?
+---@field invalid boolean?
+
+---@class proximityTool.HUDMarker
+---@field modName string required
+---@field id string?
+---@field objects any[]? list of object references that this marker should track
+---@field objectIds string[]? list of object record ids that this marker should track
+---@field params table required. HUDM parameters
+---@field version number HUDM version for this marker
+---@field isHUDM boolean true
+---@field hidden boolean? if true, this marker will not be shown
+---@field temporary boolean? if true, this marker will not be saved to the save file
+---@field shortTerm boolean? if true, this marker will be removed after one of the tracked objects is removed
 ---@field invalid boolean?
 
 
@@ -283,6 +298,73 @@ local function getMarkerData(id, groupId)
 end
 
 
+---@param data proximityTool.HUDMarker
+---@return string?
+local function addHUDMarker(data)
+    if not data.modName or not data.params then return end
+
+    ---@type proximityTool.HUDMarker
+    local markerData = tableLib.deepcopy(data)
+
+    markerData.id = uniqueId.get()
+    markerData.version = markerData.version or hudmHandler.version or 5
+    markerData.isHUDM = true
+
+    if markerData.objects then
+        for _, objectRef in pairs(markerData.objects) do
+            mapData.addHUDMarker(objectRef.id, markerData)
+            hudmHandler.addObject(objectRef)
+        end
+    end
+
+    if markerData.objectIds then
+        for _, objectId in pairs(markerData.objectIds) do
+            mapData.addHUDMarker(objectId, markerData)
+
+            local objs = activeObjects.getValidObjects(objectId)
+            for _, obj in pairs(objs or {}) do
+                hudmHandler.addObject(obj)
+            end
+        end
+    end
+
+    mapData.addHUDMarker(markerData.id, markerData)
+    return markerData.id
+end
+
+
+---@param id string
+---@return proximityTool.HUDMarker?
+local function getHUDMdata(id)
+    local markers = mapData.getHUDMarkers(id)
+    if not markers then return end
+
+    return markers[id]
+end
+
+
+---@param id string
+---@param val boolean
+---@return boolean?
+local function setHUDMvisibility(id, val)
+    local data = getHUDMdata(id)
+    if data then
+        data.hidden = not val
+        return true
+    end
+end
+
+
+local function removeHUDMarker(id)
+    return mapData.removeHUDMarker(id)
+end
+
+
+local function updateHUDMarkers()
+    hudmHandler.update()
+end
+
+
 local function updateMarkers()
     activeMarkers.update()
 end
@@ -295,10 +377,15 @@ return {
         version = 1,
         addMarker = addMarker,
         addRecord = addRecord,
+        addHUDM = addHUDMarker,
+        removeHUDM = removeHUDMarker,
         update = updateMarkers,
+        updateHUDM = updateHUDMarkers,
         updateRecord = updateRecord,
         getMarkerData = getMarkerData,
+        getHUDMdata = getHUDMdata,
         setVisibility = setVisibility,
+        setHUDMvisibility = setHUDMvisibility,
         --TODO chage event sys
         registerEvent = function (eventId, id, groupId, data)
             local record = mapData.getRecord(id)
@@ -343,10 +430,14 @@ return {
                 registerMarker(data)
                 registered = true
             end
+
+            hudmHandler.addObject(object)
         end,
         ["proximityTool:removeActiveObject"] = function(object)
             activeObjects.remove(object)
             activeMarkers.update(object.recordId)
+
+            hudmHandler.removeObject(object)
         end,
     },
     engineHandlers = {

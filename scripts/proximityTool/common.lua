@@ -23,6 +23,8 @@ this.mapMarkersKey = "MapMarkers"
 
 this.mapRecordsKey = "MapRecords"
 
+this.hudmMarkersKey = "HUDMRecords"
+
 this.mapDataVersionKey = "MapVersion"
 
 

@@ -8,6 +8,9 @@ local this = {}
 ---@type table<string, table<string, proximityTool.markerData>> by groupId or recordId, by id
 this.markers = {}
 
+---@type table<string, table<string, proximityTool.HUDMarker>> by id or objectId or object recordId; by id
+this.hudm = {}
+
 ---@type table<string, proximityTool.markerRecord> by record id
 this.records = {}
 
@@ -19,6 +22,7 @@ function this.load(dataTable)
     if not dataTable then return end
     this.markers = dataTable[common.mapMarkersKey] or {}
     this.records = dataTable[common.mapRecordsKey] or {}
+    this.hudm = dataTable[common.hudmMarkersKey] or {}
     this.version = dataTable[common.mapDataVersionKey] or version
 end
 
@@ -30,11 +34,9 @@ function this.save(dataTable)
         if data.invalid or data.temporary then
             records[id] = nil
         elseif data.events then
-            data.events = nil
+            (records[id]  or {}).events = nil
         end
     end
-
-    -- local foundRecordIds = {}
 
     ---@type table<string, table<string, proximityTool.markerData>>
     local markers = tableLib.deepcopy(this.markers)
@@ -44,21 +46,24 @@ function this.save(dataTable)
             if not data.record or
                     (type(data.record) == "string" and not records[data.record]) or
                     data.temporary or data.shortTerm or data.object or data.invalid then
-                cellData[id] = nil
-            -- else
-            --     foundRecordIds[data.record] = true
+                (markers[groupId] or {})[id] = nil
             end
         end
     end
 
-    -- for recordId, _ in pairs(records) do
-    --     if not foundRecordIds[recordId] then
-    --         records[recordId] = nil
-    --     end
-    -- end
+    ---@type table<string, table<string, proximityTool.HUDMarker>>
+    local hudm = tableLib.deepcopy(this.hudm)
+    for markerId, hudMarkers in pairs(hudm) do
+        for id, data in pairs(hudMarkers) do
+            if data.objects or data.invalid or data.temporary or data.shortTerm then
+                hudm[markerId][id] = nil
+            end
+        end
+    end
 
     dataTable[common.mapMarkersKey] = markers
     dataTable[common.mapRecordsKey] = records
+    dataTable[common.hudmMarkersKey] = hudm
     dataTable[common.mapDataVersionKey] = version
 end
 
@@ -176,6 +181,73 @@ function this.iterMarkerGroup(groupId)
         end
     end
     return coroutine.wrap(iterator)
+end
+
+
+---@param id string
+---@param data proximityTool.HUDMarker
+function this.addHUDMarker(id, data)
+    if not id then return end
+    local hudMarker = this.hudm[id]
+    if hudMarker then
+        local dt = hudMarker[data.id]
+        if dt then
+            tableLib.clear(dt)
+            tableLib.copy(data, dt)
+        else
+            hudMarker[data.id] = data
+        end
+    else
+        this.hudm[id] = {[id] = data}
+    end
+end
+
+
+---@param id string
+---@return boolean
+function this.removeHUDMarker(id)
+    if not id then return false end
+    local markers = this.hudm[id]
+    if not markers then return false end
+
+    for markerId, marker in pairs(markers) do
+        if marker.objects then
+            for _, object in pairs(marker.objects) do
+                local objectMarkers = this.hudm[object.id]
+                if objectMarkers and objectMarkers[id] then
+                    objectMarkers[id].invalid = true
+                    this.hudm[object.id][id] = nil
+                end
+            end
+        end
+        if marker.objectIds then
+            for _ ,objId in pairs(marker.objectIds) do
+                local objectMarkers = this.hudm[objId]
+                if objectMarkers and objectMarkers[id] then
+                    objectMarkers[id].invalid = true
+                    this.hudm[objId][id] = nil
+                end
+            end
+        end
+    end
+
+    if markers[id] then
+        markers[id].invalid = true
+        markers[id] = nil
+        if not next(markers) then
+            this.hudm[id] = nil
+        end
+    end
+
+    return true
+end
+
+
+---@param id string
+---@return table<string, proximityTool.HUDMarker>?
+function this.getHUDMarkers(id)
+    if not id then return end
+    return this.hudm[id]
 end
 
 
