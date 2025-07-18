@@ -69,3 +69,4 @@
 ---@field removeHUDM fun(id: string): boolean?
 ---@field getHUDMdata fun(id: string): proximityTool.hudm?
 ---@field setHUDMvisibility fun(id: string, value: boolean): boolean?
+---@field newRealTimer fun(duration: number, callback: fun(...), ...): function

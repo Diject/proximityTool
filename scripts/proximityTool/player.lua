@@ -26,6 +26,8 @@ local safeUIContainers = require("scripts.proximityTool.ui.safeContainer")
 
 local mapData = require("scripts.proximityTool.data.mapDataHandler")
 
+local realTimer = require("scripts.proximityTool.realTimer")
+
 local config = require("scripts.proximityTool.config")
 
 local settingStorage = storage.globalSection(common.settingStorageId)
@@ -401,6 +403,8 @@ return {
         removeMarker = function (id, groupId)
             return mapData.removeMarker(id, groupId)
         end,
+
+        newRealTimer = realTimer.newTimer,
     },
     eventHandlers = {
         UiModeChanged = function(data)
@@ -443,6 +447,7 @@ return {
     engineHandlers = {
         onFrame = function(dt)
             safeUIContainers.update()
+            realTimer.updateTimers()
         end,
         onSave = function()
             local data = {}
