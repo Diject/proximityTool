@@ -1,6 +1,7 @@
 local I = require('openmw.interfaces')
 local ui = require('openmw.ui')
 local util = require('openmw.util')
+local async = require('openmw.async')
 
 local safeContainers = require("scripts.proximityTool.ui.safeContainer")
 
@@ -56,6 +57,10 @@ function this.createOrMove(coord, parent, layoutContent)
         }
 
         tooltipHandler:create(tooltipLayout)
+        async:newUnsavableSimulationTimer(0.1, function ()
+            tooltipHandler:destroy()
+        end)
+
         return
     end
 
@@ -76,7 +81,6 @@ function this.destroy(parent)
     if not parent.userData or not parent.userData.tooltip then return end
     local tooltipHandler = parent.userData.tooltip
     parent.userData.tooltip = nil
-    if not tooltipHandler.valid then return end
     tooltipHandler:destroy()
 end
 

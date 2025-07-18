@@ -1,22 +1,13 @@
 local ui = require('openmw.ui')
 local util = require('openmw.util')
 local async = require('openmw.async')
+local realTimer = require("scripts.proximityTool.realTimer")
 
 
 local this = {}
 
 ---@type table<string, proximityTool.elementSafeContainer>
 this.containers = {}
----@type table<string, proximityTool.elementSafeContainer>
-this.destroyedContainers = {}
-
-
-this.commandType = {
-    create = 1,
-    update = 2,
-    destroy = 3,
-    func = 4,
-}
 
 
 ---@class proximityTool.elementSafeContainer
@@ -32,59 +23,37 @@ containerStruct.commandQueue = nil
 
 containerStruct.valid = true
 
----@return boolean?
-function containerStruct:updateState()
-    if #self.commandQueue == 0 then return end
-
-    local commandData = self.commandQueue[1]
-    if commandData.type == this.commandType.create then
-        self.commandQueue = {}
-
-        if commandData.data then
-            self.element = ui.create(commandData.data)
-        end
-
-        return true
-    elseif commandData.type == this.commandType.destroy then
-        self:forceDestroy()
-    elseif commandData.type == this.commandType.update then
-        if self.element then
-            self.element:update()
-        end
-    elseif commandData.type == this.commandType.func then
-        commandData.data(self.element)
-    end
-    table.remove(self.commandQueue, 1)
-    return true
-end
-
 
 function containerStruct:create(layout)
     if not layout then return end
     if self.element then
-        self:addCommand(this.commandType.destroy)
+        self:forceDestroy()
     end
-    self:addCommand(this.commandType.create, layout)
+    self.element = ui.create(layout)
 end
 
 
 function containerStruct:update()
-    self:addCommand(this.commandType.update)
+    if self.element then
+        self.element:update()
+    end
 end
 
 
 function containerStruct:destroy()
-    table.insert(this.destroyedContainers, self)
-    self.valid = false
+    realTimer.newTimer(0, function ()
+        self:forceDestroy()
+    end)
 end
 
 
 function containerStruct:forceDestroy()
+    if not self.valid then return end
+    self.valid = false
     if self.element then
         self.element:destroy()
         self.element = nil
     end
-    self.valid = false
 end
 
 function containerStruct:addCommand(commandType, data)
@@ -111,26 +80,6 @@ function this.new(id)
     this.containers[id] = container
 
     return container
-end
-
-
-function this.destroy(id)
-    local container = this.containers[id]
-    if not container then return end
-    table.insert(this.destroyedContainers, container)
-    return true
-end
-
-
-function this.update()
-    for _, container in pairs(this.destroyedContainers) do
-        container:forceDestroy()
-    end
-    this.destroyedContainers = {}
-
-    for id, container in pairs(this.containers) do
-        container:updateState()
-    end
 end
 
 

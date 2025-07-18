@@ -410,8 +410,6 @@ return {
         UiModeChanged = function(data)
             if not config.data.enabled then return end
 
-            safeUIContainers.destroy("tooltip")
-
             if data.newMode == nil and lastUIMode ~= nil or mainMenu.element == nil then
                 mainMenu.create{showBorder = false}
             elseif data.newMode == "Interface" then
@@ -446,7 +444,6 @@ return {
     },
     engineHandlers = {
         onFrame = function(dt)
-            safeUIContainers.update()
             realTimer.updateTimers()
         end,
         onSave = function()
