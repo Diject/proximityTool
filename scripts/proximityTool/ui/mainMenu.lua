@@ -150,6 +150,7 @@ local function createGroup(groupName, params)
                 props = {
                     text = groupNameText,
                     textSize = groupNameFontSize,
+                    textColor = config.data.ui.defaultColor,
                     multiline = false,
                     wordWrap = false,
                     textAlignH = uiUtils.convertAlign(config.data.ui.align),
@@ -252,7 +253,7 @@ function this.registerMarker(activeMarker)
     end
 
     local nameColorData = topRecord.record.nameColor
-    local nameColor = nameColorData and util.color.rgb(nameColorData[1] or 1, nameColorData[2] or 1, nameColorData[3] or 1) or defaultColor
+    local nameColor = nameColorData and util.color.rgb(nameColorData[1] or 1, nameColorData[2] or 1, nameColorData[3] or 1) or config.data.ui.defaultColor
 
     local mainLine = {
         {
@@ -261,6 +262,7 @@ function this.registerMarker(activeMarker)
             props = {
                 text = "",
                 textSize = config.data.ui.fontSize,
+                textColor = config.data.ui.defaultColor,
                 multiline = false,
                 wordWrap = false,
                 textAlignH = ui.ALIGNMENT.End,
@@ -277,7 +279,7 @@ function this.registerMarker(activeMarker)
             props = {
                 resource = icons.arrowIcons[1],
                 size = util.vector2(config.data.ui.fontSize, config.data.ui.fontSize),
-                color = defaultColor,
+                color = config.data.ui.defaultColor,
                 visible = activeMarker.type ~= 5,
             },
             events = unitedEvents,
@@ -367,7 +369,7 @@ function this.registerMarker(activeMarker)
             rDt.noteId = uniqueId.get()
 
             local noteColor = rec.noteColor and
-                util.color.rgb(rec.noteColor[1] or 1, rec.noteColor[2] or 1, rec.noteColor[3] or 1) or defaultColor
+                util.color.rgb(rec.noteColor[1] or 1, rec.noteColor[2] or 1, rec.noteColor[3] or 1) or config.data.ui.defaultColor
 
             noteContent = ui.content {}
 
@@ -563,7 +565,7 @@ function this.create(params)
             visible = config.data.ui.showHeader or params.showBorder,
         },
         content = ui.content {
-            addButton{menu = this, textSize = config.data.ui.fontSize, text = "P",
+            addButton{menu = this, textSize = config.data.ui.fontSize, text = "P", textColor = config.data.ui.defaultColor,
                 event = function (layout)
                     local position = this.element.layout.props.relativePosition
                     config.data.ui.position.x = position.x * 100
@@ -576,12 +578,13 @@ function this.create(params)
                         props = {
                             text = "[PH] Set position",
                             textSize = config.data.ui.fontSize,
+                            textColor = config.data.ui.defaultColor,
                         },
                     }
                 }
             },
             addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
-            addButton{menu = this, textSize = config.data.ui.fontSize, text = "|<",
+            addButton{menu = this, textSize = config.data.ui.fontSize, text = "|<", textColor = config.data.ui.defaultColor,
                 event = function (layout)
                     local pos = mainContent.content[1].props.position
                     if not pos then return end
@@ -595,12 +598,13 @@ function this.create(params)
                         props = {
                             text = "[PH] Scroll to start",
                             textSize = config.data.ui.fontSize,
+                            textColor = config.data.ui.defaultColor,
                         },
                     }
                 }
             },
             addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
-            addButton{menu = this, textSize = config.data.ui.fontSize, text = "<<",
+            addButton{menu = this, textSize = config.data.ui.fontSize, text = "<<", textColor = config.data.ui.defaultColor,
                 event = function (layout)
                     local pos = mainContent.content[1].props.position
                     if not pos then return end
@@ -614,12 +618,13 @@ function this.create(params)
                         props = {
                             text = "[PH] Scroll up",
                             textSize = config.data.ui.fontSize,
+                            textColor = config.data.ui.defaultColor,
                         },
                     }
                 }
             },
             addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
-            addButton{menu = this, textSize = config.data.ui.fontSize, text = ">>",
+            addButton{menu = this, textSize = config.data.ui.fontSize, text = ">>", textColor = config.data.ui.defaultColor,
                 event = function (layout)
                     local pos = mainContent.content[1].props.position
                     if not pos then return end
@@ -633,6 +638,7 @@ function this.create(params)
                         props = {
                             text = "[PH] Scroll down",
                             textSize = config.data.ui.fontSize,
+                            textColor = config.data.ui.defaultColor,
                         },
                     }
                 }
@@ -645,6 +651,7 @@ function this.create(params)
                     props = {
                         text = "Tracking:  ",
                         textSize = config.data.ui.fontSize * 1.2,
+                        textColor = config.data.ui.defaultColor,
                         multiline = false,
                         wordWrap = false,
                         textAlignH = uiUtils.convertAlign(config.data.ui.align),

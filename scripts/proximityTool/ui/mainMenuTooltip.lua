@@ -48,7 +48,7 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
                             autoSize = true,
                             textAlignH = ui.ALIGNMENT.Start,
                             textAlignV = ui.ALIGNMENT.End,
-                            textColor = color,
+                            textColor = color or config.data.ui.defaultColor,
                         },
                     }
                 end
@@ -77,7 +77,7 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
                             color = util.color.rgb(colDt[1], colDt[2], colDt[3])
                         end
                     else
-                        color = commonData.defaultColor
+                        color = config.data.ui.defaultColor
                     end
                     addDescrLine(str, color)
                 end

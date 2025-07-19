@@ -70,6 +70,7 @@ return function (params)
                         props = {
                             text = params.text or "Ok",
                             textSize = params.textSize or 18,
+                            textColor = params.textColor,
                             multiline = false,
                             wordWrap = false,
                             textAlignH = ui.ALIGNMENT.Start,

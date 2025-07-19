@@ -49,6 +49,7 @@ local default = {
         hideWindow = false,
         showHeader = false,
         fontSize = 24,
+        defaultColor = common.defaultColor,
         align = "End",
         size = {
             x = 25, -- %
