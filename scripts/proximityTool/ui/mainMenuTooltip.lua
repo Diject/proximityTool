@@ -3,6 +3,7 @@ local ui = require('openmw.ui')
 local util = require('openmw.util')
 
 local commonData = require("scripts.proximityTool.common")
+local config = require("scripts.proximityTool.config")
 
 local tableLib = require("scripts.proximityTool.utils.table")
 local safeContainers = require("scripts.proximityTool.ui.safeContainer")
@@ -41,7 +42,7 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
                         type = ui.TYPE.Text,
                         props = {
                             text = str,
-                            textSize = 24,
+                            textSize = config.data.ui.fontSize,
                             multiline = true,
                             wordWrap = true,
                             autoSize = true,

@@ -48,6 +48,7 @@ local default = {
         hideHUD = false,
         hideWindow = false,
         showHeader = false,
+        fontSize = 24,
         align = "End",
         size = {
             x = 25, -- %

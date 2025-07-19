@@ -118,7 +118,7 @@ local function createGroup(groupName, params)
     if parentIndex then return end
 
     local groupNameText = groupName
-    local groupNameFontSize = 24
+    local groupNameFontSize = config.data.ui.fontSize
     if groupNameText == commonData.hiddenGroupId or groupNameText == commonData.defaultGroupId then
         groupNameText = ""
         groupNameFontSize = 0
@@ -260,7 +260,7 @@ function this.registerMarker(activeMarker)
             type = ui.TYPE.Text,
             props = {
                 text = "",
-                textSize = 24,
+                textSize = config.data.ui.fontSize,
                 multiline = false,
                 wordWrap = false,
                 textAlignH = ui.ALIGNMENT.End,
@@ -276,7 +276,7 @@ function this.registerMarker(activeMarker)
             type = ui.TYPE.Image,
             props = {
                 resource = icons.arrowIcons[1],
-                size = util.vector2(24, 24),
+                size = util.vector2(config.data.ui.fontSize, config.data.ui.fontSize),
                 color = defaultColor,
                 visible = activeMarker.type ~= 5,
             },
@@ -317,7 +317,7 @@ function this.registerMarker(activeMarker)
             },
             props = {
                 text = topRecord.name,
-                textSize = 24,
+                textSize = config.data.ui.fontSize,
                 multiline = false,
                 wordWrap = false,
                 textAlignH = ui.ALIGNMENT.End,
@@ -377,7 +377,7 @@ function this.registerMarker(activeMarker)
                 props = {
                     text = tostring(rec.note):sub(1, 50),
                     textColor = noteColor,
-                    textSize = 24,
+                    textSize = config.data.ui.fontSize,
                     multiline = false,
                     wordWrap = false,
                     visible = true,
@@ -410,7 +410,7 @@ function this.registerMarker(activeMarker)
             local iconColor = rec.iconColor and util.color.rgb(rec.iconColor[1] or 1, rec.iconColor[2] or 1, rec.iconColor[3] or 1) or nil
             local name = rec.icon..tostring(iconColor)
 
-            local size = {24, 24}
+            local size = {config.data.ui.fontSize, config.data.ui.fontSize}
             local iconRatio = rec.iconRatio or 1
             if iconRatio > 1 then
                 size[1] = size[1] / iconRatio
@@ -555,7 +555,7 @@ function this.create(params)
 
     local parentContent
 
-    local headerHeight = 24 + 6
+    local headerHeight = config.data.ui.fontSize * 1.2 + 4
     local header = {
         type = ui.TYPE.Flex,
         props = {
@@ -563,7 +563,7 @@ function this.create(params)
             visible = config.data.ui.showHeader or params.showBorder,
         },
         content = ui.content {
-            addButton{menu = this, textSize = 24, text = "P",
+            addButton{menu = this, textSize = config.data.ui.fontSize, text = "P",
                 event = function (layout)
                     local position = this.element.layout.props.relativePosition
                     config.data.ui.position.x = position.x * 100
@@ -575,13 +575,13 @@ function this.create(params)
                         template = I.MWUI.templates.textNormal,
                         props = {
                             text = "[PH] Set position",
-                            textSize = 24,
+                            textSize = config.data.ui.fontSize,
                         },
                     }
                 }
             },
             addInterval(8, 8),
-            addButton{menu = this, textSize = 24, text = "|<",
+            addButton{menu = this, textSize = config.data.ui.fontSize, text = "|<",
                 event = function (layout)
                     local pos = mainContent.content[1].props.position
                     if not pos then return end
@@ -594,18 +594,18 @@ function this.create(params)
                         template = I.MWUI.templates.textNormal,
                         props = {
                             text = "[PH] Scroll to start",
-                            textSize = 24,
+                            textSize = config.data.ui.fontSize,
                         },
                     }
                 }
             },
             addInterval(4, 4),
-            addButton{menu = this, textSize = 24, text = "<<",
+            addButton{menu = this, textSize = config.data.ui.fontSize, text = "<<",
                 event = function (layout)
                     local pos = mainContent.content[1].props.position
                     if not pos then return end
 
-                    mainContent.content[1].props.position = util.vector2(0, math.min(0, pos.y + 24))
+                    mainContent.content[1].props.position = util.vector2(0, math.min(0, pos.y + config.data.ui.fontSize))
                     this.element:update()
                 end,
                 tooltipContent = ui.content {
@@ -613,18 +613,18 @@ function this.create(params)
                         template = I.MWUI.templates.textNormal,
                         props = {
                             text = "[PH] Scroll up",
-                            textSize = 24,
+                            textSize = config.data.ui.fontSize,
                         },
                     }
                 }
             },
             addInterval(4, 4),
-            addButton{menu = this, textSize = 24, text = ">>",
+            addButton{menu = this, textSize = config.data.ui.fontSize, text = ">>",
                 event = function (layout)
                     local pos = mainContent.content[1].props.position
                     if not pos then return end
 
-                    mainContent.content[1].props.position = util.vector2(0, pos.y - 24)
+                    mainContent.content[1].props.position = util.vector2(0, pos.y - config.data.ui.fontSize)
                     this.element:update()
                 end,
                 tooltipContent = ui.content {
@@ -632,7 +632,7 @@ function this.create(params)
                         template = I.MWUI.templates.textNormal,
                         props = {
                             text = "[PH] Scroll down",
-                            textSize = 24,
+                            textSize = config.data.ui.fontSize,
                         },
                     }
                 }
@@ -644,7 +644,7 @@ function this.create(params)
                     type = ui.TYPE.Text,
                     props = {
                         text = "Tracking:  ",
-                        textSize = 28,
+                        textSize = config.data.ui.fontSize * 1.2,
                         multiline = false,
                         wordWrap = false,
                         textAlignH = uiUtils.convertAlign(config.data.ui.align),
