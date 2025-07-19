@@ -580,7 +580,7 @@ function this.create(params)
                     }
                 }
             },
-            addInterval(8, 8),
+            addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
             addButton{menu = this, textSize = config.data.ui.fontSize, text = "|<",
                 event = function (layout)
                     local pos = mainContent.content[1].props.position
@@ -599,7 +599,7 @@ function this.create(params)
                     }
                 }
             },
-            addInterval(4, 4),
+            addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
             addButton{menu = this, textSize = config.data.ui.fontSize, text = "<<",
                 event = function (layout)
                     local pos = mainContent.content[1].props.position
@@ -618,7 +618,7 @@ function this.create(params)
                     }
                 }
             },
-            addInterval(4, 4),
+            addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
             addButton{menu = this, textSize = config.data.ui.fontSize, text = ">>",
                 event = function (layout)
                     local pos = mainContent.content[1].props.position
@@ -637,7 +637,7 @@ function this.create(params)
                     }
                 }
             },
-            addInterval(8, 8),
+            addInterval(config.data.ui.fontSize, config.data.ui.fontSize),
             mainWindowBox({
                 {
                     template = I.MWUI.templates.textHeader,
