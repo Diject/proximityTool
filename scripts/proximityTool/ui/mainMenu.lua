@@ -551,6 +551,11 @@ function this.create(params)
         },
     }
 
+    local isMainHidden = params.showBorder or false
+
+    local parentContent
+
+    local headerHeight = 24 + 6
     local header = {
         type = ui.TYPE.Flex,
         props = {
@@ -651,17 +656,30 @@ function this.create(params)
                     },
                     events = {
                         mousePress = async:callback(function(coord, layout)
-                            layout.userData.doDrag = true
+                            layout.userData.doDrag = false
                             local screenSize = ui.screenSize()
                             layout.userData.lastMousePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
                         end),
 
                         mouseRelease = async:callback(function(_, layout)
                             layout.userData.lastMousePos = nil
+
+                            if not layout.userData.doDrag then
+                                if isMainHidden then
+                                    parentContent[1].props.size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100)
+                                else
+                                    parentContent[1].props.size = util.vector2(screenSize.x * config.data.ui.size.x / 100, headerHeight)
+                                end
+                                isMainHidden = not isMainHidden
+                                this.element:update()
+                            end
+                            layout.userData.doDrag = false
                         end),
 
                         mouseMove = async:callback(function(coord, layout)
                             if not layout.userData.lastMousePos then return end
+
+                            layout.userData.doDrag = true
 
                             local screenSize = ui.screenSize()
                             local props = this.element.layout.props
@@ -671,6 +689,7 @@ function this.create(params)
                             elementRelPos = props.relativePosition
                             config.setLocal("ui.positionAlt.x", elementRelPos.x * 100)
                             config.setLocal("ui.positionAlt.y", elementRelPos.y * 100)
+
                             this.element:update()
 
                             layout.userData.lastMousePos = relativePos
@@ -681,13 +700,18 @@ function this.create(params)
         }
     }
 
-
-    local parentContent = {
+    local parantContentHeight
+    if isMainHidden then
+        parantContentHeight = util.vector2(screenSize.x * config.data.ui.size.x / 100, headerHeight)
+    else
+        parantContentHeight = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100)
+    end
+    parentContent = {
         {
             type = ui.TYPE.Flex,
             props = {
                 autoSize = false,
-                size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100),
+                size = parantContentHeight,
                 horizontal = false,
                 arrange = uiUtils.convertAlign(config.data.ui.align),
             },
