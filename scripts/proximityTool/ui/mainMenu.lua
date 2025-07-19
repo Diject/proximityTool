@@ -539,8 +539,8 @@ function this.create(params)
                 type = ui.TYPE.Flex,
                 props = {
                     position = util.vector2(0, 0),
-                    size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100),
-                    autoSize = false,
+                    -- size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100),
+                    autoSize = true,
                     horizontal = false,
                     arrange = uiUtils.convertAlign(config.data.ui.align),
                 },
