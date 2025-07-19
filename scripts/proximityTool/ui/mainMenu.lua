@@ -268,6 +268,8 @@ function this.registerMarker(activeMarker)
                 textAlignH = ui.ALIGNMENT.End,
                 textAlignV = ui.ALIGNMENT.Start,
                 visible = activeMarker.type ~= 5,
+                textShadow = true,
+                textShadowColor = util.color.rgb(0, 0, 0),
             },
             events = unitedEvents,
             userData = {
@@ -324,6 +326,8 @@ function this.registerMarker(activeMarker)
                 wordWrap = false,
                 textAlignH = ui.ALIGNMENT.End,
                 textColor = nameColor,
+                textShadow = true,
+                textShadowColor = util.color.rgb(0, 0, 0),
             },
             events = unitedEvents,
         },
