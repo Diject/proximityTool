@@ -265,6 +265,7 @@ function this.registerMarker(activeMarker)
                 wordWrap = false,
                 textAlignH = ui.ALIGNMENT.End,
                 textAlignV = ui.ALIGNMENT.Start,
+                visible = activeMarker.type ~= 5,
             },
             events = unitedEvents,
             userData = {
@@ -277,6 +278,7 @@ function this.registerMarker(activeMarker)
                 resource = icons.arrowIcons[1],
                 size = util.vector2(24, 24),
                 color = defaultColor,
+                visible = activeMarker.type ~= 5,
             },
             events = unitedEvents,
             userData = {
@@ -287,6 +289,7 @@ function this.registerMarker(activeMarker)
             template = I.MWUI.templates.interval,
             userData = {
                 data = activeMarker,
+                visible = activeMarker.type ~= 5,
             },
             events = unitedEvents,
         },
@@ -335,6 +338,7 @@ function this.registerMarker(activeMarker)
             userData = {
                 distanceIndex = 1,
                 directionIconIndex = 2,
+                textIndex = 6,
             },
             content = nil
         },
@@ -947,6 +951,19 @@ function this.update(params)
                         trackingData.nextUpdate = 0
                     end
                 end
+
+            elseif topMarkerRecord.type == 5 then
+                elem.userData.priority = trackingData.priority
+                local textIndex = elem.content[1].userData.textIndex
+                if elem.content[1].content[textIndex or 6].props.text ~= topMarkerRecord.record.name then
+                    elem.content[1].content[textIndex or 6].props.text = topMarkerRecord.record.name
+                    doUpdate = true
+                end
+                elem.userData.distance = 0
+                elem.userData.distance2D = 0
+                elem.userData.heightDiff = 0
+                elem.userData.alpha = trackingData.alpha
+                goto continue
 
             else
                 uiUtils.removeFromContent(contentOwner.content, i)

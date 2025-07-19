@@ -158,7 +158,6 @@ end
 function this.register(params)
     if not params then return end
     if not params.record then return end
-    if not params.positions and not params.objectId and not params.object and not params.objects then return end
 
     local record
     if type(params.record) == "string" then
@@ -183,6 +182,8 @@ function this.register(params)
     elseif params.objects then
         activeMarkerId = params.id
     elseif params.positions then
+        activeMarkerId = params.id
+    else
         activeMarkerId = params.id
     end
 
@@ -226,6 +227,8 @@ function this.register(params)
     elseif params.objects then
         activeMarkerData.type = 4
         activeMarkerData.objectIds = params.objects
+    else
+        activeMarkerData.type = 5
     end
 
     activeMarkerData.playerExteriorFlag = player.cell.isExterior

@@ -44,7 +44,7 @@ local settingStorage = storage.globalSection(common.settingStorageId)
 ---@field position {x: number, y: number, z: number}
 
 ---@class proximityTool.activeMarkerData
----@field type integer 1 - object id, 2 - game object, 3 - position, 4 - group of objects
+---@field type integer 1 - object id, 2 - game object, 3 - position, 4 - group of objects, 5 - text
 ---@field marker proximityTool.markerData
 ---@field id string?
 ---@field recordId string?
@@ -195,7 +195,7 @@ end
 ---@return string? groupId
 local function addMarker(data)
     if not data then return end
-    if not data.record or (not data.positions and not data.objectId and not data.object and not data.objects) then return end
+    if not data.record then return end
 
     ---@type proximityTool.markerData
     local markerData = tableLib.deepcopy(data)
