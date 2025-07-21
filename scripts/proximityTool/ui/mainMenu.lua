@@ -562,153 +562,160 @@ function this.create(params)
     local parentContent
 
     local headerHeight = config.data.ui.fontSize * 1.2 + 4
+
+    local headerContentArr = {
+        addButton{menu = this, textSize = config.data.ui.fontSize, text = "P", textColor = config.data.ui.defaultColor,
+            event = function (layout)
+                local position = this.element.layout.props.relativePosition
+                config.data.ui.position.x = position.x * 100
+                config.data.ui.position.y = position.y * 100
+                config.save()
+            end,
+            tooltipContent = ui.content {
+                {
+                    template = I.MWUI.templates.textNormal,
+                    props = {
+                        text = "[PH] Set position",
+                        textSize = config.data.ui.fontSize,
+                        textColor = config.data.ui.defaultColor,
+                    },
+                }
+            }
+        },
+        addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
+        addButton{menu = this, textSize = config.data.ui.fontSize, text = "|<", textColor = config.data.ui.defaultColor,
+            event = function (layout)
+                local pos = mainContent.content[1].props.position
+                if not pos then return end
+
+                mainContent.content[1].props.position = util.vector2(0, 0)
+                this.element:update()
+            end,
+            tooltipContent = ui.content {
+                {
+                    template = I.MWUI.templates.textNormal,
+                    props = {
+                        text = "[PH] Scroll to start",
+                        textSize = config.data.ui.fontSize,
+                        textColor = config.data.ui.defaultColor,
+                    },
+                }
+            }
+        },
+        addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
+        addButton{menu = this, textSize = config.data.ui.fontSize, text = "<<", textColor = config.data.ui.defaultColor,
+            event = function (layout)
+                local pos = mainContent.content[1].props.position
+                if not pos then return end
+
+                mainContent.content[1].props.position = util.vector2(0, math.min(0, pos.y + config.data.ui.fontSize))
+                this.element:update()
+            end,
+            tooltipContent = ui.content {
+                {
+                    template = I.MWUI.templates.textNormal,
+                    props = {
+                        text = "[PH] Scroll up",
+                        textSize = config.data.ui.fontSize,
+                        textColor = config.data.ui.defaultColor,
+                    },
+                }
+            }
+        },
+        addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
+        addButton{menu = this, textSize = config.data.ui.fontSize, text = ">>", textColor = config.data.ui.defaultColor,
+            event = function (layout)
+                local pos = mainContent.content[1].props.position
+                if not pos then return end
+
+                mainContent.content[1].props.position = util.vector2(0, pos.y - config.data.ui.fontSize)
+                this.element:update()
+            end,
+            tooltipContent = ui.content {
+                {
+                    template = I.MWUI.templates.textNormal,
+                    props = {
+                        text = "[PH] Scroll down",
+                        textSize = config.data.ui.fontSize,
+                        textColor = config.data.ui.defaultColor,
+                    },
+                }
+            }
+        },
+        addInterval(config.data.ui.fontSize, config.data.ui.fontSize),
+        mainWindowBox({
+            {
+                template = I.MWUI.templates.textHeader,
+                type = ui.TYPE.Text,
+                props = {
+                    text = "Tracking:  ",
+                    textSize = config.data.ui.fontSize * 1.2,
+                    textColor = config.data.ui.defaultColor,
+                    multiline = false,
+                    wordWrap = false,
+                    textAlignH = uiUtils.convertAlign(config.data.ui.align),
+                    textShadow = true,
+                    textShadowColor = util.color.rgb(0, 0, 0),
+                },
+                userData = {
+                    lastMousePos = nil,
+                },
+                events = {
+                    mousePress = async:callback(function(coord, layout)
+                        layout.userData.doDrag = false
+                        local screenSize = ui.screenSize()
+                        layout.userData.lastMousePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
+                    end),
+
+                    mouseRelease = async:callback(function(_, layout)
+                        layout.userData.lastMousePos = nil
+
+                        if not layout.userData.doDrag then
+                            if isMainHidden then
+                                parentContent[1].props.size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100)
+                            else
+                                parentContent[1].props.size = util.vector2(screenSize.x * config.data.ui.size.x / 100, headerHeight)
+                            end
+                            isMainHidden = not isMainHidden
+                            this.element:update()
+                        end
+                        layout.userData.doDrag = false
+                    end),
+
+                    mouseMove = async:callback(function(coord, layout)
+                        if not layout.userData.lastMousePos then return end
+
+                        layout.userData.doDrag = true
+
+                        local screenSize = ui.screenSize()
+                        local props = this.element.layout.props
+                        local relativePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
+
+                        props.relativePosition = props.relativePosition - (layout.userData.lastMousePos - relativePos)
+                        elementRelPos = props.relativePosition
+                        config.setLocal("ui.positionAlt.x", elementRelPos.x * 100)
+                        config.setLocal("ui.positionAlt.y", elementRelPos.y * 100)
+
+                        this.element:update()
+
+                        layout.userData.lastMousePos = relativePos
+                    end),
+                },
+            }
+        }, params.showBorder),
+    }
+
+    if config.data.ui.orderH == "Right to left" then
+        headerContentArr = tableLib.invertIndexes(headerContentArr)
+    end
+
     local header = {
         type = ui.TYPE.Flex,
         props = {
             horizontal = true,
             visible = config.data.ui.showHeader or params.showBorder,
         },
-        content = ui.content {
-            addButton{menu = this, textSize = config.data.ui.fontSize, text = "P", textColor = config.data.ui.defaultColor,
-                event = function (layout)
-                    local position = this.element.layout.props.relativePosition
-                    config.data.ui.position.x = position.x * 100
-                    config.data.ui.position.y = position.y * 100
-                    config.save()
-                end,
-                tooltipContent = ui.content {
-                    {
-                        template = I.MWUI.templates.textNormal,
-                        props = {
-                            text = "[PH] Set position",
-                            textSize = config.data.ui.fontSize,
-                            textColor = config.data.ui.defaultColor,
-                        },
-                    }
-                }
-            },
-            addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
-            addButton{menu = this, textSize = config.data.ui.fontSize, text = "|<", textColor = config.data.ui.defaultColor,
-                event = function (layout)
-                    local pos = mainContent.content[1].props.position
-                    if not pos then return end
-
-                    mainContent.content[1].props.position = util.vector2(0, 0)
-                    this.element:update()
-                end,
-                tooltipContent = ui.content {
-                    {
-                        template = I.MWUI.templates.textNormal,
-                        props = {
-                            text = "[PH] Scroll to start",
-                            textSize = config.data.ui.fontSize,
-                            textColor = config.data.ui.defaultColor,
-                        },
-                    }
-                }
-            },
-            addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
-            addButton{menu = this, textSize = config.data.ui.fontSize, text = "<<", textColor = config.data.ui.defaultColor,
-                event = function (layout)
-                    local pos = mainContent.content[1].props.position
-                    if not pos then return end
-
-                    mainContent.content[1].props.position = util.vector2(0, math.min(0, pos.y + config.data.ui.fontSize))
-                    this.element:update()
-                end,
-                tooltipContent = ui.content {
-                    {
-                        template = I.MWUI.templates.textNormal,
-                        props = {
-                            text = "[PH] Scroll up",
-                            textSize = config.data.ui.fontSize,
-                            textColor = config.data.ui.defaultColor,
-                        },
-                    }
-                }
-            },
-            addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
-            addButton{menu = this, textSize = config.data.ui.fontSize, text = ">>", textColor = config.data.ui.defaultColor,
-                event = function (layout)
-                    local pos = mainContent.content[1].props.position
-                    if not pos then return end
-
-                    mainContent.content[1].props.position = util.vector2(0, pos.y - config.data.ui.fontSize)
-                    this.element:update()
-                end,
-                tooltipContent = ui.content {
-                    {
-                        template = I.MWUI.templates.textNormal,
-                        props = {
-                            text = "[PH] Scroll down",
-                            textSize = config.data.ui.fontSize,
-                            textColor = config.data.ui.defaultColor,
-                        },
-                    }
-                }
-            },
-            addInterval(config.data.ui.fontSize, config.data.ui.fontSize),
-            mainWindowBox({
-                {
-                    template = I.MWUI.templates.textHeader,
-                    type = ui.TYPE.Text,
-                    props = {
-                        text = "Tracking:  ",
-                        textSize = config.data.ui.fontSize * 1.2,
-                        textColor = config.data.ui.defaultColor,
-                        multiline = false,
-                        wordWrap = false,
-                        textAlignH = uiUtils.convertAlign(config.data.ui.align),
-                        textShadow = true,
-                        textShadowColor = util.color.rgb(0, 0, 0),
-                    },
-                    userData = {
-                        lastMousePos = nil,
-                    },
-                    events = {
-                        mousePress = async:callback(function(coord, layout)
-                            layout.userData.doDrag = false
-                            local screenSize = ui.screenSize()
-                            layout.userData.lastMousePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
-                        end),
-
-                        mouseRelease = async:callback(function(_, layout)
-                            layout.userData.lastMousePos = nil
-
-                            if not layout.userData.doDrag then
-                                if isMainHidden then
-                                    parentContent[1].props.size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100)
-                                else
-                                    parentContent[1].props.size = util.vector2(screenSize.x * config.data.ui.size.x / 100, headerHeight)
-                                end
-                                isMainHidden = not isMainHidden
-                                this.element:update()
-                            end
-                            layout.userData.doDrag = false
-                        end),
-
-                        mouseMove = async:callback(function(coord, layout)
-                            if not layout.userData.lastMousePos then return end
-
-                            layout.userData.doDrag = true
-
-                            local screenSize = ui.screenSize()
-                            local props = this.element.layout.props
-                            local relativePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
-
-                            props.relativePosition = props.relativePosition - (layout.userData.lastMousePos - relativePos)
-                            elementRelPos = props.relativePosition
-                            config.setLocal("ui.positionAlt.x", elementRelPos.x * 100)
-                            config.setLocal("ui.positionAlt.y", elementRelPos.y * 100)
-
-                            this.element:update()
-
-                            layout.userData.lastMousePos = relativePos
-                        end),
-                    },
-                }
-            }, params.showBorder),
-        }
+        content = ui.content(headerContentArr)
     }
 
     local parantContentHeight
