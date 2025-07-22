@@ -11,6 +11,7 @@ local tooltip = require("scripts.proximityTool.ui.tooltip")
 ---@field textSize integer?
 ---@field textColor any?
 ---@field size any? -- util.vector2
+---@field hidden boolean?
 ---@field event function?
 ---@field tooltipContent any?
 
@@ -22,6 +23,7 @@ return function (params)
         template = templates.boxSolidThick,
         props = {
             propagateEvents = false,
+            visible = not params.hidden,
         },
         events = {
             mousePress = async:callback(function(e, layout)

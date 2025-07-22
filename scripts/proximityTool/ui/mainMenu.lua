@@ -513,15 +513,24 @@ function this.registerMarker(activeMarker)
 end
 
 
-local function mainWindowBox(content, showBorder)
+local function mainWindowBox(content, showBorder, userData)
     return {
         template = showBorder and I.MWUI.templates.boxSolid or nil,
         type = not showBorder and ui.TYPE.Flex or nil,
         props = {
             autoSize = true,
+            inheritAlpha = false,
         },
+        userData = userData,
         content = ui.content(content),
     }
+end
+
+
+local function setMainBoxVisibility(state)
+    if not this.element then return end
+
+    this.element.layout.props.alpha = state and 1 or 0
 end
 
 
@@ -561,9 +570,19 @@ function this.create(params)
 
     local parentContent
 
-    local headerHeight = config.data.ui.fontSize * 1.2 + 4
+    local headerHeight = config.data.ui.fontSize * 1.2 + 6
 
-    local headerContentArr = {
+    local headerContentArr
+
+    local function setHeaderContentVisibility(isVisible)
+        for _, elem in pairs(headerContentArr or {}) do
+            if elem.props and (not elem.userData or not elem.userData.isHeader) then
+                elem.props.visible = isVisible
+            end
+        end
+    end
+
+    headerContentArr = {
         addButton{menu = this, textSize = config.data.ui.fontSize, text = "P", textColor = config.data.ui.defaultColor,
             event = function (layout)
                 local position = this.element.layout.props.relativePosition
@@ -676,6 +695,9 @@ function this.create(params)
                             else
                                 parentContent[1].props.size = util.vector2(screenSize.x * config.data.ui.size.x / 100, headerHeight)
                             end
+
+                            setMainBoxVisibility(isMainHidden)
+                            setHeaderContentVisibility(isMainHidden)
                             isMainHidden = not isMainHidden
                             this.element:update()
                         end
@@ -702,8 +724,10 @@ function this.create(params)
                     end),
                 },
             }
-        }, params.showBorder),
+        }, params.showBorder, {isHeader = true}),
     }
+
+    setHeaderContentVisibility(isMainHidden)
 
     if config.data.ui.orderH == "Right to left" then
         headerContentArr = tableLib.invertIndexes(headerContentArr)
@@ -754,6 +778,7 @@ function this.create(params)
         arrange = uiUtils.convertAlign(config.data.ui.align),
         relativePosition = position,
         anchor = util.vector2(1, 0),
+        alpha = isMainHidden and 0 or 1,
     }
     base.layer = params.showBorder and "Windows" or "HUD"
 
