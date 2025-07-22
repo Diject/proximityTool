@@ -572,6 +572,9 @@ function this.create(params)
 
     local headerHeight = config.data.ui.fontSize * 1.2 + 6
 
+    local trackingLabelText = "Tracking:"
+    trackingLabelText = config.data.ui.orderH == "Right to left" and " "..trackingLabelText or trackingLabelText.." "
+
     local headerContentArr
 
     local function setHeaderContentVisibility(isVisible)
@@ -667,7 +670,7 @@ function this.create(params)
                 template = I.MWUI.templates.textHeader,
                 type = ui.TYPE.Text,
                 props = {
-                    text = "Tracking:  ",
+                    text = trackingLabelText,
                     textSize = config.data.ui.fontSize * 1.2,
                     textColor = config.data.ui.defaultColor,
                     multiline = false,
