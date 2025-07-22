@@ -605,64 +605,73 @@ function this.create(params)
             }
         },
         addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
-        addButton{menu = this, textSize = config.data.ui.fontSize, text = "|<", textColor = config.data.ui.defaultColor,
-            event = function (layout)
-                local pos = mainContent.content[1].props.position
-                if not pos then return end
+        {
+            type = ui.TYPE.Flex,
+            props = {
+                autoSize = true,
+                horizontal = true,
+            },
+            content = ui.content{
+                addButton{menu = this, textSize = config.data.ui.fontSize, text = "|<", textColor = config.data.ui.defaultColor,
+                    event = function (layout)
+                        local pos = mainContent.content[1].props.position
+                        if not pos then return end
 
-                mainContent.content[1].props.position = util.vector2(0, 0)
-                this.element:update()
-            end,
-            tooltipContent = ui.content {
-                {
-                    template = I.MWUI.templates.textNormal,
-                    props = {
-                        text = "[PH] Scroll to start",
-                        textSize = config.data.ui.fontSize,
-                        textColor = config.data.ui.defaultColor,
-                    },
-                }
-            }
-        },
-        addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
-        addButton{menu = this, textSize = config.data.ui.fontSize, text = "<<", textColor = config.data.ui.defaultColor,
-            event = function (layout)
-                local pos = mainContent.content[1].props.position
-                if not pos then return end
+                        mainContent.content[1].props.position = util.vector2(0, 0)
+                        this.element:update()
+                    end,
+                    tooltipContent = ui.content {
+                        {
+                            template = I.MWUI.templates.textNormal,
+                            props = {
+                                text = "[PH] Scroll to start",
+                                textSize = config.data.ui.fontSize,
+                                textColor = config.data.ui.defaultColor,
+                            },
+                        }
+                    }
+                },
+                addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
+                addButton{menu = this, textSize = config.data.ui.fontSize, text = "<<", textColor = config.data.ui.defaultColor,
+                    event = function (layout)
+                        local pos = mainContent.content[1].props.position
+                        if not pos then return end
 
-                mainContent.content[1].props.position = util.vector2(0, math.min(0, pos.y + config.data.ui.fontSize))
-                this.element:update()
-            end,
-            tooltipContent = ui.content {
-                {
-                    template = I.MWUI.templates.textNormal,
-                    props = {
-                        text = "[PH] Scroll up",
-                        textSize = config.data.ui.fontSize,
-                        textColor = config.data.ui.defaultColor,
-                    },
-                }
-            }
-        },
-        addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
-        addButton{menu = this, textSize = config.data.ui.fontSize, text = ">>", textColor = config.data.ui.defaultColor,
-            event = function (layout)
-                local pos = mainContent.content[1].props.position
-                if not pos then return end
+                        mainContent.content[1].props.position = util.vector2(0, math.min(0, pos.y + config.data.ui.fontSize))
+                        this.element:update()
+                    end,
+                    tooltipContent = ui.content {
+                        {
+                            template = I.MWUI.templates.textNormal,
+                            props = {
+                                text = "[PH] Scroll up",
+                                textSize = config.data.ui.fontSize,
+                                textColor = config.data.ui.defaultColor,
+                            },
+                        }
+                    }
+                },
+                addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
+                addButton{menu = this, textSize = config.data.ui.fontSize, text = ">>", textColor = config.data.ui.defaultColor,
+                    event = function (layout)
+                        local pos = mainContent.content[1].props.position
+                        if not pos then return end
 
-                mainContent.content[1].props.position = util.vector2(0, pos.y - config.data.ui.fontSize)
-                this.element:update()
-            end,
-            tooltipContent = ui.content {
-                {
-                    template = I.MWUI.templates.textNormal,
-                    props = {
-                        text = "[PH] Scroll down",
-                        textSize = config.data.ui.fontSize,
-                        textColor = config.data.ui.defaultColor,
-                    },
-                }
-            }
+                        mainContent.content[1].props.position = util.vector2(0, pos.y - config.data.ui.fontSize)
+                        this.element:update()
+                    end,
+                    tooltipContent = ui.content {
+                        {
+                            template = I.MWUI.templates.textNormal,
+                            props = {
+                                text = "[PH] Scroll down",
+                                textSize = config.data.ui.fontSize,
+                                textColor = config.data.ui.defaultColor,
+                            },
+                        }
+                    }
+                },
+            },
         },
         addInterval(config.data.ui.fontSize, config.data.ui.fontSize),
         mainWindowBox({
