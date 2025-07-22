@@ -32,8 +32,7 @@ local addInterval = require("scripts.proximityTool.ui.interval")
 
 local this = {}
 
-local defaultColor = commonData.defaultColor
-local elementRelPos = util.vector2(config.localConfig.ui.positionAlt.x / 100, config.localConfig.ui.positionAlt.y / 100)
+local elementRelPos = util.vector2(config.data.ui.positionInMenu.x / 100, config.data.ui.positionInMenu.y / 100)
 
 this.hiddenGroupElement = {
     userData = {
@@ -727,8 +726,8 @@ function this.create(params)
 
                         props.relativePosition = props.relativePosition - (layout.userData.lastMousePos - relativePos)
                         elementRelPos = props.relativePosition
-                        config.setLocal("ui.positionAlt.x", elementRelPos.x * 100)
-                        config.setLocal("ui.positionAlt.y", elementRelPos.y * 100)
+                        config.setLocal("ui.positionInMenu.x", elementRelPos.x * 100)
+                        config.setLocal("ui.positionInMenu.y", elementRelPos.y * 100)
 
                         this.element:update()
 
