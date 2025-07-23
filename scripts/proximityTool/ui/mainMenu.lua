@@ -587,6 +587,22 @@ function this.create(params)
         end
     end
 
+    local function scrollUp(val)
+        local pos = mainContent.content[1].props.position
+        if not pos then return end
+
+        mainContent.content[1].props.position = util.vector2(0, math.min(0, pos.y + val))
+        this.element:update()
+    end
+
+    local function scrollDown(val)
+        local pos = mainContent.content[1].props.position
+        if not pos then return end
+
+        mainContent.content[1].props.position = util.vector2(0, pos.y - val)
+        this.element:update()
+    end
+
     headerContentArr = {
         addButton{menu = this, textSize = config.data.ui.fontSize, text = "P", textColor = config.data.ui.defaultColor,
             event = function (layout)
@@ -635,11 +651,10 @@ function this.create(params)
                 addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
                 addButton{menu = this, textSize = config.data.ui.fontSize, text = "<<", textColor = config.data.ui.defaultColor,
                     event = function (layout)
-                        local pos = mainContent.content[1].props.position
-                        if not pos then return end
-
-                        mainContent.content[1].props.position = util.vector2(0, math.min(0, pos.y + config.data.ui.fontSize))
-                        this.element:update()
+                        scrollUp(config.data.ui.fontSize * 2)
+                    end,
+                    intervalEvent = function (layout)
+                        scrollUp(config.data.ui.fontSize)
                     end,
                     tooltipContent = ui.content {
                         {
@@ -655,11 +670,10 @@ function this.create(params)
                 addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
                 addButton{menu = this, textSize = config.data.ui.fontSize, text = ">>", textColor = config.data.ui.defaultColor,
                     event = function (layout)
-                        local pos = mainContent.content[1].props.position
-                        if not pos then return end
-
-                        mainContent.content[1].props.position = util.vector2(0, pos.y - config.data.ui.fontSize)
-                        this.element:update()
+                        scrollDown(config.data.ui.fontSize * 2)
+                    end,
+                    intervalEvent = function (layout)
+                        scrollDown(config.data.ui.fontSize)
                     end,
                     tooltipContent = ui.content {
                         {
