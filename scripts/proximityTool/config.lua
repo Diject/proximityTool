@@ -5,20 +5,20 @@ local common = require("scripts.proximityTool.common")
 
 local tableLib = require("scripts.proximityTool.utils.table")
 
-local settingStorage = storage.globalSection(common.settingStorageId)
+local settingStorage = storage.playerSection(common.settingStorageId)
 local localStorage = storage.playerSection(common.localSettingStorageId)
 
 
 local this = {}
 
 this.storageSections = {
-    storage.playerSection(common.settingStorageId),
-    storage.playerSection(common.localSettingStorageId),
+    settingStorage,
+    localStorage,
 }
 
 
 ---@class proximityTool.config
-local default = {
+this.default = {
     enabled = true,
     updateInterval = 40, -- ms
     objectPosUpdateInterval = 3, -- s,
@@ -69,7 +69,7 @@ for _, section in pairs(this.storageSections) do
 
     this.loadFromStorage(section)
 end
-tableLib.addMissing(this.data, default)
+tableLib.addMissing(this.data, this.default)
 
 
 
