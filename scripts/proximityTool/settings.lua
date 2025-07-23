@@ -139,6 +139,7 @@ I.Settings.registerGroup{
         numberSetting{key = "ui.size.y", name = "windowSizeY", description = "windowSizeYDescription", integer = true, min = 10, max = 100, default = config.default.ui.size.y},
         numberSetting{key = "ui.fontSize", name = "fontSize", description = "fontSizeDescription", integer = true, min = 10, max = 100, default = config.default.ui.fontSize},
         boolSetting{key = "ui.hideWindow", name = "hideWindow", description = "hideWindowDescription", default = config.default.ui.hideWindow},
+        boolSetting{key = "ui.minimizeToAnchor", name = "minimizeToAnchor", description = "minimizeToAnchorDescription", default = config.default.ui.minimizeToAnchor},
         boolSetting{key = "ui.hideHUD", name = "hideHUD", description = "hideHUDDescription", default = config.default.ui.hideHUD},
         selectSetting{key = "ui.align", name = "align", description = "alignDescription", items = {"Start", "Center", "End"}, default = config.default.ui.align},
         selectSetting{key = "ui.orderH", name = "orderH", description = "orderHDescription", items = {"Left to right", "Right to left"}, default = config.default.ui.orderH},

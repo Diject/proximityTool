@@ -25,6 +25,7 @@ this.default = {
     ui = {
         hideHUD = false,
         hideWindow = false,
+        minimizeToAnchor = true,
         showHeader = false,
         fontSize = 24,
         defaultColor = common.defaultColor,

@@ -565,7 +565,7 @@ function this.create(params)
         },
     }
 
-    local isMainHidden = params.showBorder or false
+    local isMainHidden = params.showBorder and config.data.ui.minimizeToAnchor or false
 
     local parentContent
 
@@ -738,7 +738,7 @@ function this.create(params)
         }, params.showBorder, {isHeader = true}),
     }
 
-    setHeaderContentVisibility(isMainHidden)
+    setHeaderContentVisibility(not isMainHidden)
 
     if config.data.ui.orderH == "Right to left" then
         headerContentArr = tableLib.invertIndexes(headerContentArr)
