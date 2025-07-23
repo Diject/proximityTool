@@ -122,11 +122,11 @@ if config.data.enabled then
     mainMenu.create{showBorder = false}
 end
 
-local function updateTime()
+local function updateTimer()
     mainMenu.update()
 end
 
-local stopTimer = time.runRepeatedly(updateTime, config.data.updateInterval / 1000 * time.second, { type = time.SimulationTime })
+local stopTimer = time.runRepeatedly(updateTimer, config.data.updateInterval / 1000 * time.second, { type = time.SimulationTime })
 
 settingStorage:subscribe(async:callback(function(section, key)
     local enabled = settingStorage:get("enabled")
@@ -135,7 +135,7 @@ settingStorage:subscribe(async:callback(function(section, key)
         if stopTimer then
             stopTimer()
         end
-        stopTimer = time.runRepeatedly(updateTime, config.data.updateInterval / 1000 * time.second, { type = time.SimulationTime })
+        stopTimer = time.runRepeatedly(updateTimer, config.data.updateInterval / 1000 * time.second, { type = time.SimulationTime })
     else
         if stopTimer then
             stopTimer()
