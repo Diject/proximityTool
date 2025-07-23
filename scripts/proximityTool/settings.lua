@@ -141,6 +141,7 @@ I.Settings.registerGroup{
         boolSetting{key = "ui.hideWindow", name = "hideWindow", description = "hideWindowDescription", default = config.default.ui.hideWindow},
         boolSetting{key = "ui.minimizeToAnchor", name = "minimizeToAnchor", description = "minimizeToAnchorDescription", default = config.default.ui.minimizeToAnchor},
         boolSetting{key = "ui.hideHUD", name = "hideHUD", description = "hideHUDDescription", default = config.default.ui.hideHUD},
+        boolSetting{key = "ui.helpTooltips", name = "helpTooltips", description = "helpTooltipsDescription", default = config.default.ui.helpTooltips},
         selectSetting{key = "ui.align", name = "align", description = "alignDescription", items = {"Start", "Center", "End"}, default = config.default.ui.align},
         selectSetting{key = "ui.orderH", name = "orderH", description = "orderHDescription", items = {"Left to right", "Right to left"}, default = config.default.ui.orderH},
         color{key = "ui.defaultColor", name = "defaultColor", description = "defaultColorDescription", default = config.default.ui.defaultColor},

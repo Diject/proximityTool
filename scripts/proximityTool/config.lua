@@ -27,6 +27,7 @@ this.default = {
         hideWindow = false,
         minimizeToAnchor = true,
         showHeader = false,
+        helpTooltips = true,
         fontSize = 24,
         defaultColor = common.defaultColor,
         align = "End",

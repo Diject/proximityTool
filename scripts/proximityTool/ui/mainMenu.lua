@@ -610,7 +610,7 @@ function this.create(params)
                 config.setValue("ui.position.x", position.x * 100)
                 config.setValue("ui.position.y", position.y * 100)
             end,
-            tooltipContent = ui.content {
+            tooltipContent = config.data.ui.helpTooltips and ui.content {
                 {
                     template = I.MWUI.templates.textNormal,
                     props = {
@@ -637,7 +637,7 @@ function this.create(params)
                         mainContent.content[1].props.position = util.vector2(0, 0)
                         this.element:update()
                     end,
-                    tooltipContent = ui.content {
+                    tooltipContent = config.data.ui.helpTooltips and ui.content {
                         {
                             template = I.MWUI.templates.textNormal,
                             props = {
@@ -656,7 +656,7 @@ function this.create(params)
                     intervalEvent = function (layout)
                         scrollUp(config.data.ui.fontSize)
                     end,
-                    tooltipContent = ui.content {
+                    tooltipContent = config.data.ui.helpTooltips and ui.content {
                         {
                             template = I.MWUI.templates.textNormal,
                             props = {
@@ -675,7 +675,7 @@ function this.create(params)
                     intervalEvent = function (layout)
                         scrollDown(config.data.ui.fontSize)
                     end,
-                    tooltipContent = ui.content {
+                    tooltipContent = config.data.ui.helpTooltips and ui.content {
                         {
                             template = I.MWUI.templates.textNormal,
                             props = {
@@ -732,16 +732,18 @@ function this.create(params)
                     end),
 
                     mouseMove = async:callback(function(coord, layout)
-                        tooltip.createOrMove(coord, layout, ui.content {
-                            {
-                                template = I.MWUI.templates.textNormal,
-                                props = {
-                                    text = l10n("trackingAnchorTooltip"),
-                                    textSize = config.data.ui.fontSize,
-                                    textColor = config.data.ui.defaultColor,
-                                },
-                            }
-                        })
+                        if config.data.ui.helpTooltips then
+                            tooltip.createOrMove(coord, layout, ui.content {
+                                {
+                                    template = I.MWUI.templates.textNormal,
+                                    props = {
+                                        text = l10n("trackingAnchorTooltip"),
+                                        textSize = config.data.ui.fontSize,
+                                        textColor = config.data.ui.defaultColor,
+                                    },
+                                }
+                            })
+                        end
 
                         if not layout.userData.lastMousePos then return end
 

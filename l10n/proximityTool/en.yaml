@@ -26,6 +26,8 @@ positionXDescription: "Mod window position. As a % of screen size. You can move 
 positionY: "Position Y"
 minimizeToAnchor: "Minimize in character menu"
 minimizeToAnchorDescription: "Minimize the menu in the character menu to an anchor, which you can click to expand the menu."
+helpTooltips: "Help Tooltips"
+helpTooltipsDescription: "Show tooltips with help information on menu elements"
 
 trackingAnchor: "Tracking:"
 trackingAnchorTooltip: "Click to show/hide. Drag to move."
