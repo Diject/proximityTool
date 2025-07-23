@@ -6,7 +6,7 @@ local commonData = require("scripts.proximityTool.common")
 local config = require("scripts.proximityTool.config")
 
 local tableLib = require("scripts.proximityTool.utils.table")
-local safeContainers = require("scripts.proximityTool.ui.safeContainer")
+local uiUtils = require("scripts.proximityTool.ui.utils")
 
 local tooltip = require("scripts.proximityTool.ui.tooltip")
 
@@ -20,6 +20,8 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
         local foundDescription = false
 
         local tooltipLayoutContent = ui.content {}
+
+        local screenSize = ui.screenSize()
 
         local function drawDescription(record)
             if not record.description then return end
@@ -38,6 +40,9 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
             local function addDescrLine(str, color)
                 if str and str ~= "" then
                     added = true
+
+                    local textHeight = uiUtils.getTextHeight(str, config.data.ui.fontSize, screenSize.x / 3, 0.7)
+
                     line.content:add{
                         type = ui.TYPE.Text,
                         props = {
@@ -45,9 +50,10 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
                             textSize = config.data.ui.fontSize,
                             multiline = true,
                             wordWrap = true,
-                            autoSize = true,
-                            textAlignH = ui.ALIGNMENT.Start,
-                            textAlignV = ui.ALIGNMENT.End,
+                            autoSize = false,
+                            size = util.vector2(screenSize.x / 3, textHeight),
+                            textAlignH = ui.ALIGNMENT.Center,
+                            textAlignV = ui.ALIGNMENT.Center,
                             textColor = color or config.data.ui.defaultColor,
                         },
                     }
