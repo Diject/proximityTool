@@ -30,7 +30,7 @@ local realTimer = require("scripts.proximityTool.realTimer")
 
 local config = require("scripts.proximityTool.config")
 
-local settingStorage = storage.globalSection(common.settingStorageId)
+local settingStorage = storage.playerSection(common.settingStorageId)
 
 
 ---@class proximityTool.cellData
