@@ -26,3 +26,9 @@ positionXDescription: "Mod window position. As a % of screen size. You can move 
 positionY: "Position Y"
 minimizeToAnchor: "Minimize in character menu"
 minimizeToAnchorDescription: "Minimize the menu in the character menu to an anchor, which you can click to expand the menu."
+
+trackingAnchor: "Tracking:"
+scrollToStart: "Scroll to start"
+scrollUp: "Scroll up"
+scrollDown: "Scroll down"
+setPosition: "Set position"

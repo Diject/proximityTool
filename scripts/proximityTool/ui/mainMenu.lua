@@ -29,6 +29,8 @@ local tooltipFuncs = require("scripts.proximityTool.ui.mainMenuTooltip")
 local addButton = require("scripts.proximityTool.ui.button")
 local addInterval = require("scripts.proximityTool.ui.interval")
 
+local l10n = core.l10n(commonData.l10nKey)
+
 
 local this = {}
 
@@ -571,7 +573,7 @@ function this.create(params)
 
     local headerHeight = config.data.ui.fontSize * 1.2 + 6
 
-    local trackingLabelText = "Tracking:"
+    local trackingLabelText = l10n("trackingAnchor")
     trackingLabelText = config.data.ui.orderH == "Right to left" and " "..trackingLabelText or trackingLabelText.." "
 
     local headerContentArr
@@ -595,7 +597,7 @@ function this.create(params)
                 {
                     template = I.MWUI.templates.textNormal,
                     props = {
-                        text = "[PH] Set position",
+                        text = l10n("setPosition"),
                         textSize = config.data.ui.fontSize,
                         textColor = config.data.ui.defaultColor,
                     },
@@ -622,7 +624,7 @@ function this.create(params)
                         {
                             template = I.MWUI.templates.textNormal,
                             props = {
-                                text = "[PH] Scroll to start",
+                                text = l10n("scrollToStart"),
                                 textSize = config.data.ui.fontSize,
                                 textColor = config.data.ui.defaultColor,
                             },
@@ -642,7 +644,7 @@ function this.create(params)
                         {
                             template = I.MWUI.templates.textNormal,
                             props = {
-                                text = "[PH] Scroll up",
+                                text = l10n("scrollUp"),
                                 textSize = config.data.ui.fontSize,
                                 textColor = config.data.ui.defaultColor,
                             },
@@ -662,7 +664,7 @@ function this.create(params)
                         {
                             template = I.MWUI.templates.textNormal,
                             props = {
-                                text = "[PH] Scroll down",
+                                text = l10n("scrollDown"),
                                 textSize = config.data.ui.fontSize,
                                 textColor = config.data.ui.defaultColor,
                             },
