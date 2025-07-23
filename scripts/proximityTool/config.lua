@@ -28,6 +28,7 @@ this.default = {
         minimizeToAnchor = true,
         showHeader = false,
         helpTooltips = true,
+        imperialUnits = false,
         fontSize = 24,
         defaultColor = common.defaultColor,
         align = "End",

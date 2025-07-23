@@ -28,6 +28,7 @@ minimizeToAnchor: "Minimize in character menu"
 minimizeToAnchorDescription: "Minimize the menu in the character menu to an anchor, which you can click to expand the menu."
 helpTooltips: "Help Tooltips"
 helpTooltipsDescription: "Show tooltips with help information on menu elements"
+imperialUnits: "Show distance in feet"
 
 trackingAnchor: "Tracking:"
 trackingAnchorTooltip: "Click to show/hide. Drag to move."
