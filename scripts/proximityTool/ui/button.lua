@@ -4,6 +4,7 @@ local async = require('openmw.async')
 local input = require('openmw.input')
 local templates = require('openmw.interfaces').MWUI.templates
 local tooltip = require("scripts.proximityTool.ui.tooltip")
+local realTimer = require("scripts.proximityTool.realTimer")
 
 ---@class proximityTool.ui.button.params
 ---@field menu any
@@ -13,12 +14,38 @@ local tooltip = require("scripts.proximityTool.ui.tooltip")
 ---@field size any? -- util.vector2
 ---@field hidden boolean?
 ---@field event function?
+---@field intervalEvent function?
 ---@field tooltipContent any?
 
 ---@param params proximityTool.ui.button.params?
 return function (params)
     if not params then params = {} end
+
     local content
+
+    local lockEvent = false
+    local timer
+    local function stopIntervalTimer()
+        if timer then
+            timer()
+            timer = nil
+        end
+    end
+
+    local function startIntervalTimer(layout)
+        stopIntervalTimer()
+
+        if params.intervalEvent then
+            local func
+            func = function ()
+                params.intervalEvent(layout)
+                lockEvent = true
+                timer = realTimer.newTimer(0.2, func)
+            end
+            timer = realTimer.newTimer(0.5, func)
+        end
+    end
+
     content = {
         template = templates.boxSolidThick,
         props = {
@@ -30,16 +57,27 @@ return function (params)
                 if e.button ~= 1 then return end
                 content.template = templates.boxSolid
                 layout.userData.pressed = true
+
+                if params.intervalEvent then
+                    startIntervalTimer(layout)
+                end
+
                 params.menu.element:update()
             end),
 
             mouseRelease = async:callback(function(e, layout)
                 if e.button ~= 1 then return end
                 content.template = templates.boxSolidThick
-                if layout.userData.pressed and params.event then
+                if layout.userData.pressed and params.event and not lockEvent then
                     params.event(layout)
                 end
                 layout.userData.pressed = false
+
+                if params.intervalEvent then
+                    stopIntervalTimer()
+                end
+                lockEvent = false
+
                 params.menu.element:update()
             end),
 
