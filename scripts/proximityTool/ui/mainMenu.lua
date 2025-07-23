@@ -838,6 +838,24 @@ function this.create(params)
     end
 end
 
+
+
+
+local function getAdditionalPriorityByDistance(distance)
+    local res = 0
+    if distance < 150 then
+        res = 200
+    elseif distance < 600 then
+        res = math.floor((1000 - distance) / 200) * 20
+    elseif distance > 10000 then
+        res = -math.floor(distance / 10000) * 10
+    end
+
+    return res
+end
+
+
+
 ---@class objectTrackingBD.mainMenu.update.params
 ---@field force boolean?
 
@@ -1099,14 +1117,7 @@ function this.update(params)
             elem.userData.alpha = trackingData.alpha
 
             -- for ordering
-            local priorityByDistance = 0
-            if distance < 150 then
-                priorityByDistance = 200
-            elseif distance < 600 then
-                priorityByDistance = math.floor((500 - distance) / 50) * 10
-            elseif distance > 10000 then
-                priorityByDistance = -math.floor(distance / 10000) * 10
-            end
+            local priorityByDistance = getAdditionalPriorityByDistance(distance)
 
             elem.userData.priority = trackingData.priority + priorityByDistance
             if parent and not parent.userData.isProtected then
