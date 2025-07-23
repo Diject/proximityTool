@@ -588,9 +588,8 @@ function this.create(params)
         addButton{menu = this, textSize = config.data.ui.fontSize, text = "P", textColor = config.data.ui.defaultColor,
             event = function (layout)
                 local position = this.element.layout.props.relativePosition
-                config.data.ui.position.x = position.x * 100
-                config.data.ui.position.y = position.y * 100
-                config.save()
+                config.setValue("ui.position.x", position.x * 100)
+                config.setValue("ui.position.y", position.y * 100)
             end,
             tooltipContent = ui.content {
                 {
