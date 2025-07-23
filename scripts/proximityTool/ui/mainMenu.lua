@@ -24,6 +24,7 @@ local cellLib = require("scripts.proximityTool.cell")
 
 local safeContainers = require("scripts.proximityTool.ui.safeContainer")
 
+local tooltip = require("scripts.proximityTool.ui.tooltip")
 local tooltipFuncs = require("scripts.proximityTool.ui.mainMenuTooltip")
 
 local addButton = require("scripts.proximityTool.ui.button")
@@ -717,6 +718,17 @@ function this.create(params)
                     end),
 
                     mouseMove = async:callback(function(coord, layout)
+                        tooltip.createOrMove(coord, layout, ui.content {
+                            {
+                                template = I.MWUI.templates.textNormal,
+                                props = {
+                                    text = l10n("trackingAnchorTooltip"),
+                                    textSize = config.data.ui.fontSize,
+                                    textColor = config.data.ui.defaultColor,
+                                },
+                            }
+                        })
+
                         if not layout.userData.lastMousePos then return end
 
                         layout.userData.doDrag = true
@@ -733,6 +745,10 @@ function this.create(params)
                         this.element:update()
 
                         layout.userData.lastMousePos = relativePos
+                    end),
+
+                    focusLoss = async:callback(function(e, layout)
+                        tooltip.destroy(layout)
                     end),
                 },
             }
