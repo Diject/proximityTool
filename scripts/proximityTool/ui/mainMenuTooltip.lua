@@ -41,7 +41,8 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
                 if str and str ~= "" then
                     added = true
 
-                    local textHeight = uiUtils.getTextHeight(str, config.data.ui.fontSize, screenSize.x / 3, 0.7)
+                    local textWidth = math.min(screenSize.x * 0.5, utf8.len(str) * config.data.ui.fontSize * 0.7)
+                    local textHeight = uiUtils.getTextHeight(str, config.data.ui.fontSize, textWidth, 0.7)
 
                     line.content:add{
                         type = ui.TYPE.Text,
@@ -51,7 +52,7 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
                             multiline = true,
                             wordWrap = true,
                             autoSize = false,
-                            size = util.vector2(screenSize.x / 3, textHeight),
+                            size = util.vector2(textWidth, textHeight),
                             textAlignH = ui.ALIGNMENT.Center,
                             textAlignV = ui.ALIGNMENT.Center,
                             textColor = color or config.data.ui.defaultColor,
