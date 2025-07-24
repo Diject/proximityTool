@@ -4,11 +4,12 @@ local util = require('openmw.util')
 local async = require('openmw.async')
 
 local safeContainers = require("scripts.proximityTool.ui.safeContainer")
+local uiUtils = require("scripts.proximityTool.ui.utils")
 
 local this = {}
 
 function this.calcTooltipPosAnchor(cursorPos)
-    local screenSize = ui.screenSize()
+    local screenSize = uiUtils.getScaledScreenSize()
 
     local halfWidth = screenSize.x / 2
     local halfHeight = screenSize.y / 2

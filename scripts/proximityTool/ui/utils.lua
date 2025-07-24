@@ -1,4 +1,5 @@
 local ui = require('openmw.ui')
+local util = require('openmw.util')
 
 local this = {}
 
@@ -51,6 +52,21 @@ function this.getTextHeight(text, fontSize, width, mul)
     end
     rowCount = rowCount - 1
     return rowCount * fontSize, rowCount
+end
+
+
+function this.getUIScale()
+	local width = ui.layers[ui.layers.indexOf("HUD")].size.x
+	local screenSize = ui.screenSize()
+	return screenSize.x / width
+end
+
+
+function this.getScaledScreenSize()
+    local screenSize = ui.screenSize()
+    local scale = this.getUIScale()
+
+    return util.vector2(screenSize.x / scale, screenSize.y / scale)
 end
 
 

@@ -547,7 +547,7 @@ function this.create(params)
     if config.data.ui.hideHUD and not params.showBorder then return end
     if config.data.ui.hideWindow and params.showBorder then return end
 
-    local screenSize = ui.screenSize()
+    local screenSize = uiUtils.getScaledScreenSize()
 
     local mainContent = {
         type = ui.TYPE.Container,
@@ -709,7 +709,7 @@ function this.create(params)
                 events = {
                     mousePress = async:callback(function(coord, layout)
                         layout.userData.doDrag = false
-                        local screenSize = ui.screenSize()
+                        local screenSize = uiUtils.getScaledScreenSize()
                         layout.userData.lastMousePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
                     end),
 
@@ -749,7 +749,7 @@ function this.create(params)
 
                         layout.userData.doDrag = true
 
-                        local screenSize = ui.screenSize()
+                        local screenSize = uiUtils.getScaledScreenSize()
                         local props = this.element.layout.props
                         local relativePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
 

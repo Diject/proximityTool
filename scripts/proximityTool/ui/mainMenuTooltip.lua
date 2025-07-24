@@ -21,7 +21,7 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
 
         local tooltipLayoutContent = ui.content {}
 
-        local screenSize = ui.screenSize()
+        local screenSize = uiUtils.getScaledScreenSize()
 
         local function drawDescription(record)
             if not record.description then return end
