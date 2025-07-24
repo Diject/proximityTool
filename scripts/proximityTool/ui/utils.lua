@@ -63,10 +63,7 @@ end
 
 
 function this.getScaledScreenSize()
-    local screenSize = ui.screenSize()
-    local scale = this.getUIScale()
-
-    return util.vector2(screenSize.x / scale, screenSize.y / scale)
+    return ui.layers[ui.layers.indexOf("HUD")].size
 end
 
 
