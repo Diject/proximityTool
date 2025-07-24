@@ -304,7 +304,7 @@ end
 ---@param data proximityTool.HUDMarker
 ---@return string?
 local function addHUDMarker(data)
-    if not data.modName or not data.params then return end
+    if not data or not data.modName or not data.params then return end
 
     ---@type proximityTool.HUDMarker
     local markerData = tableLib.deepcopy(data)
@@ -339,6 +339,7 @@ end
 ---@param id string
 ---@return proximityTool.HUDMarker?
 local function getHUDMdata(id)
+    if not id then return end
     local markers = mapData.getHUDMarkers(id)
     if not markers then return end
 
@@ -350,6 +351,7 @@ end
 ---@param val boolean
 ---@return boolean?
 local function setHUDMvisibility(id, val)
+    if not id then return end
     local data = getHUDMdata(id)
     if data then
         data.hidden = not val
@@ -359,6 +361,7 @@ end
 
 
 local function removeHUDMarker(id)
+    if not id then return end
     return mapData.removeHUDMarker(id)
 end
 
