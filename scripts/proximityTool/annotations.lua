@@ -45,6 +45,7 @@
 ---@field modName string required
 ---@field objects any[]? list of object references that this marker should track
 ---@field objectIds string[]? list of object record ids that this marker should track
+---@field itemId string? markers will be removed for objects that do not have this item. Unresolved containers are considered as having it
 ---@field params table required. HUDM parameters
 ---@field version number HUDM version for this marker
 ---@field hidden boolean? if true, this marker will not be shown
