@@ -3,6 +3,7 @@ local types = require("openmw.types")
 return {
     [types.NPC] = true,
     [types.Creature] = true,
+    [types.Activator] = true,
     [types.Apparatus] = true,
     [types.Armor] = true,
     [types.Book] = true,
