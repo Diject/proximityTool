@@ -4,6 +4,7 @@ local util = require('openmw.util')
 local async = require('openmw.async')
 local core = require('openmw.core')
 local playerObj = require('openmw.self')
+local camera = require('openmw.camera')
 
 local commonData = require("scripts.proximityTool.common")
 
@@ -870,7 +871,8 @@ function this.update(params)
 
     local player = playerObj.object
     local playerPos = player.position
-    local pitch, yaw  = player.rotation:getAnglesXZ()
+    local cameraPos = camera.getPosition()
+    local cameraYaw = camera.getYaw() + camera.getExtraYaw()
 
     local doUpdate = params.force or false
 
@@ -1154,7 +1156,7 @@ function this.update(params)
                     imageArr = icons.arrowIcons
                 end
 
-                local angle = util.normalizeAngle(yaw - math.atan2(playerPos.x - trackingPos.x, playerPos.y - trackingPos.y) + math.pi * 1/16) ---@diagnostic disable-line: deprecated
+                local angle = util.normalizeAngle(cameraYaw - math.atan2(cameraPos.x - trackingPos.x, cameraPos.y - trackingPos.y) + math.pi * 1/16) ---@diagnostic disable-line: deprecated
                 arrowImageIndex = 1 + util.round((math.pi + angle) / (2 * math.pi) * 7)
                 iconImage = imageArr[arrowImageIndex]
             end
