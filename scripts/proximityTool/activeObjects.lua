@@ -1,5 +1,6 @@
 local tableLib = require("scripts.proximityTool.utils.table")
 local inventoryLib = require("scripts.proximityTool.utils.inventory")
+local playerRef = require("openmw.self")
 
 ---@diagnostic disable: undefined-doc-name
 local this = {}
@@ -19,6 +20,8 @@ local objectHandler = {}
 objectHandler.__index = objectHandler
 ---@type table<string, string>
 objectHandler.groups = {}
+---@type table<string, any>
+objectHandler.objects = {}
 
 function objectHandler:add(object)
     if not self.objects[object.id] then
@@ -55,7 +58,7 @@ end
 function objectHandler:positions(refObject, itemId)
     local ret = {}
     for id, object in pairs(self.objects) do
-        if object:isValid() and object.enabled and object.cell then
+        if object:isValid() then
             local posData = this.getObjectPositionData(object, refObject, itemId)
             if posData then
                 table.insert(ret, posData)
@@ -72,7 +75,8 @@ end
 ---@return {object: any, x: number, y: number, z: number, dif : number?}?
 function this.getObjectPositionData(object, refObject, itemId)
     if not object then return end
-    if object:isValid() and object.enabled and object.cell then
+    if object:isValid() and object.enabled and object.cell
+            and playerRef.cell:isInSameSpace(object) then
         if not itemId or inventoryLib.countOf(object, itemId, true, 1) > 0 then
             return {
                 object = object,
@@ -137,7 +141,7 @@ function this.getObjectPositionsByGroupName(groupName, refToCompare, itemId)
     local res = {}
     for _, recordId in pairs(this.objectRecordIdsByGroupId[groupName] or {}) do
         local objHandler = this.data[recordId]
-        if not objHandler then goto continue end
+        if not objHandler or objHandler.count == 0 then goto continue end
 
         local positions = objHandler:positions(refToCompare, itemId)
         tableLib.add(positions, res)
@@ -159,7 +163,7 @@ function this.getObjectPosition(recordId, refId)
     if not objHandler then return end
 
     local ref = objHandler:get(refId)
-    if ref then
+    if ref and ref.enabled and ref.cell and playerRef.cell:isInSameSpace(ref) then
         return ref.position
     end
 end
@@ -254,7 +258,7 @@ function this.getValidObjects(recordId)
 
     local out = {}
     for _, obj in pairs(data.objects) do
-        if obj:isValid() then
+        if obj:isValid() and obj.enabled and obj.cell and playerRef.cell:isInSameSpace(obj) then
             table.insert(out, obj)
         end
     end
