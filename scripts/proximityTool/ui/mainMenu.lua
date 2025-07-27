@@ -1163,8 +1163,8 @@ function this.update(params)
 
             local distanceIndex = elem.content[1].userData.distanceIndex
             local directionIndex = elem.content[1].userData.directionIconIndex
-            local newText = config.data.ui.imperialUnits and string.format("%.0fft", distance / 22.1)
-                    or string.format("%.0fm", distance / 64 * 0.9144)
+            local newText = config.data.ui.imperialUnits and string.format("%.0fft", distance / 21.33)
+                    or string.format("%.0fm", distance / 69.99)
             if elem.content[1].content[distanceIndex or 1].props.text ~= newText then
                 elem.content[1].content[distanceIndex or 1].props.text = newText
                 doUpdate = true
