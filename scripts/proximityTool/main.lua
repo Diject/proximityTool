@@ -8,6 +8,7 @@ local supportedObjectTypes = require("scripts.proximityTool.supportedObjectTypes
 local function onObjectActive(object)
     if supportedObjectTypes[object.type] and object.enabled then
         world.players[1]:sendEvent("proximityTool:addActiveObject", object)
+        object:addScript("scripts/proximityTool/objectLocal.lua")
     end
 end
 
