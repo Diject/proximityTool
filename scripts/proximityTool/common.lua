@@ -13,6 +13,7 @@ this.hiddenGroupId = "__hidden__"
 this.playerStorageId = "proximityTool:LocalStorage"
 
 this.settingStorageId = "Settings:proximityTool"
+this.settingStorageToRemoveId = "Settings:proximityTool:toremove"
 
 this.localSettingStorageId = "proximityTool:LocalSettings"
 

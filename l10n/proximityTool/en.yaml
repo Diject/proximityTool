@@ -1,5 +1,6 @@
 modName: "proximityTool"
 modDescription: "A mod that allows other mods to display information about nearby objects."
+settings: "Settings"
 enableMod: "Enable the mod?"
 defaultColor: "Default Color"
 defaultColorDescription: "Default color for text and some other elements."
@@ -29,6 +30,9 @@ minimizeToAnchorDescription: "Minimize the menu in the character menu to an anch
 helpTooltips: "Help Tooltips"
 helpTooltipsDescription: "Show tooltips with help information on menu elements"
 imperialUnits: "Show distance in feet"
+removeAllGroup: "Remove"
+removeAllMarkers: "Remove all markers"
+removeAllMarkersDescription: "Set to \"Yes\" to remove all markers for the current character."
 
 trackingAnchor: "Tracking:"
 trackingAnchorTooltip: "Click to show/hide. Drag to move."

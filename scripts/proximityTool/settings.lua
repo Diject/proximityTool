@@ -128,7 +128,7 @@ I.Settings.registerGroup{
     key = commonData.settingStorageId,
     page = commonData.settingPage,
     l10n = commonData.l10nKey,
-    name = "Settings",
+    name = "settings",
     permanentStorage = true,
     order = 0,
     settings = {

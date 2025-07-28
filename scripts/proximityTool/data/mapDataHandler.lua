@@ -251,4 +251,56 @@ function this.getHUDMarkers(id)
 end
 
 
+---@param modName string
+function this.removeModHUDMarkers(modName)
+    for id, dt in pairs(this.hudm) do
+        for markerId, data in pairs(dt) do
+            if data.modName == modName then
+                data[markerId] = nil
+            end
+        end
+        if next(this.hudm[id]) == nil then
+            this.hudm[id] = nil
+        end
+    end
+end
+
+
+function this.removeMarkersByGroupName(groupName)
+    for id, groupData in pairs(this.markers) do
+        for markerId, data in pairs(groupData) do
+            if data.groupName == groupName then
+                data.invalid = true
+                groupData[markerId] = nil
+            end
+        end
+        if not next(groupData) then
+            this.markers[id] = nil
+        end
+    end
+end
+
+
+function this.removeAll()
+    for id, data in pairs(this.records) do
+        data.invalid = true
+        this.records[id] = nil
+    end
+    for id, groupData in pairs(this.markers) do
+        for _, data in pairs(groupData) do
+            if type(data.record) ~= "string" then
+                data.record.invalid = true
+            end
+        end
+        this.markers[id] = nil
+    end
+    for id, dt in pairs(this.hudm) do
+        for _, data in pairs(dt) do
+            data.invalid = true
+        end
+        this.hudm[id] = nil
+    end
+end
+
+
 return this

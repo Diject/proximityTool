@@ -147,6 +147,43 @@ settingStorage:subscribe(async:callback(function(section, key)
 end))
 
 
+I.Settings.registerGroup{
+    key = common.settingStorageToRemoveId,
+    page = common.settingPage,
+    l10n = common.l10nKey,
+    name = "removeAllGroup",
+    permanentStorage = false,
+    order = 1,
+    settings = {
+        {
+            key = "removeAll",
+            renderer = "checkbox",
+            name = "removeAllMarkers",
+            description = "removeAllMarkersDescription",
+            default = false,
+        }
+    },
+}
+
+local isStorageTimerRunning = false
+local storageToRemove = storage.playerSection(common.settingStorageToRemoveId)
+storageToRemove:subscribe(async:callback(function(section, key)
+    local remove = storageToRemove:get("removeAll")
+    if remove == true and not isStorageTimerRunning then
+        isStorageTimerRunning = true
+        async:newUnsavableSimulationTimer(0.1, function ()
+            isStorageTimerRunning = false
+            if storageToRemove:get("removeAll") then
+                mapData.removeAll()
+                activeMarkers.update()
+                hudmHandler.update()
+                storageToRemove:set("removeAll", false)
+            end
+        end)
+    end
+end))
+
+
 
 ---@param params proximityTool.markerRecord
 ---@return string?
@@ -376,6 +413,23 @@ local function updateMarkers()
 end
 
 
+local function removeAllMarkersAndRecords()
+    mapData.removeAll()
+end
+
+
+---@param groupName string
+local function removeGroupNameMarkers(groupName)
+    mapData.removeMarkersByGroupName(groupName)
+end
+
+
+---@param modName string
+local function removeHUDMModMarkers(modName)
+    mapData.removeAllHUDMarkers(modName)
+end
+
+
 
 return {
     interfaceName = "proximityTool",
@@ -407,6 +461,9 @@ return {
         removeMarker = function (id, groupId)
             return mapData.removeMarker(id, groupId)
         end,
+        -- removeAllMarkersAndRecords = removeAllMarkersAndRecords,
+        removeGroupNameMarkers = removeGroupNameMarkers,
+        removeHUDMModMarkers = removeHUDMModMarkers,
 
         newRealTimer = realTimer.newTimer,
     },
