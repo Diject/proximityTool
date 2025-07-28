@@ -19,6 +19,7 @@ end
 return {
     engineHandlers = {
         onObjectActive = async:callback(onObjectActive),
+        onItemActive = async:callback(onObjectActive),
     },
     eventHandlers = {
         ["proximityTool:objectInactive"] = async:callback(objectInactive),
