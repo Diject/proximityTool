@@ -471,7 +471,7 @@ return {
         UiModeChanged = function(data)
             if not config.data.enabled then return end
 
-            if data.newMode == nil and lastUIMode ~= nil or mainMenu.element == nil then
+            if data.newMode == nil and (lastUIMode ~= nil and lastUIMode ~= "Loading" or mainMenu.element == nil) then
                 mainMenu.create{showBorder = false}
             elseif data.newMode == "Interface" then
                 mainMenu.create{showBorder = true}
