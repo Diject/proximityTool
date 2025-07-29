@@ -350,6 +350,8 @@ local function addHUDMarker(data)
     markerData.version = markerData.version or hudmHandler.version or 5
     markerData.isHUDM = true
 
+    if markerData.version < 5 then return end
+
     if markerData.objects then
         for _, objectRef in pairs(markerData.objects) do
             mapData.addHUDMarker(objectRef.id, markerData)
