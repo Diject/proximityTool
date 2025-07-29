@@ -630,26 +630,26 @@ function this.create(params)
                 horizontal = true,
             },
             content = ui.content{
-                addButton{menu = this, textSize = config.data.ui.fontSize, text = "|<", textColor = config.data.ui.defaultColor,
-                    event = function (layout)
-                        local pos = mainContent.content[1].props.position
-                        if not pos then return end
+                -- addButton{menu = this, textSize = config.data.ui.fontSize, text = "|<", textColor = config.data.ui.defaultColor,
+                --     event = function (layout)
+                --         local pos = mainContent.content[1].props.position
+                --         if not pos then return end
 
-                        mainContent.content[1].props.position = util.vector2(0, 0)
-                        this.element:update()
-                    end,
-                    tooltipContent = config.data.ui.helpTooltips and ui.content {
-                        {
-                            template = I.MWUI.templates.textNormal,
-                            props = {
-                                text = l10n("scrollToStart"),
-                                textSize = config.data.ui.fontSize,
-                                textColor = config.data.ui.defaultColor,
-                            },
-                        }
-                    }
-                },
-                addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
+                --         mainContent.content[1].props.position = util.vector2(0, 0)
+                --         this.element:update()
+                --     end,
+                --     tooltipContent = config.data.ui.helpTooltips and ui.content {
+                --         {
+                --             template = I.MWUI.templates.textNormal,
+                --             props = {
+                --                 text = l10n("scrollToStart"),
+                --                 textSize = config.data.ui.fontSize,
+                --                 textColor = config.data.ui.defaultColor,
+                --             },
+                --         }
+                --     }
+                -- },
+                -- addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
                 addButton{menu = this, textSize = config.data.ui.fontSize, text = "<<", textColor = config.data.ui.defaultColor,
                     event = function (layout)
                         scrollUp(config.data.ui.fontSize * 2)
