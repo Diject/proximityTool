@@ -274,7 +274,6 @@ function this.registerMarker(activeMarker)
                 textShadow = true,
                 textShadowColor = util.color.rgb(0, 0, 0),
             },
-            events = unitedEvents,
             userData = {
                 data = activeMarker,
             },
@@ -287,7 +286,6 @@ function this.registerMarker(activeMarker)
                 color = config.data.ui.defaultColor,
                 visible = activeMarker.type ~= 5,
             },
-            events = unitedEvents,
             userData = {
                 data = activeMarker,
             },
@@ -298,7 +296,6 @@ function this.registerMarker(activeMarker)
                 data = activeMarker,
                 visible = activeMarker.type ~= 5,
             },
-            events = unitedEvents,
         },
         {
             type = ui.TYPE.Flex,
@@ -315,7 +312,6 @@ function this.registerMarker(activeMarker)
             userData = {
                 data = activeMarker,
             },
-            events = unitedEvents,
         },
         {
             type = ui.TYPE.Text,
@@ -332,7 +328,6 @@ function this.registerMarker(activeMarker)
                 textShadow = true,
                 textShadowColor = util.color.rgb(0, 0, 0),
             },
-            events = unitedEvents,
         },
     }
 
@@ -343,12 +338,15 @@ function this.registerMarker(activeMarker)
                 horizontal = true,
                 arrange = uiUtils.convertAlign(config.data.ui.align),
                 alpha = 1,
+                propagateEvents = false,
             },
             userData = {
+                data = activeMarker,
                 distanceIndex = 1,
                 directionIconIndex = 2,
                 textIndex = 6,
             },
+            events = unitedEvents,
             content = nil
         },
         {
@@ -391,6 +389,7 @@ function this.registerMarker(activeMarker)
                     wordWrap = false,
                     visible = true,
                     textAlignH = ui.ALIGNMENT.End,
+                    propagateEvents = false,
                 },
                 events = eventsForRecord,
                 userData = {
@@ -404,6 +403,7 @@ function this.registerMarker(activeMarker)
                 type = ui.TYPE.Flex,
                 props = {
                     horizontal = true,
+                    propagateEvents = false,
                 },
                 userData = {
                     recordId = rDt.recordId,
@@ -435,6 +435,7 @@ function this.registerMarker(activeMarker)
                     resource = texture,
                     size = iconSize,
                     color = iconColor,
+                    propagateEvents = false,
                 },
                 name = name,
                 events = eventsForRecord,
@@ -449,6 +450,9 @@ function this.registerMarker(activeMarker)
                 noteContent:add(iconContent)
                 noteContent:add{
                     template = I.MWUI.templates.interval,
+                    props = {
+                        propagateEvents = false,
+                    },
                     events = eventsForRecord,
                 }
             end
@@ -550,17 +554,63 @@ function this.create(params)
 
     local screenSize = uiUtils.getScaledScreenSize()
 
-    local mainContent = {
+    local mainContent
+
+    local function scrollUp(val)
+        local pos = mainContent.content[1].props.position
+        if not pos then return end
+
+        mainContent.content[1].props.position = util.vector2(0, math.min(0, pos.y + val))
+        this.element:update()
+    end
+
+    local function scrollDown(val)
+        local pos = mainContent.content[1].props.position
+        if not pos then return end
+
+        mainContent.content[1].props.position = util.vector2(0, pos.y - val)
+        this.element:update()
+    end
+
+    mainContent = {
         type = ui.TYPE.Container,
         content = ui.content {
             {
                 type = ui.TYPE.Flex,
                 props = {
                     position = util.vector2(0, 0),
-                    -- size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100),
-                    autoSize = true,
+                    size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100),
+                    autoSize = false,
                     horizontal = false,
                     arrange = uiUtils.convertAlign(config.data.ui.align),
+                },
+                userData = {},
+                events = {
+                    mousePress = async:callback(function(coord, layout)
+                        layout.userData.lastMousePos = util.vector2(coord.position.x, coord.position.y)
+                    end),
+
+                    mouseRelease = async:callback(function(_, layout)
+                        layout.userData.lastMousePos = nil
+                    end),
+
+                    focusLoss = async:callback(function(_, layout)
+                        layout.userData.lastMousePos = nil
+                    end),
+
+                    mouseMove = async:callback(function(coord, layout)
+                        if not layout.userData.lastMousePos then return end
+
+                        local posDIff = coord.position - layout.userData.lastMousePos
+
+                        if posDIff.y > 0 then
+                            scrollUp(posDIff.y)
+                        elseif posDIff.y < 0 then
+                            scrollDown(-posDIff.y)
+                        end
+
+                        layout.userData.lastMousePos = coord.position
+                    end),
                 },
                 content = ui.content {
 
@@ -586,22 +636,6 @@ function this.create(params)
                 elem.props.visible = isVisible
             end
         end
-    end
-
-    local function scrollUp(val)
-        local pos = mainContent.content[1].props.position
-        if not pos then return end
-
-        mainContent.content[1].props.position = util.vector2(0, math.min(0, pos.y + val))
-        this.element:update()
-    end
-
-    local function scrollDown(val)
-        local pos = mainContent.content[1].props.position
-        if not pos then return end
-
-        mainContent.content[1].props.position = util.vector2(0, pos.y - val)
-        this.element:update()
     end
 
     headerContentArr = {
