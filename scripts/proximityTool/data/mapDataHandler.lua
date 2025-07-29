@@ -145,7 +145,6 @@ function this.removeMarker(id, groupId)
         if groupId ~= common.positionsLabel then
             local mk = this.getMarker(id, common.positionsLabel)
             if not mk then return false end
-
             mk.invalid = true
             this.markers[common.positionsLabel][id] = nil
         end
@@ -163,10 +162,10 @@ function this.removeMarker(id, groupId)
             mk.invalid = true
             this.markers[common.objectsLabel][id] = nil
         end
-    else
-        marker.invalid = true
-        this.markers[groupId][id] = nil
     end
+
+    marker.invalid = true
+    this.markers[groupId][id] = nil
 
     return true
 end
@@ -187,7 +186,7 @@ end
 ---@param id string
 ---@param data proximityTool.HUDMarker
 function this.addHUDMarker(id, data)
-    if not id then return end
+    if not id or not data then return end
     local hudMarker = this.hudm[id]
     if hudMarker then
         local dt = hudMarker[data.id]
@@ -198,7 +197,7 @@ function this.addHUDMarker(id, data)
             hudMarker[data.id] = data
         end
     else
-        this.hudm[id] = {[id] = data}
+        this.hudm[id] = {[data.id] = data}
     end
 end
 
