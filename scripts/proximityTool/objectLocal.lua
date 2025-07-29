@@ -12,11 +12,16 @@ local function onActivated()
     end
 end
 
+local function onActive()
+    core.sendGlobalEvent("proximityTool:objectActive", self)
+end
+
 
 return {
     engineHandlers = {
         onInactive = onInactive,
         onActivated = onActivated,
+        onActive = onActive,
     },
     eventHandlers = {
 
