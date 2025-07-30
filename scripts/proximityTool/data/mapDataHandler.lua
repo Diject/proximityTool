@@ -80,6 +80,48 @@ function this.getMarker(id, groupId)
 end
 
 
+---@param markerData proximityTool.markerData
+---@return proximityTool.markerRecord?
+function this.getRecordData(markerData)
+    if not markerData.record then return end
+
+    if type(markerData.record) == "string" then
+        return this.getRecord(markerData.record) ---@diagnostic disable-line: param-type-mismatch
+    else
+        return markerData.record ---@diagnostic disable-line: return-type-mismatch
+    end
+end
+
+
+---@param id string
+---@param groupId string
+---@return proximityTool.markerData[]?
+function this.getMarkers(id, groupId)
+    if not id or not groupId then return end
+
+    local markerData = this.getMarker(id, groupId)
+    if not markerData then return end
+
+    local out = {markerData}
+    if markerData.objects then
+        for _, objId in pairs(markerData.objects) do
+            if this.markers[objId] and this.markers[objId][id] then
+                table.insert(out, this.markers[objId][id])
+            end
+        end
+    elseif markerData.positions then
+        for _, posData in pairs(markerData.positions) do
+            local grId = posData.cell.isExterior and common.worldCellLabel or posData.cell.id
+            if grId and this.markers[grId] and this.markers[grId][id] then
+                table.insert(out, this.markers[grId][id])
+            end
+        end
+    end
+
+    return out
+end
+
+
 ---@param id string
 ---@return proximityTool.markerRecord?
 function this.getRecord(id)
@@ -212,11 +254,15 @@ function this.removeHUDMarker(id)
     for markerId, marker in pairs(markers) do
         if marker.objects then
             for _, object in pairs(marker.objects) do
+                if not object:isValid() then goto continue end
+
                 local objectMarkers = this.hudm[object.id]
                 if objectMarkers and objectMarkers[id] then
                     objectMarkers[id].invalid = true
                     this.hudm[object.id][id] = nil
                 end
+
+                ::continue::
             end
         end
         if marker.objectIds then
@@ -247,6 +293,42 @@ end
 function this.getHUDMarkers(id)
     if not id then return end
     return this.hudm[id]
+end
+
+
+---@param markerId string
+---@return proximityTool.HUDMarker[]?
+function this.getHUDMarkersByMarkerId(markerId)
+    if not markerId then return end
+
+    local markersData = this.getHUDMarkers(markerId)
+    if not markersData then return end
+    local markerData = markersData[markerId]
+    if not markerData then return end
+
+    local out = {markerData}
+    if markerData.objects then
+        for _, object in pairs(markerData.objects) do
+            if not object:isValid() then goto continue end
+
+            local objectMarkers = this.hudm[object.id]
+            if objectMarkers and objectMarkers[markerId] then
+                table.insert(out, objectMarkers[markerId])
+            end
+
+            ::continue::
+        end
+    end
+    if markerData.objectIds then
+        for _ ,objId in pairs(markerData.objectIds) do
+            local objectMarkers = this.hudm[objId]
+            if objectMarkers and objectMarkers[markerId] then
+                table.insert(out, objectMarkers[markerId])
+            end
+        end
+    end
+
+    return out
 end
 
 

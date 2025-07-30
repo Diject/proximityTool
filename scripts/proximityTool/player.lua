@@ -306,20 +306,24 @@ end
 ---@param val boolean
 ---@return boolean?
 local function setVisibility(id, groupId, val)
-    local record
-    if groupId then
-        local markerData = mapData.getMarker(id, groupId)
-        if not markerData then return end
-        if type(markerData.record) == "string" then return end
 
-        record = markerData.record
+    if groupId then
+        local markersData = mapData.getMarkers(id, groupId)
+        if not markersData then return end
+
+        for _, markerData in pairs(markersData) do
+            local record = mapData.getRecordData(markerData)
+            if not record then return end
+
+            record.hidden = not val
+        end
     else
-        record = mapData.getRecord(id)
+        local record = mapData.getRecord(id)
+        if not record then return end
+
+        record.hidden = not val
     end
 
-    if not record then return end
-
-    record.hidden = not val
     return true
 end
 
@@ -391,11 +395,15 @@ end
 ---@return boolean?
 local function setHUDMvisibility(id, val)
     if not id then return end
-    local data = getHUDMdata(id)
-    if data then
-        data.hidden = not val
-        return true
+
+    local markers = mapData.getHUDMarkersByMarkerId(id)
+    if not markers then return end
+
+    for i, markerData in pairs(markers) do
+        markerData.hidden = not val
     end
+
+    return true
 end
 
 
