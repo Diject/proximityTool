@@ -1,6 +1,8 @@
 local tableLib = require("scripts.proximityTool.utils.table")
 local inventoryLib = require("scripts.proximityTool.utils.inventory")
+local config = require("scripts.proximityTool.config")
 local playerRef = require("openmw.self")
+local core = require("openmw.core")
 
 ---@diagnostic disable: undefined-doc-name
 local this = {}
@@ -22,6 +24,15 @@ objectHandler.__index = objectHandler
 objectHandler.groups = {}
 ---@type table<string, any>
 objectHandler.objects = {}
+
+objectHandler.lastReturned = nil
+objectHandler.nextUpdateTimestamp = 0
+
+
+local function getNexUpdateTimestamp(val)
+    return val + config.data.objectPosUpdateInterval * (1 + (math.random() - 0.5) * 0.5)
+end
+
 
 function objectHandler:add(object)
     if not self.objects[object.id] then
@@ -69,6 +80,28 @@ function objectHandler:positions(refObject, itemId)
         end
     end
     return ret
+end
+
+---@return {object: any, x: number, y: number, z: number, dif : number?}?
+function objectHandler:closestPosition(refObject, itemId)
+    local timestamp = core.getRealTime()
+    if timestamp >= self.nextUpdateTimestamp then
+        local positions = self:positions(refObject, itemId)
+
+        local position
+        if next(positions) then
+            table.sort(positions, function (a, b)
+                return (a.dif or math.huge) < (b.dif or math.huge)
+            end)
+
+            position = positions[1]
+        end
+
+        self.lastReturned = position
+        self.nextUpdateTimestamp = getNexUpdateTimestamp(timestamp)
+    end
+
+    return self.lastReturned
 end
 
 
@@ -134,6 +167,16 @@ function this.getObjectPositions(recordId, refToCompare, itemId)
 end
 
 
+---@param recordId string
+---@return {object: any, x: number, y: number, z: number, dif : number?}?
+function this.getClosestObjectPosition(recordId, refToCompare, itemId)
+    local objHandler = this.data[recordId]
+    if not objHandler then return end
+
+    return objHandler:closestPosition(refToCompare, itemId)
+end
+
+
 ---@param groupName string
 ---@return {object: any, x: number, y: number, z: number, dif : number?}[]?
 function this.getObjectPositionsByGroupName(groupName, refToCompare, itemId)
@@ -152,6 +195,24 @@ function this.getObjectPositionsByGroupName(groupName, refToCompare, itemId)
     end
 
     return found and res or nil
+end
+
+
+---@param groupName string
+---@return {object: any, x: number, y: number, z: number, dif : number?}?
+function this.getClosestObjectPositionsByGroupName(groupName, refToCompare, itemId)
+    local res = {}
+    for _, recordId in pairs(this.objectRecordIdsByGroupId[groupName] or {}) do
+        local objHandler = this.data[recordId]
+        if not objHandler or objHandler.count == 0 then goto continue end
+
+        local position = objHandler:closestPosition(refToCompare, itemId)
+        table.insert(res, position)
+
+        ::continue::
+    end
+
+    return res
 end
 
 
