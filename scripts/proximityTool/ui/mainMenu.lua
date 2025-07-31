@@ -1055,77 +1055,84 @@ function this.update(params)
             end
 
 
+            local trackingPos
             ---@type { object: any, x: number, y: number, z: number, dif: number? }[]
             local trackingPositions = {}
 
-            if util.bitAnd(topMarkerRecord.type, 1) > 0 and topMarkerRecord.objectId then
-                local trackedObjPosition = activeObjects.getClosestObjectPosition(topMarkerRecord.objectId, player, topMarkerRecord.marker.itemId)
-                if trackedObjPosition then
-                    table.insert(trackingPositions, trackedObjPosition)
-                end
-            end
+            if trackingData.nextUpdate < timestamp or not trackingData.lastTrackedObject then
 
-            if util.bitAnd(topMarkerRecord.type, 2) > 0 and topMarkerRecord.object then
-                local objectRef = topMarkerRecord.object
-                local posData = activeObjects.getObjectPositionData(objectRef, nil, topMarkerRecord.marker.itemId)
-                if posData then
-                    table.insert(trackingPositions, posData)
+                if util.bitAnd(topMarkerRecord.type, 1) > 0 and topMarkerRecord.objectId then
+                    local trackedObjPosition = activeObjects.getClosestObjectPosition(topMarkerRecord.objectId, player, topMarkerRecord.marker.itemId)
+                    if trackedObjPosition then
+                        table.insert(trackingPositions, trackedObjPosition)
+                    end
                 end
-            end
 
-            if util.bitAnd(topMarkerRecord.type, 4) > 0 and topMarkerRecord.positions then
-                if trackingData.nextUpdate < timestamp or not trackingData.lastTrackedObject then
+                if util.bitAnd(topMarkerRecord.type, 2) > 0 and topMarkerRecord.object then
+                    local objectRef = topMarkerRecord.object
+                    local posData = activeObjects.getObjectPositionData(objectRef, nil, topMarkerRecord.marker.itemId)
+                    if posData then
+                        table.insert(trackingPositions, posData)
+                    end
+                end
+
+                if util.bitAnd(topMarkerRecord.type, 4) > 0 and topMarkerRecord.positions then
                     local pos, distance = cellLib.getClosestPosition(topMarkerRecord.positions)
-                    trackingData.lastTrackedObject = {pos, distance}
-                    trackingData.nextUpdate = getNexUpdateTimestamp(timestamp)
-                end
-                local pos = trackingData.lastTrackedObject[1]
-                local distance = trackingData.lastTrackedObject[2]
-                table.insert(trackingPositions, {dif = distance, x = pos.x, y = pos.y, z = pos.z})
-            end
 
-            if util.bitAnd(topMarkerRecord.type, 8) > 0 and topMarkerRecord.objectIds then
-                if trackingData.nextUpdate < timestamp or not trackingData.lastTrackedObject then
+                    table.insert(trackingPositions, {dif = distance, x = pos.x, y = pos.y, z = pos.z})
+                end
+
+                if util.bitAnd(topMarkerRecord.type, 8) > 0 and topMarkerRecord.objectIds then
                     local trackedObjPositions = activeObjects.getClosestObjectPositionsByGroupName(topMarkerRecord.id, player, topMarkerRecord.marker.itemId)
                     if trackedObjPositions and next(trackingPositions) then
                         table.sort(trackedObjPositions, function (a, b)
                             return (a.dif or math.huge) < (b.dif or math.huge)
                         end)
                     end
-                    trackingData.lastTrackedObject = trackedObjPositions and trackedObjPositions[1]
-                    trackingData.nextUpdate = getNexUpdateTimestamp(timestamp)
+
+                    local pos = trackedObjPositions and trackedObjPositions[1]
+                    if pos then
+                        table.insert(trackingPositions, pos)
+                    end
                 end
 
-                if trackingData.lastTrackedObject then
-                    table.insert(trackingPositions, trackingData.lastTrackedObject)
+                if topMarkerRecord.type == 16 then
+                    elem.userData.priority = trackingData.priority
+                    local textIndex = elem.content[1].userData.textIndex
+                    if elem.content[1].content[textIndex or 6].props.text ~= topMarkerRecord.record.name then
+                        elem.content[1].content[textIndex or 6].props.text = topMarkerRecord.record.name
+                        doUpdate = true
+                    end
+                    elem.userData.distance = 0
+                    elem.userData.distance2D = 0
+                    elem.userData.heightDiff = 0
+                    elem.userData.alpha = trackingData.alpha
+                    goto continue
+
+                elseif not next(trackingPositions) then
+                    uiUtils.removeFromContent(contentOwner.content, i)
+                    doUpdate = true
+                    goto continue
                 end
+
+
+                table.sort(trackingPositions, function (a, b)
+                    return (a.dif or math.huge) < (b.dif or math.huge)
+                end)
+                local closest = trackingPositions[1]
+                trackingPos = util.vector3(closest.x, closest.y, closest.z)
+                trackingData.lastTrackedObject = trackingPos
+                trackingData.nextUpdate = getNexUpdateTimestamp(timestamp)
+
+            else
+                trackingPos = trackingData.lastTrackedObject
             end
 
-            if topMarkerRecord.type == 16 then
-                elem.userData.priority = trackingData.priority
-                local textIndex = elem.content[1].userData.textIndex
-                if elem.content[1].content[textIndex or 6].props.text ~= topMarkerRecord.record.name then
-                    elem.content[1].content[textIndex or 6].props.text = topMarkerRecord.record.name
-                    doUpdate = true
-                end
-                elem.userData.distance = 0
-                elem.userData.distance2D = 0
-                elem.userData.heightDiff = 0
-                elem.userData.alpha = trackingData.alpha
-                goto continue
-
-            elseif not next(trackingPositions) then
+            if not trackingPos then
                 uiUtils.removeFromContent(contentOwner.content, i)
                 doUpdate = true
                 goto continue
             end
-
-
-            table.sort(trackingPositions, function (a, b)
-                return (a.dif or math.huge) < (b.dif or math.huge)
-            end)
-            local closest = trackingPositions[1]
-            local trackingPos = util.vector3(closest.x, closest.y, closest.z)
 
 
             local distance = (playerPos - trackingPos):length()
