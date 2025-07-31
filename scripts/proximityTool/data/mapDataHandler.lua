@@ -109,7 +109,8 @@ function this.getMarkers(id, groupId)
                 table.insert(out, this.markers[objId][id])
             end
         end
-    elseif markerData.positions then
+    end
+    if markerData.positions then
         for _, posData in pairs(markerData.positions) do
             local grId = posData.cell.isExterior and common.worldCellLabel or posData.cell.id
             if grId and this.markers[grId] and this.markers[grId][id] then
@@ -190,7 +191,8 @@ function this.removeMarker(id, groupId)
             mk.invalid = true
             this.markers[common.positionsLabel][id] = nil
         end
-    elseif marker.objects then
+    end
+    if marker.objects then
         for _, objId in pairs(marker.objects) do
             if this.markers[objId] and this.markers[objId][id] then
                 this.markers[objId][id].invalid = true

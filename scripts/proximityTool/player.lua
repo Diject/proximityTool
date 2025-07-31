@@ -199,15 +199,21 @@ end
 ---@param markerData proximityTool.markerData
 local function registerMarker(markerData)
     if markerData.invalid then return end
-    if markerData.positions and not cellLib.isContainValidPosition(markerData.positions) then
-        return
-    elseif markerData.objectId and not activeObjects.isContainValidRecordId(markerData.objectId) then
-        return
-    elseif markerData.object and not activeObjects.isContainRefId(markerData.object.recordId, markerData.object.id) then
-        return
-    elseif markerData.objects and not activeObjects.isContainValidRecordIds(markerData.objects) then
-        return
+    local valid = false
+    if markerData.positions and cellLib.isContainValidPosition(markerData.positions) then
+        valid = true
     end
+    if markerData.objectId and not activeObjects.isContainValidRecordId(markerData.objectId) then
+        valid = true
+    end
+    if markerData.object and not activeObjects.isContainRefId(markerData.object.recordId, markerData.object.id) then
+        valid = true
+    end
+    if markerData.objects and not activeObjects.isContainValidRecordIds(markerData.objects) then
+        valid = true
+    end
+
+    if not valid then return end
 
     local marker = activeMarkers.register(markerData)
     if not marker then return end
@@ -247,8 +253,9 @@ local function addMarker(data)
             mapData.addMarker(markerData.id, dt.groupId, dt)
         end
         mapData.addMarker(markerData.id, markerData.groupId, markerData)
+    end
 
-    elseif markerData.positions then
+    if markerData.positions then
         markerData.id = uniqueId.get()
         markerData.groupId = common.positionsLabel
         for _, posData in pairs(markerData.positions) do
@@ -259,8 +266,9 @@ local function addMarker(data)
             end
         end
         mapData.addMarker(markerData.id, markerData.groupId, markerData)
+    end
 
-    else
+    if markerData.objectId or markerData.object then
         local groupId = common.worldCellLabel
 
         if markerData.objectId then
@@ -273,7 +281,6 @@ local function addMarker(data)
         markerData.groupId = groupId
 
         mapData.addMarker(markerData.id, markerData.groupId, markerData)
-
     end
 
     registerMarker(markerData)
