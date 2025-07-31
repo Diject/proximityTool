@@ -572,6 +572,37 @@ function this.create(params)
         this.element:update()
     end
 
+    local function getScrollEvents()
+        return {
+            mousePress = async:callback(function(coord, layout)
+                layout.userData.lastMousePos = util.vector2(coord.position.x, coord.position.y)
+            end),
+
+            mouseRelease = async:callback(function(_, layout)
+                layout.userData.lastMousePos = nil
+            end),
+
+            focusLoss = async:callback(function(_, layout)
+                layout.userData.lastMousePos = nil
+            end),
+
+            mouseMove = async:callback(function(coord, layout)
+                if not layout.userData.lastMousePos then return end
+
+                local posDIff = coord.position - layout.userData.lastMousePos
+
+                if posDIff.y > 0 then
+                    scrollUp(posDIff.y)
+                elseif posDIff.y < 0 then
+                    scrollDown(-posDIff.y)
+                end
+
+                layout.userData.lastMousePos = coord.position
+            end),
+        }
+    end
+
+
     mainContent = {
         type = ui.TYPE.Container,
         content = ui.content {
@@ -579,39 +610,12 @@ function this.create(params)
                 type = ui.TYPE.Flex,
                 props = {
                     position = util.vector2(0, 0),
-                    size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100),
-                    autoSize = false,
+                    autoSize = true,
                     horizontal = false,
                     arrange = uiUtils.convertAlign(config.data.ui.align),
                 },
                 userData = {},
-                events = {
-                    mousePress = async:callback(function(coord, layout)
-                        layout.userData.lastMousePos = util.vector2(coord.position.x, coord.position.y)
-                    end),
-
-                    mouseRelease = async:callback(function(_, layout)
-                        layout.userData.lastMousePos = nil
-                    end),
-
-                    focusLoss = async:callback(function(_, layout)
-                        layout.userData.lastMousePos = nil
-                    end),
-
-                    mouseMove = async:callback(function(coord, layout)
-                        if not layout.userData.lastMousePos then return end
-
-                        local posDIff = coord.position - layout.userData.lastMousePos
-
-                        if posDIff.y > 0 then
-                            scrollUp(posDIff.y)
-                        elseif posDIff.y < 0 then
-                            scrollDown(-posDIff.y)
-                        end
-
-                        layout.userData.lastMousePos = coord.position
-                    end),
-                },
+                events = getScrollEvents(),
                 content = ui.content {
 
                 },
@@ -817,6 +821,7 @@ function this.create(params)
         props = {
             horizontal = true,
             visible = config.data.ui.showHeader or params.showBorder,
+            propagateEvents = false,
         },
         content = ui.content(headerContentArr)
     }
@@ -836,6 +841,8 @@ function this.create(params)
                 horizontal = false,
                 arrange = uiUtils.convertAlign(config.data.ui.align),
             },
+            userData = {},
+            events = getScrollEvents(),
             content = ui.content {
                 header,
                 mainContent,
