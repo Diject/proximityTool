@@ -59,6 +59,9 @@ local eventNames = {
 this.element = nil
 ---@type proximityTool.elementSafeContainer
 this.tooltip = nil
+---@type {content : any}
+this.markerElementsData = nil
+this.maxLines = math.huge
 
 local mainMenuSafeContainer = safeContainers.new("mainMenu")
 local markerParentElement = nil
@@ -85,11 +88,11 @@ local function getMarkerParentElement(groupName)
     if not this.element or not this.element.layout then return end
 
     if markerParentElement and not groupName then
-        return getMainFlex()
+        return this.markerElementsData
     elseif groupName == commonData.hiddenGroupId then
         return this.hiddenGroupElement
     elseif groupName then
-        local parent = getMainFlex()
+        local parent = this.markerElementsData
         if not parent then return end
 
         local index = parent.content:indexOf(groupName)
@@ -97,7 +100,7 @@ local function getMarkerParentElement(groupName)
 
         return parent.content[index].content[2]
     else
-        return getMainFlex()
+        return this.markerElementsData
     end
 end
 
@@ -547,6 +550,7 @@ function this.create(params)
         markerParentElement = nil
         this.element:destroy()
         mainMenuSafeContainer.element = nil
+        this.markerElementsData = nil
     end
 
     if config.data.ui.hideHUD and not params.showBorder then return end
@@ -868,7 +872,10 @@ function this.create(params)
     }
     base.layer = params.showBorder and "Windows" or "HUD"
 
+    this.maxLines = not params.showBorder and math.ceil(screenSize.y * config.data.ui.size.y / 100 / config.data.ui.fontSize) or 999
+
     this.element = ui.create(base)
+    this.markerElementsData = {content = ui.content {}}
 
     mainMenuSafeContainer.element = this.element
 
@@ -1248,6 +1255,36 @@ function this.update(params)
     orderAndOpacity(parentElement)
 
     if doUpdate then
+        local mainFlex = getMainFlex()
+        if mainFlex then
+            mainFlex.content = ui.content{}
+            local maxLines = this.maxLines or 999
+            for i, groupData in ipairs(this.markerElementsData.content) do
+                local group = tableLib.copy(groupData)
+                group.content = ui.content{}
+                for _, elem in ipairs(groupData.content) do
+                    group.content:add(tableLib.copy(elem))
+                end
+
+                local content = ui.content{}
+                group.content[2].content = content
+
+                mainFlex.content:add(group)
+
+                maxLines = maxLines - 1
+                for i, elem in ipairs(groupData.content[2].content) do
+                    if maxLines > 0 then
+                        maxLines = maxLines - 1
+                        content:add(elem)
+                    else
+                        goto endLabel
+                    end
+                end
+                if maxLines <= 0 then goto endLabel end
+            end
+
+            ::endLabel::
+        end
         this.element:update()
     end
 end
