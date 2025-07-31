@@ -1,4 +1,5 @@
 local player = require('openmw.self')
+local util = require("openmw.util")
 
 local log = require("scripts.proximityTool.log")
 local tableLib = require("scripts.proximityTool.utils.table")
@@ -216,6 +217,7 @@ function this.register(params)
     activeMarkerData.record = record ---@diagnostic disable-line: assign-type-mismatch
     activeMarkerData.name = record.name or "???"
     record.priority = record.priority or 0
+    activeMarkerData.type = 0
 
     if params.objectId then
         activeMarkerData.objectId = params.objectId
@@ -224,17 +226,21 @@ function this.register(params)
         if object and object.name then
             activeMarkerData.name = object.name
         end
-    elseif params.object then
+    end
+    if params.object then
         activeMarkerData.object = params.object
-        activeMarkerData.type = 2
-    elseif params.positions then
-        activeMarkerData.type = 3
+        activeMarkerData.type = util.bitOr(activeMarkerData.type, 2)
+    end
+    if params.positions then
+        activeMarkerData.type = util.bitOr(activeMarkerData.type, 4)
         activeMarkerData.positions = params.positions
-    elseif params.objects then
-        activeMarkerData.type = 4
+    end
+    if params.objects then
+        activeMarkerData.type = util.bitOr(activeMarkerData.type, 8)
         activeMarkerData.objectIds = params.objects
-    else
-        activeMarkerData.type = 5
+    end
+    if not params.objectId and not params.object and not params.positions and not params.objects then
+        activeMarkerData.type = 16
     end
 
     activeMarkerData.playerExteriorFlag = player.cell.isExterior
@@ -257,7 +263,7 @@ function this.register(params)
 
         marker.hidden = record.hidden or false
 
-        if marker.type == 4 then
+        if util.bitAnd(marker.type, 8) > 0 then
             activeObjects.registerGroup(markerId, params.objects)
         end
 
