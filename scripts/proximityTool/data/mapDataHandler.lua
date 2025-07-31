@@ -207,6 +207,20 @@ function this.removeMarker(id, groupId)
             this.markers[common.objectsLabel][id] = nil
         end
     end
+    if marker.object and marker.object:isValid() then
+        local mrk = this.getMarker(id, marker.object.id)
+        if mrk then
+            mrk.invalid = true
+            this.markers[marker.object.id][id] = nil
+        end
+    end
+    if marker.objectId then
+        local mrk = this.getMarker(id, marker.objectId)
+        if mrk then
+            mrk.invalid = true
+            this.markers[marker.objectId][id] = nil
+        end
+    end
 
     marker.invalid = true
     this.markers[groupId][id] = nil
