@@ -27,7 +27,7 @@ function this.getClosestPosition(positions)
         ::continue::
     end
 
-    return closestPos
+    return closestPos, minDistance
 end
 
 

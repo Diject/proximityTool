@@ -44,7 +44,7 @@ local settingStorage = storage.playerSection(common.settingStorageId)
 ---@field position {x: number, y: number, z: number}
 
 ---@class proximityTool.activeMarkerData
----@field type integer 1 - object id, 2 - game object, 3 - position, 4 - group of objects, 5 - text
+---@field type integer 1 - object id, 2 - game object, 4 - position, 8 - group of objects, 16 - text
 ---@field marker proximityTool.markerData
 ---@field id string?
 ---@field recordId string?
