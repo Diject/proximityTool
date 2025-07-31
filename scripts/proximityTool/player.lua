@@ -80,6 +80,7 @@ local settingStorage = storage.playerSection(common.settingStorageId)
 ---@field showGroupIcon boolean? *true* by default
 ---@field showNoteIcon boolean? *true* by default
 ---@field enableGroupEvent boolean? *true* by default
+---@field trackAllTypesTogether boolean? *false* by default
 
 ---@class proximityTool.markerRecord
 ---@field id string?
@@ -244,48 +245,56 @@ local function addMarker(data)
     ---@type proximityTool.markerData
     local markerData = tableLib.deepcopy(data)
 
+    markerData.id = uniqueId.get()
+    local groupId
+
     if markerData.objects then
-        markerData.id = uniqueId.get()
-        markerData.groupId = common.objectsLabel
-        for _, objId in pairs(markerData.objects) do
-            local dt = tableLib.deepcopy(markerData)
+        local markerDataCopy = tableLib.deepcopy(markerData)
+        markerDataCopy.groupId = common.objectsLabel
+        for _, objId in pairs(markerDataCopy.objects) do
+            local dt = tableLib.deepcopy(markerDataCopy)
             dt.groupId = objId
-            mapData.addMarker(markerData.id, dt.groupId, dt)
+            mapData.addMarker(markerDataCopy.id, dt.groupId, dt)
         end
-        mapData.addMarker(markerData.id, markerData.groupId, markerData)
+        mapData.addMarker(markerDataCopy.id, markerDataCopy.groupId, markerDataCopy)
+        groupId = markerDataCopy.groupId
     end
 
     if markerData.positions then
-        markerData.id = uniqueId.get()
-        markerData.groupId = common.positionsLabel
-        for _, posData in pairs(markerData.positions) do
-            local dt = tableLib.deepcopy(markerData)
+        local markerDataCopy = tableLib.deepcopy(markerData)
+        markerDataCopy.groupId = common.positionsLabel
+        for _, posData in pairs(markerDataCopy.positions) do
+            local dt = tableLib.deepcopy(markerDataCopy)
             dt.groupId = posData.cell.isExterior and common.worldCellLabel or posData.cell.id
             if dt.groupId then
-                mapData.addMarker(markerData.id, dt.groupId, dt)
+                mapData.addMarker(markerDataCopy.id, dt.groupId, dt)
             end
         end
-        mapData.addMarker(markerData.id, markerData.groupId, markerData)
+        mapData.addMarker(markerDataCopy.id, markerDataCopy.groupId, markerDataCopy)
+        groupId = markerDataCopy.groupId
     end
 
-    if markerData.objectId or markerData.object then
-        local groupId = common.worldCellLabel
+    if markerData.object then
+        local markerDataCopy = tableLib.deepcopy(markerData)
+        markerDataCopy.groupId = markerData.object.id
 
-        if markerData.objectId then
-            groupId = markerData.objectId
-        elseif markerData.object then
-            groupId = markerData.object.id
-        end
-
-        markerData.id = uniqueId.get()
-        markerData.groupId = groupId
-
-        mapData.addMarker(markerData.id, markerData.groupId, markerData)
+        mapData.addMarker(markerDataCopy.id, markerDataCopy.groupId, markerDataCopy)
+        groupId = markerDataCopy.groupId
     end
 
-    registerMarker(markerData)
+    if markerData.objectId then
+        local markerDataCopy = tableLib.deepcopy(markerData)
+        markerDataCopy.groupId = markerData.objectId
 
-    return markerData.id, markerData.groupId
+        mapData.addMarker(markerDataCopy.id, markerDataCopy.groupId, markerDataCopy)
+        groupId = markerDataCopy.groupId
+    end
+
+    if groupId then
+        registerMarker(markerData)
+
+        return markerData.id, groupId
+    end
 end
 
 

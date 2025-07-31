@@ -20,6 +20,7 @@ local this = {}
 ---@field groupName string
 ---@field nextUpdate number
 ---@field lastTrackedObject any
+---@field trackAllTypes boolean
 ---@field hidden boolean
 ---@field id string
 ---@field isValid boolean
@@ -286,6 +287,7 @@ function this.register(params)
 
     marker.hidden = marker:calcHiddenFlag()
 
+    marker.trackAllTypes = marker.topMarker.record.options and marker.topMarker.record.options.trackAllTypesTogether or false
 
     this.data[activeMarkerId] = marker
 
