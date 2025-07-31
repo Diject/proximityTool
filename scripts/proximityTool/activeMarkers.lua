@@ -152,6 +152,12 @@ end
 
 
 
+local function getNameColorHashId(name, colorArr)
+    colorArr = colorArr or {}
+    return string.format("%s_%d_%d_%d", name or "", colorArr[1] or 0, colorArr[2] or 0, colorArr[3] or 0)
+end
+
+
 ---@param params proximityTool.markerData
 ---@return proximityTool.activeMarker?
 ---@return boolean? should create ui element for this marker data
@@ -180,11 +186,11 @@ function this.register(params)
     elseif params.object then
         activeMarkerId = params.object.id
     elseif params.objects then
-        activeMarkerId = params.id
+        activeMarkerId = getNameColorHashId(record.name, record.nameColor)
     elseif params.positions then
-        activeMarkerId = params.id
+        activeMarkerId = getNameColorHashId(record.name, record.nameColor)
     else
-        activeMarkerId = params.id
+        activeMarkerId = getNameColorHashId(record.name, record.nameColor)
     end
 
     if not activeMarkerId then
