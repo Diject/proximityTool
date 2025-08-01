@@ -31,6 +31,7 @@ this.default = {
         imperialUnits = false,
         fontSize = 24,
         defaultColor = common.defaultColor,
+        maxAlpha = 100,
         align = "End",
         size = {
             x = 25, -- %

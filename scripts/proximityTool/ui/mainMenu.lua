@@ -145,7 +145,7 @@ local function createGroup(groupName, params)
             priority = params.priority or 0,
             orderIndex = 0,
             orderCounter = 0,
-            alpha = 1,
+            alpha = config.data.ui.maxAlpha * 0.01,
             groupName = groupName,
         },
         name = groupName,
@@ -924,8 +924,10 @@ function this.update(params)
 
     local doUpdate = params.force or false
 
-    local alphaAdditiveVal = config.data.updateInterval / 1500
-    local alphaAdditiveValAlt = alphaAdditiveVal * 1.5
+    local alphaAdditiveVal = params.force and 1 or config.data.updateInterval / 1500
+    local alphaAdditiveValAlt = params.force and 1 or alphaAdditiveVal * 1.5
+
+    local halfAlpha = params.force and 1 or config.data.ui.maxAlpha * 0.005
 
     local function orderAndOpacity(parent)
         local sortedData = {}
@@ -969,20 +971,20 @@ function this.update(params)
                     end
 
                     local alpha1 = element.props.alpha
-                    if alpha1 > 0.5 then
-                        alpha1 = params.force and 0.5 or math.max(0, alpha1 - alphaAdditiveValAlt)
+                    if alpha1 > halfAlpha then
+                        alpha1 = params.force and halfAlpha or math.max(0, alpha1 - alphaAdditiveValAlt)
                         element.props.alpha = alpha1
                         doUpdate = true
                     end
 
                     local alpha2 = elem2.props.alpha
-                    if alpha2 > 0.5 then
-                        alpha2 = params.force and 0.5 or math.max(0, alpha2 - alphaAdditiveValAlt)
+                    if alpha2 > halfAlpha then
+                        alpha2 = params.force and halfAlpha or math.max(0, alpha2 - alphaAdditiveValAlt)
                         elem2.props.alpha = alpha2
                         doUpdate = true
                     end
 
-                    if alpha1 < 0.51 and alpha2 < 0.51 then
+                    if alpha1 <= halfAlpha and alpha2 <= halfAlpha then
                         parent.content.__nameIndex[element.name], parent.content.__nameIndex[elem2.name] =
                             parent.content.__nameIndex[elem2.name], parent.content.__nameIndex[element.name]
                         parent.content[index], parent.content[i] = element, elem2
@@ -1119,7 +1121,7 @@ function this.update(params)
                     elem.userData.distance = 0
                     elem.userData.distance2D = 0
                     elem.userData.heightDiff = 0
-                    elem.userData.alpha = trackingData.alpha
+                    elem.userData.alpha = params.force and 1 or math.min(trackingData.alpha, config.data.ui.maxAlpha * 0.01)
                     goto continue
 
                 elseif not next(trackingPositions) then
@@ -1155,7 +1157,7 @@ function this.update(params)
             elem.userData.distance = distance
             elem.userData.distance2D = distance2D
             elem.userData.heightDiff = heightDiff
-            elem.userData.alpha = trackingData.alpha
+            elem.userData.alpha = params.force and 1 or math.min(trackingData.alpha, config.data.ui.maxAlpha * 0.01)
 
             -- for ordering
             local priorityByDistance = getAdditionalPriorityByDistance(distance)

@@ -33,6 +33,8 @@ imperialUnits: "Show distance in feet"
 removeAllGroup: "Remove"
 removeAllMarkers: "Remove all markers"
 removeAllMarkersDescription: "Set to \"Yes\" to remove all markers for the current character."
+maxAlpha: "Maximum Transparency"
+maxAlphaDescription: "Maximum transparency of the mod window. In %."
 
 trackingAnchor: "Tracking:"
 trackingAnchorTooltip: "Click to show/hide. Drag to move."

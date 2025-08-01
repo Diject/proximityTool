@@ -138,6 +138,7 @@ I.Settings.registerGroup{
         numberSetting{key = "ui.size.x", name = "windowSizeX", description = "windowSizeXDescription", integer = true, min = 10, max = 100, default = config.default.ui.size.x},
         numberSetting{key = "ui.size.y", name = "windowSizeY", description = "windowSizeYDescription", integer = true, min = 10, max = 100, default = config.default.ui.size.y},
         numberSetting{key = "ui.fontSize", name = "fontSize", description = "fontSizeDescription", integer = true, min = 10, max = 100, default = config.default.ui.fontSize},
+        numberSetting{key = "ui.maxAlpha", name = "maxAlpha", description = "maxAlphaDescription", min = 20, max = 100, default = config.default.ui.maxAlpha},
         boolSetting{key = "ui.hideWindow", name = "hideWindow", description = "hideWindowDescription", default = config.default.ui.hideWindow},
         boolSetting{key = "ui.minimizeToAnchor", name = "minimizeToAnchor", description = "minimizeToAnchorDescription", default = config.default.ui.minimizeToAnchor},
         boolSetting{key = "ui.hideHUD", name = "hideHUD", description = "hideHUDDescription", default = config.default.ui.hideHUD},
