@@ -86,7 +86,7 @@ end
 function activeMarker:calcPriorityValue()
     local res = -math.huge
     for _, rec in pairs(self.markers) do
-        res = math.max(res, rec.priority or 0)
+        res = math.max(res, rec.record.priority or 0)
     end
 
     self.priority = res

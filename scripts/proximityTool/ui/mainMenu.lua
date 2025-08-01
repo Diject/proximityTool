@@ -965,7 +965,7 @@ function this.update(params)
                 if orderElemData then
                     local elem2 = orderElemData.element
                     local index = parent.content:indexOf(elem2)
-                    if not index or index <= i or math.floor(element.userData.priority or 0) == math.floor(elem2.userData.priority or 0) or
+                    if not index or math.floor(element.userData.priority or 0) == math.floor(elem2.userData.priority or 0) or
                         element.userData.disabled or elem2.userData.disabled then
                             goto nextAction
                     end
@@ -1223,9 +1223,7 @@ function this.update(params)
         local elem = parentElement.content[i]
         if not elem or not elem.userData or not elem.userData.groupName then goto continue end
 
-        if not elem.userData.isProtected then
-            elem.userData.priority = 0
-        end
+        elem.userData.priority = -math.huge
 
         local contentElement = getMarkerParentElement(elem.userData.groupName)
         if not contentElement then goto continue end
