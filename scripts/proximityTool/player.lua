@@ -207,13 +207,13 @@ local function registerMarker(markerData)
         if markerData.positions and cellLib.isContainValidPosition(markerData.positions) then
             valid = true
         end
-        if markerData.objectId and not activeObjects.isContainValidRecordId(markerData.objectId) then
+        if markerData.objectId and activeObjects.isContainValidRecordId(markerData.objectId) then
             valid = true
         end
-        if markerData.object and not activeObjects.isContainRefId(markerData.object.recordId, markerData.object.id) then
+        if markerData.object and activeObjects.isContainRefId(markerData.object.recordId, markerData.object.id) then
             valid = true
         end
-        if markerData.objects and not activeObjects.isContainValidRecordIds(markerData.objects) then
+        if markerData.objects and activeObjects.isContainValidRecordIds(markerData.objects) then
             valid = true
         end
     end
