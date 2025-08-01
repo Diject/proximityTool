@@ -1084,8 +1084,10 @@ function this.update(params)
                 if util.bitAnd(topMarkerRecord.type, 4) > 0 and topMarkerRecord.positions and (not foundPos or trackAllTypes) then
                     local pos, distance = cellLib.getClosestPosition(topMarkerRecord.positions)
 
-                    table.insert(trackingPositions, {dif = distance, x = pos.x, y = pos.y, z = pos.z})
-                    foundPos = true
+                    if pos then
+                        table.insert(trackingPositions, {dif = distance, x = pos.x, y = pos.y, z = pos.z})
+                        foundPos = true
+                    end
                 end
 
                 if util.bitAnd(topMarkerRecord.type, 8) > 0 and topMarkerRecord.objectIds and (not foundPos or trackAllTypes) then

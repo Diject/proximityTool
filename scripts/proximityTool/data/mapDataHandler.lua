@@ -118,6 +118,18 @@ function this.getMarkers(id, groupId)
             end
         end
     end
+    if markerData.object and markerData.object:isValid() then
+        local dt = this.getMarker(markerData.object.id, groupId)
+        if dt then
+            table.insert(out, dt)
+        end
+    end
+    if markerData.objectId then
+        local dt = this.getMarker(markerData.objectId, groupId)
+        if dt then
+            table.insert(out, dt)
+        end
+    end
 
     return out
 end
