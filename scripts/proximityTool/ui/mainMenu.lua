@@ -892,12 +892,12 @@ end
 
 local function getAdditionalPriorityByDistance(distance)
     local res = 0
-    if distance < 150 then
+    if distance < 200 then
         res = 200
-    elseif distance < 600 then
-        res = math.floor((1000 - distance) / 200) * 20
+    elseif distance < 8000 then
+        res = math.floor((10000 - distance) / 2000) * 30
     elseif distance > 10000 then
-        res = -math.floor(distance / 10000) * 10
+        res = -math.floor(distance / 10000) * 20
     end
 
     return res
