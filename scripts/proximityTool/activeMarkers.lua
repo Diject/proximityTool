@@ -130,7 +130,8 @@ function activeMarker:update()
             if marker.positions and cellLib.isContainValidPosition(marker.positions)
                     or marker.objectId and activeObjects.isContainValidRecordId(marker.objectId)
                     or marker.objects and activeObjects.isContainValidRecordIds(marker.objects)
-                    or marker.object and marker.object:isValid() then
+                    or marker.object and marker.object:isValid()
+                    or data.type == 16 then
                 foundValid = true
             else
                 self.markers[id] = nil

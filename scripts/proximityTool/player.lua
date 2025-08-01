@@ -201,17 +201,21 @@ end
 local function registerMarker(markerData)
     if markerData.invalid then return end
     local valid = false
-    if markerData.positions and cellLib.isContainValidPosition(markerData.positions) then
+    if markerData.groupId == common.textMarkerLabel then
         valid = true
-    end
-    if markerData.objectId and not activeObjects.isContainValidRecordId(markerData.objectId) then
-        valid = true
-    end
-    if markerData.object and not activeObjects.isContainRefId(markerData.object.recordId, markerData.object.id) then
-        valid = true
-    end
-    if markerData.objects and not activeObjects.isContainValidRecordIds(markerData.objects) then
-        valid = true
+    else
+        if markerData.positions and cellLib.isContainValidPosition(markerData.positions) then
+            valid = true
+        end
+        if markerData.objectId and not activeObjects.isContainValidRecordId(markerData.objectId) then
+            valid = true
+        end
+        if markerData.object and not activeObjects.isContainRefId(markerData.object.recordId, markerData.object.id) then
+            valid = true
+        end
+        if markerData.objects and not activeObjects.isContainValidRecordIds(markerData.objects) then
+            valid = true
+        end
     end
 
     if not valid then return end
@@ -220,6 +224,13 @@ local function registerMarker(markerData)
     if not marker then return end
 
     mainMenu.registerMarker(marker)
+end
+
+
+local function registerTextMarkers()
+    for id, data in mapData.iterMarkerGroup(common.textMarkerLabel) do
+        registerMarker(data)
+    end
 end
 
 
@@ -290,11 +301,11 @@ local function addMarker(data)
         groupId = markerDataCopy.groupId
     end
 
-    if groupId then
-        registerMarker(markerData)
+    markerData.groupId = groupId or common.textMarkerLabel
 
-        return markerData.id, groupId
-    end
+    registerMarker(markerData)
+
+    return markerData.id, groupId
 end
 
 
@@ -543,9 +554,10 @@ return {
         end,
         onLoad = function (data)
             mapData.load(data)
+            registerTextMarkers()
         end,
         onTeleported = function ()
-            async:newUnsavableSimulationTimer(0.0001, function () -- delay for the player cell data to be updated
+            async:newUnsavableSimulationTimer(0.1, function () -- delay for the player cell data to be updated
                 registerMarkersForCell()
             end)
         end,
