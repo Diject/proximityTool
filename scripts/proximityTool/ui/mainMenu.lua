@@ -946,6 +946,7 @@ function this.update(params)
             if disabled then
                 if element.props.visible then
                     element.props.alpha = params.force and 0 or element.props.alpha - alphaAdditiveVal
+                    doUpdate = true
                     if element.props.alpha <= 0 then
                         element.userData.locked = true
                         element.props.alpha = 0
@@ -953,7 +954,6 @@ function this.update(params)
 
                         uiUtils.removeFromContent(parent.content, i)
                         hiddenGroupElement.content:add(element)
-                        doUpdate = true
                         goto continue
                     end
                 end
@@ -1003,7 +1003,11 @@ function this.update(params)
                         doUpdate = true
                     end
                 end
-                element.props.visible = true
+
+                if not element.props.visible then
+                    element.props.visible = true
+                    doUpdate = true
+                end
 
                 if parent.userData and parent.userData.groupName and parent.userData.groupName == commonData.hiddenGroupId then
                     local groupElement = getMarkerParentElement(element.userData.data.groupName)
@@ -1226,6 +1230,7 @@ function this.update(params)
 
         if not elem.userData.isProtected and #contentElement.content == 0 then
             uiUtils.removeFromContent(parentElement.content, i)
+            doUpdate = true
             goto continue
         end
 
