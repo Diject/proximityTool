@@ -5,17 +5,8 @@ local world = require('openmw.world')
 local supportedObjectTypes = require("scripts.proximityTool.supportedObjectTypes")
 
 
-local function onObjectActiveGlobal(object)
-    if supportedObjectTypes[object.type] and object.enabled then
-        if not object:hasScript("scripts/proximityTool/objectLocal.lua") then
-            world.players[1]:sendEvent("proximityTool:addActiveObject", object)
-            object:addScript("scripts/proximityTool/objectLocal.lua")
-        end
-    end
-end
-
 local function onObjectActive(object)
-    if supportedObjectTypes[object.type] and object.enabled then
+    if object.enabled then
         world.players[1]:sendEvent("proximityTool:addActiveObject", object)
     end
 end
@@ -27,8 +18,7 @@ end
 
 return {
     engineHandlers = {
-        onObjectActive = async:callback(onObjectActiveGlobal),
-        onItemActive = async:callback(onObjectActiveGlobal),
+
     },
     eventHandlers = {
         ["proximityTool:objectInactive"] = objectInactive,
