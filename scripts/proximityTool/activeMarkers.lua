@@ -134,6 +134,7 @@ function activeMarker:update()
                     or data.type == 16 then
                 foundValid = true
             else
+                data.isValid = false
                 self.markers[id] = nil
             end
         end
@@ -206,9 +207,11 @@ function this.register(params)
     local marker = this.data[activeMarkerId]
     if marker then
         marker:update()
-    end
 
-    if params.invalid then return end -- here to detect invalidated markers after the update
+        if not marker.isValid then
+            marker = nil ---@diagnostic disable-line: cast-local-type
+        end
+    end
 
     ---@type proximityTool.activeMarkerData
     local activeMarkerData = marker and (marker.markers[markerId] or {}) or {} ---@diagnostic disable-line: missing-fields
@@ -221,7 +224,6 @@ function this.register(params)
     activeMarkerData.type = 0
 
     if params.objectId then
-        activeMarkerData.objectId = params.objectId
         activeMarkerData.type = 1
         local object = getObject(params.objectId)
         if object and object.name then
@@ -229,16 +231,13 @@ function this.register(params)
         end
     end
     if params.object then
-        activeMarkerData.object = params.object
         activeMarkerData.type = util.bitOr(activeMarkerData.type, 2)
     end
     if params.positions then
         activeMarkerData.type = util.bitOr(activeMarkerData.type, 4)
-        activeMarkerData.positions = params.positions
     end
     if params.objects then
         activeMarkerData.type = util.bitOr(activeMarkerData.type, 8)
-        activeMarkerData.objectIds = params.objects
     end
     if not params.objectId and not params.object and not params.positions and not params.objects then
         activeMarkerData.type = 16
@@ -264,7 +263,7 @@ function this.register(params)
 
         marker.hidden = record.hidden or false
 
-        if util.bitAnd(marker.type, 8) > 0 then
+        if params.objects then
             activeObjects.registerGroup(markerId, params.objects)
         end
 
@@ -276,6 +275,8 @@ function this.register(params)
     else
         marker.markers[activeMarkerData.id] = activeMarkerData
     end
+
+    marker.isValid = true
 
     ---@type proximityTool.activeMarkerData?
     marker.topMarker = marker:getTopPriorityRecord()
@@ -301,7 +302,7 @@ function this.remove(recordId)
     if marker then
         marker.isValid = false
 
-        if marker.topMarker and marker.topMarker.objectIds then
+        if marker.topMarker and marker.topMarker.marker.objects then
             activeObjects.unregisterGroup(recordId)
         end
 

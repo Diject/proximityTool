@@ -49,12 +49,8 @@ local settingStorage = storage.playerSection(common.settingStorageId)
 ---@field id string?
 ---@field recordId string?
 ---@field record proximityTool.markerRecord
----@field objectId string?
----@field objectIds string[]?
----@field object any?
 ---@field name string?
 ---@field proximity number?
----@field positions proximityTool.position[]?
 ---@field priority number?
 ---@field noteId string?
 ---@field playerExteriorFlag boolean?
@@ -235,14 +231,12 @@ end
 
 
 local function registerMarkersForCell()
+    mainMenu.update()
     local cellId = player.cell.isExterior and common.worldCellLabel or player.cell.id
     for id, data in mapData.iterMarkerGroup(cellId) do
         registerMarker(data)
     end
-
-    async:newUnsavableSimulationTimer(1, function ()
-        activeMarkers.update()
-    end)
+    activeMarkers.update()
 end
 
 
@@ -594,7 +588,7 @@ return {
             registerTextMarkers()
         end,
         onTeleported = function ()
-            async:newUnsavableSimulationTimer(0.1, function () -- delay for the player cell data to be updated
+            async:newUnsavableSimulationTimer(0.5, function () -- delay for the player cell data to be updated
                 registerMarkersForCell()
             end)
         end,

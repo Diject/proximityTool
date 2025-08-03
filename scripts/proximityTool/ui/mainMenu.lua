@@ -917,6 +917,8 @@ function this.update(params)
     local hiddenGroupElement = getMarkerParentElement(commonData.hiddenGroupId)
     if not parentElement or not hiddenGroupElement then return end
 
+    local timestamp = core.getRealTime()
+
     local player = playerObj.object
     local playerPos = player.position
     local cameraPos = camera.getPosition()
@@ -1035,8 +1037,6 @@ function this.update(params)
     local function processGroup(contentOwner, parent)
         if not contentOwner then return end
 
-        local timestamp = core.getRealTime()
-
         for i = #contentOwner.content, 1, -1 do
             local elem = contentOwner.content[i]
             if not elem or not elem.props or not elem.userData or not elem.userData.data then goto continue end
@@ -1060,6 +1060,7 @@ function this.update(params)
                 goto continue
             end
 
+            local topMarkerData = topMarkerRecord.marker
 
             local trackingPos
             ---@type { object: any, x: number, y: number, z: number, dif: number? }[]
@@ -1070,25 +1071,25 @@ function this.update(params)
                 local foundPos = false
                 local trackAllTypes = topMarkerRecord.record.options and topMarkerRecord.record.options.trackAllTypesTogether
 
-                if util.bitAnd(topMarkerRecord.type, 2) > 0 and topMarkerRecord.object then
-                    local objectRef = topMarkerRecord.object
-                    local posData = activeObjects.getObjectPositionData(objectRef, nil, topMarkerRecord.marker.itemId)
+                if topMarkerData.object then
+                    local objectRef = topMarkerData.object
+                    local posData = activeObjects.getObjectPositionData(objectRef, nil, topMarkerData.itemId)
                     if posData then
                         table.insert(trackingPositions, posData)
                         foundPos = true
                     end
                 end
 
-                if util.bitAnd(topMarkerRecord.type, 1) > 0 and topMarkerRecord.objectId and (not foundPos or trackAllTypes) then
-                    local trackedObjPosition = activeObjects.getClosestObjectPosition(topMarkerRecord.objectId, player, topMarkerRecord.marker.itemId)
+                if topMarkerData.objectId and (not foundPos or trackAllTypes) then
+                    local trackedObjPosition = activeObjects.getClosestObjectPosition(topMarkerData.objectId, player, topMarkerData.itemId)
                     if trackedObjPosition then
                         table.insert(trackingPositions, trackedObjPosition)
                         foundPos = true
                     end
                 end
 
-                if util.bitAnd(topMarkerRecord.type, 4) > 0 and topMarkerRecord.positions and (not foundPos or trackAllTypes) then
-                    local pos, distance = cellLib.getClosestPosition(topMarkerRecord.positions)
+                if topMarkerData.positions and (not foundPos or trackAllTypes) then
+                    local pos, distance = cellLib.getClosestPosition(topMarkerData.positions)
 
                     if pos then
                         table.insert(trackingPositions, {dif = distance, x = pos.x, y = pos.y, z = pos.z})
@@ -1096,8 +1097,8 @@ function this.update(params)
                     end
                 end
 
-                if util.bitAnd(topMarkerRecord.type, 8) > 0 and topMarkerRecord.objectIds and (not foundPos or trackAllTypes) then
-                    local trackedObjPositions = activeObjects.getClosestObjectPositionsByGroupName(topMarkerRecord.id, player, topMarkerRecord.marker.itemId)
+                if topMarkerData.objects and (not foundPos or trackAllTypes) then
+                    local trackedObjPositions = activeObjects.getClosestObjectPositionsByGroupName(topMarkerData.id, player, topMarkerData.itemId)
                     if trackedObjPositions and next(trackingPositions) then
                         table.sort(trackedObjPositions, function (a, b)
                             return (a.dif or math.huge) < (b.dif or math.huge)
