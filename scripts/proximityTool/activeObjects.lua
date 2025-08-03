@@ -65,7 +65,7 @@ local function calc2DDistance(obj1, obj2)
     return math.sqrt((pos2.x - pos1.x)^2 + (pos2.y - pos1.y)^2)
 end
 
----@return {object: any, x: number, y: number, z: number, dif : number?}[]
+---@return {object: any, position : any, dif : number?}[]
 function objectHandler:positions(refObject, itemId)
     local ret = {}
     for id, object in pairs(self.objects) do
@@ -82,7 +82,7 @@ function objectHandler:positions(refObject, itemId)
     return ret
 end
 
----@return {object: any, x: number, y: number, z: number, dif : number?}?
+---@return {object: any, position : any, dif : number?}?
 function objectHandler:closestPosition(refObject, itemId)
     local timestamp = core.getRealTime()
     if timestamp >= self.nextUpdateTimestamp then
@@ -105,7 +105,7 @@ function objectHandler:closestPosition(refObject, itemId)
 end
 
 
----@return {object: any, x: number, y: number, z: number, dif : number?}?
+---@return {object: any, position : any, dif : number?}?
 function this.getObjectPositionData(object, refObject, itemId)
     if not object then return end
     if object:isValid() and object.enabled and object.cell
@@ -113,9 +113,7 @@ function this.getObjectPositionData(object, refObject, itemId)
         if not itemId or inventoryLib.countOf(object, itemId, true, 1) > 0 then
             return {
                 object = object,
-                x = object.position.x,
-                y = object.position.y,
-                z = object.position.z,
+                position = object.position,
                 dif = refObject and calc2DDistance(refObject, object)
             }
         end
@@ -158,7 +156,7 @@ end
 
 
 ---@param recordId string
----@return {object: any, x: number, y: number, z: number, dif : number?}[]?
+---@return {object: any, position : any, dif : number?}[]?
 function this.getObjectPositions(recordId, refToCompare, itemId)
     local objHandler = this.data[recordId]
     if not objHandler then return end
@@ -168,7 +166,7 @@ end
 
 
 ---@param recordId string
----@return {object: any, x: number, y: number, z: number, dif : number?}?
+---@return {object: any, position : any, dif : number?}?
 function this.getClosestObjectPosition(recordId, refToCompare, itemId)
     local objHandler = this.data[recordId]
     if not objHandler then return end
@@ -199,7 +197,7 @@ end
 
 
 ---@param groupName string
----@return {object: any, x: number, y: number, z: number, dif : number?}?
+---@return {object: any, position : any, dif : number?}?
 function this.getClosestObjectPositionsByGroupName(groupName, refToCompare, itemId)
     local res = {}
     for _, recordId in pairs(this.objectRecordIdsByGroupId[groupName] or {}) do

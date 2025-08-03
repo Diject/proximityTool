@@ -1063,8 +1063,8 @@ function this.update(params)
             local topMarkerData = topMarkerRecord.marker
 
             local trackingPos
-            ---@type { object: any, x: number, y: number, z: number, dif: number? }[]
-            local trackingPositions = {}
+            ---@type {object: any, position : any, dif : number?}[]
+            local trackingPositionsData = {}
 
             if trackingData.nextUpdate < timestamp or not trackingData.lastTrackedObject then
 
@@ -1075,7 +1075,7 @@ function this.update(params)
                     local objectRef = topMarkerData.object
                     local posData = activeObjects.getObjectPositionData(objectRef, nil, topMarkerData.itemId)
                     if posData then
-                        table.insert(trackingPositions, posData)
+                        table.insert(trackingPositionsData, posData)
                         foundPos = true
                     end
                 end
@@ -1083,7 +1083,7 @@ function this.update(params)
                 if topMarkerData.objectId and (not foundPos or trackAllTypes) then
                     local trackedObjPosition = activeObjects.getClosestObjectPosition(topMarkerData.objectId, player, topMarkerData.itemId)
                     if trackedObjPosition then
-                        table.insert(trackingPositions, trackedObjPosition)
+                        table.insert(trackingPositionsData, trackedObjPosition)
                         foundPos = true
                     end
                 end
@@ -1092,14 +1092,14 @@ function this.update(params)
                     local pos, distance = cellLib.getClosestPosition(topMarkerData.positions)
 
                     if pos then
-                        table.insert(trackingPositions, {dif = distance, x = pos.x, y = pos.y, z = pos.z})
+                        table.insert(trackingPositionsData, {dif = distance, object = {position = pos}})
                         foundPos = true
                     end
                 end
 
                 if topMarkerData.objectIds and (not foundPos or trackAllTypes) then
                     local trackedObjPositions = activeObjects.getClosestObjectPositionsByGroupName(topMarkerData.id, player, topMarkerData.itemId)
-                    if trackedObjPositions and next(trackingPositions) then
+                    if trackedObjPositions and next(trackingPositionsData) then
                         table.sort(trackedObjPositions, function (a, b)
                             return (a.dif or math.huge) < (b.dif or math.huge)
                         end)
@@ -1107,7 +1107,7 @@ function this.update(params)
 
                     local pos = trackedObjPositions and trackedObjPositions[1]
                     if pos then
-                        table.insert(trackingPositions, pos)
+                        table.insert(trackingPositionsData, pos)
                         foundPos = true
                     end
                 end
@@ -1125,23 +1125,23 @@ function this.update(params)
                     elem.userData.alpha = params.force and 1 or math.min(trackingData.alpha, config.data.ui.maxAlpha * 0.01)
                     goto continue
 
-                elseif not next(trackingPositions) then
+                elseif not next(trackingPositionsData) then
                     uiUtils.removeFromContent(contentOwner.content, i)
                     doUpdate = true
                     goto continue
                 end
 
 
-                table.sort(trackingPositions, function (a, b)
+                table.sort(trackingPositionsData, function (a, b)
                     return (a.dif or math.huge) < (b.dif or math.huge)
                 end)
-                local closest = trackingPositions[1]
-                trackingPos = util.vector3(closest.x, closest.y, closest.z)
-                trackingData.lastTrackedObject = trackingPos
+                local closest = trackingPositionsData[1]
+                trackingPos = closest.object.position
+                trackingData.lastTrackedObject = closest.object
                 trackingData.nextUpdate = getNexUpdateTimestamp(timestamp)
 
             else
-                trackingPos = trackingData.lastTrackedObject
+                trackingPos = trackingData.lastTrackedObject.position
             end
 
             if not trackingPos then
