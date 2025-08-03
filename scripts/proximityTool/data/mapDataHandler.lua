@@ -164,6 +164,9 @@ function this.addMarker(id, groupId, data)
     if not id or not groupId then return end
 
     this.markers[groupId] = this.markers[groupId] or {}
+    if this.markers[groupId][id] then
+        this.markers[groupId][id].invalid = true
+    end
     this.markers[groupId][id] = data
 end
 
@@ -197,13 +200,14 @@ function this.removeMarker(id, groupId)
                 this.markers[grId][id] = nil
             end
         end
-        if groupId ~= common.positionsLabel then
-            local mk = this.getMarker(id, common.positionsLabel)
-            if not mk then return false end
+
+        local mk = this.getMarker(id, common.positionsLabel)
+        if mk then
             mk.invalid = true
             this.markers[common.positionsLabel][id] = nil
         end
     end
+
     if marker.objects then
         for _, objId in pairs(marker.objects) do
             if this.markers[objId] and this.markers[objId][id] then
@@ -211,14 +215,14 @@ function this.removeMarker(id, groupId)
                 this.markers[objId][id] = nil
             end
         end
-        if groupId ~= common.objectsLabel then
-            local mk = this.getMarker(id, common.objectsLabel)
-            if not mk then return false end
 
+        local mk = this.getMarker(id, common.objectsLabel)
+        if mk then
             mk.invalid = true
             this.markers[common.objectsLabel][id] = nil
         end
     end
+
     if marker.object and marker.object:isValid() then
         local mrk = this.getMarker(id, marker.object.id)
         if mrk then
@@ -226,6 +230,7 @@ function this.removeMarker(id, groupId)
             this.markers[marker.object.id][id] = nil
         end
     end
+
     if marker.objectId then
         local mrk = this.getMarker(id, marker.objectId)
         if mrk then
@@ -236,7 +241,6 @@ function this.removeMarker(id, groupId)
 
     marker.invalid = true
     this.markers[groupId][id] = nil
-
     return true
 end
 
@@ -376,7 +380,7 @@ end
 
 
 function this.removeMarkersByGroupName(groupName)
-    for id, groupData in pairs(this.markers) do
+    for groupId, groupData in pairs(this.markers) do
         for markerId, data in pairs(groupData) do
             if data.groupName == groupName then
                 data.invalid = true
@@ -384,7 +388,7 @@ function this.removeMarkersByGroupName(groupName)
             end
         end
         if not next(groupData) then
-            this.markers[id] = nil
+            this.markers[groupId] = nil
         end
     end
 end

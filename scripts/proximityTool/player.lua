@@ -302,10 +302,11 @@ local function addMarker(data)
     end
 
     markerData.groupId = groupId or common.textMarkerLabel
+    mapData.addMarker(markerData.id, markerData.groupId, markerData)
 
     registerMarker(markerData)
 
-    return markerData.id, groupId
+    return markerData.id, markerData.groupId
 end
 
 
