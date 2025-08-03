@@ -15,7 +15,7 @@ local tableLib = require("scripts.proximityTool.utils.table")
 
 local uiUtils = require("scripts.proximityTool.ui.utils")
 
-local log = require("scripts.proximityTool.log")
+local log = require("scripts.proximityTool.utils.log")
 
 local icons = require("scripts.proximityTool.icons")
 

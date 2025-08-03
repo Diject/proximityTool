@@ -1,7 +1,7 @@
 local player = require('openmw.self')
 local util = require("openmw.util")
 
-local log = require("scripts.proximityTool.log")
+local log = require("scripts.proximityTool.utils.log")
 local tableLib = require("scripts.proximityTool.utils.table")
 local getObject = require("scripts.proximityTool.utils.getObject")
 local uniqueId = require("scripts.proximityTool.uniqueId")

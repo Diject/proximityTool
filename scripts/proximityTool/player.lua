@@ -9,7 +9,7 @@ local storage = require('openmw.storage')
 
 local common = require("scripts.proximityTool.common")
 
-local log = require("scripts.proximityTool.log")
+local log = require("scripts.proximityTool.utils.log")
 local uniqueId = require("scripts.proximityTool.uniqueId")
 local activeObjects = require("scripts.proximityTool.activeObjects")
 local hudmHandler = require("scripts.proximityTool.hudmHandler")
@@ -250,8 +250,14 @@ end
 ---@return string? id
 ---@return string? groupId
 local function addMarker(data)
-    if not data then return end
-    if not data.record then return end
+    if not data then
+        log("addMarker: Error: data not provided.")
+        return
+    end
+    if not data.record then
+        log("addMarker: Error: record parameter not provided.")
+        return
+    end
 
     ---@type proximityTool.markerData
     local markerData = tableLib.deepcopy(data)
@@ -314,11 +320,16 @@ end
 ---@param data proximityTool.markerRecord
 ---@return boolean?
 local function updateRecord(id, data)
-    if not id then return end
+    if not id then
+        log("updateRecord: Error: id not provided.")
+    end
     if not data then data = {} end
 
     local recordData = mapData.getRecord(id)
-    if not recordData then return end
+    if not recordData then
+        log("updateRecord: Error: record data not found.")
+        return
+    end
 
     local dt = tableLib.deepcopy(data)
     dt.id = nil
@@ -337,17 +348,23 @@ local function setVisibility(id, groupId, val)
 
     if groupId then
         local markersData = mapData.getMarkers(id, groupId)
-        if not markersData then return end
+        if not markersData then
+            log(string.format("setVisibility: Error: marker data not found. id %s, groupId %s", tostring(id), tostring(groupId)))
+            return
+        end
 
         for _, markerData in pairs(markersData) do
             local record = mapData.getRecordData(markerData)
-            if not record then return end
-
-            record.hidden = not val
+            if record then
+                record.hidden = not val
+            end
         end
     else
         local record = mapData.getRecord(id)
-        if not record then return end
+        if not record then
+            log(string.format("setVisibility: Error: record data not found. id %s, groupId %s", tostring(id)))
+            return false
+        end
 
         record.hidden = not val
     end
@@ -359,6 +376,10 @@ end
 ---@param id string
 ---@param groupId string?
 local function getMarkerData(id, groupId)
+    if not id then
+        log("getMarkerData: Error: id parameter not provided.")
+        return
+    end
     local markerData
     if groupId then
         markerData = mapData.getMarker(id, groupId)
@@ -373,7 +394,10 @@ end
 ---@param data proximityTool.HUDMarker
 ---@return string?
 local function addHUDMarker(data)
-    if not data or not data.modName or not data.params then return end
+    if not data or not data.modName or not data.params then
+        log("addHUDMarker: Error: modName or params fields not found.")
+        return
+    end
 
     ---@type proximityTool.HUDMarker
     local markerData = tableLib.deepcopy(data)
@@ -382,7 +406,10 @@ local function addHUDMarker(data)
     markerData.version = markerData.version or hudmHandler.version or 5
     markerData.isHUDM = true
 
-    if markerData.version < 5 then return end
+    if markerData.version < 5 then
+        log("addHUDMarker: Error: HUDMarkers version must be at least 5.")
+        return
+    end
 
     if markerData.objects then
         for _, objectRef in pairs(markerData.objects) do
@@ -410,7 +437,10 @@ end
 ---@param id string
 ---@return proximityTool.HUDMarker?
 local function getHUDMdata(id)
-    if not id then return end
+    if not id then
+        log("getHUDMdata: Error: parameter not provided.")
+        return
+    end
     local markers = mapData.getHUDMarkers(id)
     if not markers then return end
 
@@ -422,7 +452,10 @@ end
 ---@param val boolean
 ---@return boolean?
 local function setHUDMvisibility(id, val)
-    if not id then return end
+    if not id then
+        log("setHUDMvisibility: Error: id parameter not provided.")
+        return
+    end
 
     local markers = mapData.getHUDMarkersByMarkerId(id)
     if not markers then return end
@@ -436,7 +469,10 @@ end
 
 
 local function removeHUDMarker(id)
-    if not id then return end
+    if not id then
+        log("removeHUDMarker: Error: id parameter not provided.")
+        return
+    end
     return mapData.removeHUDMarker(id)
 end
 
