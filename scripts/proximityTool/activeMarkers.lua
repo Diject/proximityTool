@@ -129,7 +129,7 @@ function activeMarker:update()
         else
             if marker.positions and cellLib.isContainValidPosition(marker.positions)
                     or marker.objectId and activeObjects.isContainValidRecordId(marker.objectId)
-                    or marker.objects and activeObjects.isContainValidRecordIds(marker.objects)
+                    or marker.objectIds and activeObjects.isContainValidRecordIds(marker.objectIds)
                     or marker.object and marker.object:isValid()
                     or data.type == 16 then
                 foundValid = true
@@ -188,7 +188,7 @@ function this.register(params)
         activeMarkerId = params.objectId
     elseif params.object then
         activeMarkerId = params.object.id
-    elseif params.objects then
+    elseif params.objectIds then
         activeMarkerId = getNameColorHashId(record.name, record.nameColor)
     elseif params.positions then
         activeMarkerId = getNameColorHashId(record.name, record.nameColor)
@@ -236,10 +236,10 @@ function this.register(params)
     if params.positions then
         activeMarkerData.type = util.bitOr(activeMarkerData.type, 4)
     end
-    if params.objects then
+    if params.objectIds then
         activeMarkerData.type = util.bitOr(activeMarkerData.type, 8)
     end
-    if not params.objectId and not params.object and not params.positions and not params.objects then
+    if not params.objectId and not params.object and not params.positions and not params.objectIds then
         activeMarkerData.type = 16
     end
 
@@ -263,8 +263,8 @@ function this.register(params)
 
         marker.hidden = record.hidden or false
 
-        if params.objects then
-            activeObjects.registerGroup(markerId, params.objects)
+        if params.objectIds then
+            activeObjects.registerGroup(markerId, params.objectIds)
         end
 
         marker.groupName = params.groupName or common.defaultGroupId
@@ -302,7 +302,7 @@ function this.remove(recordId)
     if marker then
         marker.isValid = false
 
-        if marker.topMarker and marker.topMarker.marker.objects then
+        if marker.topMarker and marker.topMarker.marker.objectIds then
             activeObjects.unregisterGroup(recordId)
         end
 

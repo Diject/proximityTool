@@ -1097,7 +1097,7 @@ function this.update(params)
                     end
                 end
 
-                if topMarkerData.objects and (not foundPos or trackAllTypes) then
+                if topMarkerData.objectIds and (not foundPos or trackAllTypes) then
                     local trackedObjPositions = activeObjects.getClosestObjectPositionsByGroupName(topMarkerData.id, player, topMarkerData.itemId)
                     if trackedObjPositions and next(trackingPositions) then
                         table.sort(trackedObjPositions, function (a, b)

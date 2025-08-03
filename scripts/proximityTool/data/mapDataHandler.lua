@@ -103,8 +103,8 @@ function this.getMarkers(id, groupId)
     if not markerData then return end
 
     local out = {markerData}
-    if markerData.objects then
-        for _, objId in pairs(markerData.objects) do
+    if markerData.objectIds then
+        for _, objId in pairs(markerData.objectIds) do
             if this.markers[objId] and this.markers[objId][id] then
                 table.insert(out, this.markers[objId][id])
             end
@@ -208,8 +208,8 @@ function this.removeMarker(id, groupId)
         end
     end
 
-    if marker.objects then
-        for _, objId in pairs(marker.objects) do
+    if marker.objectIds then
+        for _, objId in pairs(marker.objectIds) do
             if this.markers[objId] and this.markers[objId][id] then
                 this.markers[objId][id].invalid = true
                 this.markers[objId][id] = nil
