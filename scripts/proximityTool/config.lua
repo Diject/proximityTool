@@ -34,7 +34,7 @@ this.default = {
         maxAlpha = 100,
         align = "End",
         size = {
-            x = 25, -- %
+            x = 30, -- %
             y = 40, -- %
         },
         position = {
