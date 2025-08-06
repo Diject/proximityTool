@@ -1060,55 +1060,58 @@ function this.update(params)
                 goto continue
             end
 
-            local topMarkerData = topMarkerRecord.marker
-
             local trackingPos
             ---@type {object: any, position : any, dif : number?}[]
             local trackingPositionsData = {}
 
             if trackingData.nextUpdate < timestamp or not trackingData.lastTrackedObject then
 
-                local foundPos = false
-                local trackAllTypes = topMarkerRecord.record.options and topMarkerRecord.record.options.trackAllTypesTogether
+                for _, markerRecord in pairs(trackingData.markers) do
 
-                if topMarkerData.object then
-                    local objectRef = topMarkerData.object
-                    local posData = activeObjects.getObjectPositionData(objectRef, nil, topMarkerData.itemId)
-                    if posData then
-                        table.insert(trackingPositionsData, posData)
-                        foundPos = true
-                    end
-                end
+                    local markerRecordData = markerRecord.marker
 
-                if topMarkerData.objectId and (not foundPos or trackAllTypes) then
-                    local trackedObjPosition = activeObjects.getClosestObjectPosition(topMarkerData.objectId, player, topMarkerData.itemId)
-                    if trackedObjPosition then
-                        table.insert(trackingPositionsData, trackedObjPosition)
-                        foundPos = true
-                    end
-                end
+                    local foundPos = false
+                    local trackAllTypes = markerRecord.record.options and markerRecord.record.options.trackAllTypesTogether
 
-                if topMarkerData.positions and (not foundPos or trackAllTypes) then
-                    local pos, distance = cellLib.getClosestPosition(topMarkerData.positions)
-
-                    if pos then
-                        table.insert(trackingPositionsData, {dif = distance, object = {position = pos}})
-                        foundPos = true
-                    end
-                end
-
-                if topMarkerData.objectIds and (not foundPos or trackAllTypes) then
-                    local trackedObjPositions = activeObjects.getClosestObjectPositionsByGroupName(topMarkerData.id, player, topMarkerData.itemId)
-                    if trackedObjPositions and next(trackingPositionsData) then
-                        table.sort(trackedObjPositions, function (a, b)
-                            return (a.dif or math.huge) < (b.dif or math.huge)
-                        end)
+                    if markerRecordData.object then
+                        local objectRef = markerRecordData.object
+                        local posData = activeObjects.getObjectPositionData(objectRef, nil, markerRecordData.itemId)
+                        if posData then
+                            table.insert(trackingPositionsData, posData)
+                            foundPos = true
+                        end
                     end
 
-                    local pos = trackedObjPositions and trackedObjPositions[1]
-                    if pos then
-                        table.insert(trackingPositionsData, pos)
-                        foundPos = true
+                    if markerRecordData.objectId and (not foundPos or trackAllTypes) then
+                        local trackedObjPosition = activeObjects.getClosestObjectPosition(markerRecordData.objectId, player, markerRecordData.itemId)
+                        if trackedObjPosition then
+                            table.insert(trackingPositionsData, trackedObjPosition)
+                            foundPos = true
+                        end
+                    end
+
+                    if markerRecordData.positions and (not foundPos or trackAllTypes) then
+                        local pos, distance = cellLib.getClosestPosition(markerRecordData.positions)
+
+                        if pos then
+                            table.insert(trackingPositionsData, {dif = distance, object = {position = pos}})
+                            foundPos = true
+                        end
+                    end
+
+                    if markerRecordData.objectIds and (not foundPos or trackAllTypes) then
+                        local trackedObjPositions = activeObjects.getClosestObjectPositionsByGroupName(markerRecordData.id, player, markerRecordData.itemId)
+                        if trackedObjPositions and next(trackingPositionsData) then
+                            table.sort(trackedObjPositions, function (a, b)
+                                return (a.dif or math.huge) < (b.dif or math.huge)
+                            end)
+                        end
+
+                        local pos = trackedObjPositions and trackedObjPositions[1]
+                        if pos then
+                            table.insert(trackingPositionsData, pos)
+                            foundPos = true
+                        end
                     end
                 end
 
