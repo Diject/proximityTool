@@ -142,6 +142,7 @@ I.Settings.registerGroup{
         boolSetting{key = "ui.hideWindow", name = "hideWindow", description = "hideWindowDescription", default = config.default.ui.hideWindow},
         boolSetting{key = "ui.minimizeToAnchor", name = "minimizeToAnchor", description = "minimizeToAnchorDescription", default = config.default.ui.minimizeToAnchor},
         boolSetting{key = "ui.hideHUD", name = "hideHUD", description = "hideHUDDescription", default = config.default.ui.hideHUD},
+        boolSetting{key = "ui.hideHUDInMenus", name = "hideHUDInMenus", description = "hideHUDInMenusDescription", default = config.default.ui.hideHUDInMenus},
         boolSetting{key = "ui.imperialUnits", name = "imperialUnits", default = config.default.ui.imperialUnits},
         boolSetting{key = "ui.helpTooltips", name = "helpTooltips", description = "helpTooltipsDescription", default = config.default.ui.helpTooltips},
         selectSetting{key = "ui.align", name = "align", description = "alignDescription", items = {"Start", "Center", "End"}, default = config.default.ui.align},

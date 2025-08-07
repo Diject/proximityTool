@@ -546,6 +546,8 @@ return {
                 for i = 1, 3 do
                     mainMenu.update{force = true}
                 end
+            elseif data.newMode ~= nil and config.data.ui.hideHUDInMenus then
+                mainMenu.destroy()
             end
 
             lastUIMode = data.newMode

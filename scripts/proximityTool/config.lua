@@ -25,6 +25,7 @@ this.default = {
     ui = {
         hideHUD = false,
         hideWindow = false,
+        hideHUDInMenus = false,
         minimizeToAnchor = true,
         showHeader = false,
         helpTooltips = true,
