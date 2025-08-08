@@ -1,8 +1,12 @@
+local Actor = require("openmw.types").Actor
 local tableLib = require("scripts.proximityTool.utils.table")
 local inventoryLib = require("scripts.proximityTool.utils.inventory")
 local config = require("scripts.proximityTool.config")
 local playerRef = require("openmw.self")
 local core = require("openmw.core")
+
+local getHealth = Actor.stats.dynamic.health
+
 
 ---@diagnostic disable: undefined-doc-name
 local this = {}
@@ -66,13 +70,15 @@ local function calc2DDistance(obj1, obj2)
 end
 
 ---@return {object: any, position : any, dif : number?}[]
-function objectHandler:positions(refObject, itemId)
+function objectHandler:positions(refObject, itemId, withoutDead)
     local ret = {}
     for id, object in pairs(self.objects) do
         if object:isValid() then
-            local posData = this.getObjectPositionData(object, refObject, itemId)
-            if posData then
-                table.insert(ret, posData)
+            if not withoutDead or (Actor.objectIsInstance(object) and getHealth(object).current > 0) then
+                local posData = this.getObjectPositionData(object, refObject, itemId)
+                if posData then
+                    table.insert(ret, posData)
+                end
             end
         else
             self.objects[id] = nil
@@ -83,10 +89,10 @@ function objectHandler:positions(refObject, itemId)
 end
 
 ---@return {object: any, position : any, dif : number?}?
-function objectHandler:closestPosition(refObject, itemId)
+function objectHandler:closestPosition(refObject, itemId, withoutDead)
     local timestamp = core.getRealTime()
     if timestamp >= self.nextUpdateTimestamp then
-        local positions = self:positions(refObject, itemId)
+        local positions = self:positions(refObject, itemId, withoutDead)
 
         local position
         if next(positions) then
@@ -106,10 +112,12 @@ end
 
 
 ---@return {object: any, position : any, dif : number?}?
-function this.getObjectPositionData(object, refObject, itemId)
+function this.getObjectPositionData(object, refObject, itemId, withoutDead)
     if not object then return end
     if object:isValid() and object.enabled and object.cell
-            and playerRef.cell:isInSameSpace(object) then
+            and playerRef.cell:isInSameSpace(object)
+            and (not withoutDead or (Actor.objectIsInstance(object) and getHealth(object).current > 0)) then
+
         if not itemId or inventoryLib.countOf(object, itemId, true, 1) > 0 then
             return {
                 object = object,
@@ -117,6 +125,7 @@ function this.getObjectPositionData(object, refObject, itemId)
                 dif = refObject and calc2DDistance(refObject, object)
             }
         end
+
     end
 end
 
@@ -157,34 +166,34 @@ end
 
 ---@param recordId string
 ---@return {object: any, position : any, dif : number?}[]?
-function this.getObjectPositions(recordId, refToCompare, itemId)
+function this.getObjectPositions(recordId, refToCompare, itemId, withoutDead)
     local objHandler = this.data[recordId]
     if not objHandler then return end
 
-    return objHandler:positions(refToCompare, itemId)
+    return objHandler:positions(refToCompare, itemId, withoutDead)
 end
 
 
 ---@param recordId string
 ---@return {object: any, position : any, dif : number?}?
-function this.getClosestObjectPosition(recordId, refToCompare, itemId)
+function this.getClosestObjectPosition(recordId, refToCompare, itemId, withoutDead)
     local objHandler = this.data[recordId]
     if not objHandler then return end
 
-    return objHandler:closestPosition(refToCompare, itemId)
+    return objHandler:closestPosition(refToCompare, itemId, withoutDead)
 end
 
 
 ---@param groupName string
 ---@return {object: any, x: number, y: number, z: number, dif : number?}[]?
-function this.getObjectPositionsByGroupName(groupName, refToCompare, itemId)
+function this.getObjectPositionsByGroupName(groupName, refToCompare, itemId, withoutDead)
     local found = false
     local res = {}
     for _, recordId in pairs(this.objectRecordIdsByGroupId[groupName] or {}) do
         local objHandler = this.data[recordId]
         if not objHandler or objHandler.count == 0 then goto continue end
 
-        local positions = objHandler:positions(refToCompare, itemId)
+        local positions = objHandler:positions(refToCompare, itemId, withoutDead)
         tableLib.add(positions, res)
 
         found = true
@@ -198,13 +207,13 @@ end
 
 ---@param groupName string
 ---@return {object: any, position : any, dif : number?}?
-function this.getClosestObjectPositionsByGroupName(groupName, refToCompare, itemId)
+function this.getClosestObjectPositionsByGroupName(groupName, refToCompare, itemId, withoutDead)
     local res = {}
     for _, recordId in pairs(this.objectRecordIdsByGroupId[groupName] or {}) do
         local objHandler = this.data[recordId]
         if not objHandler or objHandler.count == 0 then goto continue end
 
-        local position = objHandler:closestPosition(refToCompare, itemId)
+        local position = objHandler:closestPosition(refToCompare, itemId, withoutDead)
         table.insert(res, position)
 
         ::continue::

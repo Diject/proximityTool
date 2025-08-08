@@ -77,6 +77,7 @@ local settingStorage = storage.playerSection(common.settingStorageId)
 ---@field showNoteIcon boolean? *true* by default
 ---@field enableGroupEvent boolean? *true* by default
 ---@field trackAllTypesTogether boolean? *false* by default
+---@field hideDead boolean? *false* by default
 
 ---@class proximityTool.markerRecord
 ---@field id string?
@@ -106,6 +107,7 @@ local settingStorage = storage.playerSection(common.settingStorageId)
 ---@field itemId string? markers will be removed for objects that do not have this item. Unresolved containers are considered as having it
 ---@field params table required. HUDM parameters
 ---@field version number HUDM version for this marker
+---@field hideDead boolean? hide markers for dead actors
 ---@field isHUDM boolean true
 ---@field hidden boolean? if true, this marker will not be shown
 ---@field temporary boolean? if true, this marker will not be saved to the save file

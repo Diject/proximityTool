@@ -1,4 +1,5 @@
 local I = require('openmw.interfaces')
+local Actor = require("openmw.types").Actor
 
 local tableLib = require("scripts.proximityTool.utils.table")
 
@@ -8,6 +9,9 @@ local inventoryLib = require("scripts.proximityTool.utils.inventory")
 local mapData = require("scripts.proximityTool.data.mapDataHandler")
 local realTimer = require("scripts.proximityTool.realTimer")
 local config = require("scripts.proximityTool.config")
+
+local getHealth = Actor.stats.dynamic.health
+
 
 local hudm
 
@@ -28,7 +32,7 @@ this.activeByObject = {}
 
 
 ---@type table<string, table<string, proximityTool.HUDMarker.activeObjectMarkerData>> by objectId; by markerId
-this.itemFilteredObjects = {}
+this.filteredObjects = {}
 
 
 local function getHashVal(refId, markerId)
@@ -47,27 +51,35 @@ end
 ---@param markerId string
 ---@param data proximityTool.HUDMarker.activeObjectMarkerData
 local function addItemFilteredObject(refId, markerId, data)
-    if not this.itemFilteredObjects[refId] then
-        this.itemFilteredObjects[refId] = {}
+    if not this.filteredObjects[refId] then
+        this.filteredObjects[refId] = {}
     end
-    this.itemFilteredObjects[refId][markerId] = data
+    this.filteredObjects[refId][markerId] = data
 end
 
 
 ---@param refId string
 ---@param markerId string
 local function removeItemFilteredObject(refId, markerId)
-    if not this.itemFilteredObjects[refId] then return end
-    this.itemFilteredObjects[refId][markerId] = nil
+    if not this.filteredObjects[refId] then return end
+    this.filteredObjects[refId][markerId] = nil
 end
 
 
 local function filterTimer()
-    for refId, dt in pairs(this.itemFilteredObjects) do
+    for refId, dt in pairs(this.filteredObjects) do
         for markerId, data in pairs(dt) do
             if data.marker.itemId then
                 local itemCount = inventoryLib.countOf(data.object, data.marker.itemId, true, 0)
                 if itemCount <= 0 then
+                    (this.activeData[data.modName or ""] or {})[getHashVal(refId, markerId)] = nil
+
+                    this.activeByObject[refId][markerId] = nil
+                    removeItemFilteredObject(refId, markerId)
+                end
+            elseif data.marker.hideDead and Actor.objectIsInstance(data.object) then
+                local health = getHealth(data.object).current
+                if health <= 0 then
                     (this.activeData[data.modName or ""] or {})[getHashVal(refId, markerId)] = nil
 
                     this.activeByObject[refId][markerId] = nil
@@ -163,7 +175,7 @@ local function addMarkers(marker, ref)
     this.activeByObject[ref.id] = this.activeByObject[ref.id] or {}
     this.activeByObject[ref.id][marker.id] = objectMarkerData
 
-    if marker.itemId then
+    if marker.itemId or marker.hideDead then
         addItemFilteredObject(ref.id, marker.id, objectMarkerData)
     end
 

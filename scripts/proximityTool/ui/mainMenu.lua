@@ -1069,13 +1069,14 @@ function this.update(params)
                 for _, markerRecord in pairs(trackingData.markers) do
 
                     local markerRecordData = markerRecord.marker
+                    local filterDead = markerRecord.record.options and markerRecord.record.options.hideDead
 
                     local foundPos = false
                     local trackAllTypes = markerRecord.record.options and markerRecord.record.options.trackAllTypesTogether
 
                     if markerRecordData.object then
                         local objectRef = markerRecordData.object
-                        local posData = activeObjects.getObjectPositionData(objectRef, nil, markerRecordData.itemId)
+                        local posData = activeObjects.getObjectPositionData(objectRef, nil, markerRecordData.itemId, filterDead)
                         if posData then
                             table.insert(trackingPositionsData, posData)
                             foundPos = true
@@ -1083,7 +1084,7 @@ function this.update(params)
                     end
 
                     if markerRecordData.objectId and (not foundPos or trackAllTypes) then
-                        local trackedObjPosition = activeObjects.getClosestObjectPosition(markerRecordData.objectId, player, markerRecordData.itemId)
+                        local trackedObjPosition = activeObjects.getClosestObjectPosition(markerRecordData.objectId, player, markerRecordData.itemId, filterDead)
                         if trackedObjPosition then
                             table.insert(trackingPositionsData, trackedObjPosition)
                             foundPos = true
@@ -1100,7 +1101,7 @@ function this.update(params)
                     end
 
                     if markerRecordData.objectIds and (not foundPos or trackAllTypes) then
-                        local trackedObjPositions = activeObjects.getClosestObjectPositionsByGroupName(markerRecordData.id, player, markerRecordData.itemId)
+                        local trackedObjPositions = activeObjects.getClosestObjectPositionsByGroupName(markerRecordData.id, player, markerRecordData.itemId, filterDead)
                         if trackedObjPositions and next(trackingPositionsData) then
                             table.sort(trackedObjPositions, function (a, b)
                                 return (a.dif or math.huge) < (b.dif or math.huge)
