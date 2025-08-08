@@ -20,7 +20,7 @@ this.storageSections = {
 ---@class proximityTool.config
 this.default = {
     enabled = true,
-    updateInterval = 40, -- ms
+    updateInterval = 80, -- ms
     objectPosUpdateInterval = 3, -- s,
     ui = {
         hideHUD = false,
