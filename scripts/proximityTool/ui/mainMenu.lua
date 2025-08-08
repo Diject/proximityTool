@@ -1163,6 +1163,15 @@ function this.update(params)
             elem.userData.heightDiff = heightDiff
             elem.userData.alpha = params.force and 1 or math.min(trackingData.alpha, config.data.ui.maxAlpha * 0.01)
 
+            local hide = (distance > trackingData.proximity) or (trackingData.alpha <= 0) or trackingData.hidden
+            if elem.userData.disabled ~= hide then
+                doUpdate = true
+            end
+            elem.userData.disabled = hide
+            if not elem.props.visible and hide then
+                goto continue
+            end
+
             -- for ordering
             local priorityByDistance = getAdditionalPriorityByDistance(distance)
 
@@ -1170,12 +1179,6 @@ function this.update(params)
             if parent and not parent.userData.isProtected then
                 parent.userData.priority = math.max(elem.userData.priority, parent.userData.priority)
             end
-
-            local hide = (distance > trackingData.proximity) or (trackingData.alpha <= 0) or trackingData.hidden
-            if elem.userData.disabled ~= hide then
-                doUpdate = true
-            end
-            elem.userData.disabled = hide
 
             local arrowImageIndex
             local iconImage
