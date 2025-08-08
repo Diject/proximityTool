@@ -127,7 +127,7 @@ local function createGroup(groupName, params)
     local groupNameFontSize = config.data.ui.fontSize
     if groupNameText == commonData.hiddenGroupId or groupNameText == commonData.defaultGroupId then
         groupNameText = ""
-        groupNameFontSize = 0
+        groupNameFontSize = 1
     end
 
     local uiData = {
