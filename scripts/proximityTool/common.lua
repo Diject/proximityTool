@@ -8,8 +8,8 @@ this.objectsLabel = "__objects__"
 this.positionsLabel = "__positions__"
 this.textMarkerLabel = "__text__"
 
-this.defaultGroupId = "__default__"
-this.hiddenGroupId = "__hidden__"
+this.defaultGroupId = "~__default__"
+this.hiddenGroupId = "~__hidden__"
 
 this.playerStorageId = "proximityTool:LocalStorage"
 

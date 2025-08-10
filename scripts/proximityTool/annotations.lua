@@ -1,6 +1,6 @@
 ---@class proximityTool.marker
 ---@field record string|proximityTool.record record information for the marker
----@field groupName string? group name for the marker. Markers with the same group name will be grouped
+---@field groupName string? group name for the marker. Markers with the same group name will be grouped. The group name is displayed above the markers. '~' at the beginning of the group name hides the group name element
 ---@field positions proximityTool.positionData[]? positions that the marker will track
 ---@field objectId string? record id, objects with this id will be tracked by the marker. The name field will be automatically assigned as the object's name
 ---@field object any? GameObject that will be tracked by the marker. Not saved between game sessions
