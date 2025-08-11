@@ -29,13 +29,6 @@ objectHandler.groups = {}
 ---@type table<string, any>
 objectHandler.objects = {}
 
-objectHandler.lastReturned = nil
-objectHandler.nextUpdateTimestamp = 0
-
-
-local function getNexUpdateTimestamp(val)
-    return val + config.data.objectPosUpdateInterval * (1 + (math.random() - 0.5) * 0.5)
-end
 
 
 function objectHandler:add(object)
@@ -64,9 +57,8 @@ function objectHandler:remove(object)
     self.objects[object.id] = nil
 end
 
-local function calc2DDistance(obj1, obj2)
-    local pos1, pos2 = obj1.position, obj2.position
-    return math.sqrt((pos2.x - pos1.x)^2 + (pos2.y - pos1.y)^2)
+local function calcDistance(obj1, obj2)
+    return (obj1.position - obj2.position):length()
 end
 
 ---@return {object: any, position : any, dif : number?}[]
@@ -90,24 +82,19 @@ end
 
 ---@return {object: any, position : any, dif : number?}?
 function objectHandler:closestPosition(refObject, itemId, withoutDead)
-    local timestamp = core.getRealTime()
-    if timestamp >= self.nextUpdateTimestamp then
-        local positions = self:positions(refObject, itemId, withoutDead)
 
-        local position
-        if next(positions) then
-            table.sort(positions, function (a, b)
-                return (a.dif or math.huge) < (b.dif or math.huge)
-            end)
+    local positions = self:positions(refObject, itemId, withoutDead)
 
-            position = positions[1]
-        end
+    local position
+    if next(positions) then
+        table.sort(positions, function (a, b)
+            return (a.dif or math.huge) < (b.dif or math.huge)
+        end)
 
-        self.lastReturned = position
-        self.nextUpdateTimestamp = getNexUpdateTimestamp(timestamp)
+        position = positions[1]
     end
 
-    return self.lastReturned
+    return position
 end
 
 
@@ -122,7 +109,7 @@ function this.getObjectPositionData(object, refObject, itemId, withoutDead)
             return {
                 object = object,
                 position = object.position,
-                dif = refObject and calc2DDistance(refObject, object)
+                dif = refObject and calcDistance(refObject, object)
             }
         end
 
