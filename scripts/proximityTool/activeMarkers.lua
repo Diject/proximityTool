@@ -123,7 +123,8 @@ function activeMarker:update()
         local marker = data.marker
         if data.marker.invalid or record.invalid then
             self.markers[id] = nil
-        elseif marker.shortTerm and data.playerExteriorFlag ~= player.cell.isExterior then
+        elseif marker.shortTerm and (data.cellWhereRegistered.isExterior ~= player.cell.isExterior
+                    or not player.cell.isExterior and data.cellWhereRegistered.id ~= player.cell.id) then
             mapData.removeMarker(marker.id, marker.groupId)
             self.markers[id] = nil
         else
@@ -249,7 +250,7 @@ function this.register(params)
         activeMarkerData.type = 16
     end
 
-    activeMarkerData.playerExteriorFlag = player.cell.isExterior
+    activeMarkerData.cellWhereRegistered = player.cell
 
     activeMarkerData.isValid = true
 

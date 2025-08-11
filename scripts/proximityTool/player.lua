@@ -53,7 +53,7 @@ local settingStorage = storage.playerSection(common.settingStorageId)
 ---@field proximity number?
 ---@field priority number?
 ---@field noteId string?
----@field playerExteriorFlag boolean?
+---@field cellWhereRegistered any?
 ---@field events table<string, function>?
 ---@field isValid boolean?
 
