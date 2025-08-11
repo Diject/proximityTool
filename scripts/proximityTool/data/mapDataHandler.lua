@@ -45,7 +45,7 @@ function this.save(dataTable)
         for id, data in pairs(cellData) do
             if not data.record or
                     (type(data.record) == "string" and not records[data.record]) or
-                    data.temporary or data.shortTerm or data.object or data.invalid then
+                    data.temporary or data.shortTerm or data.object or data.objects or data.invalid then
                 (markers[groupId] or {})[id] = nil
             end
         end
@@ -122,6 +122,16 @@ function this.getMarkers(id, groupId)
         local dt = this.getMarker(markerData.object.id, groupId)
         if dt then
             table.insert(out, dt)
+        end
+    end
+    if markerData.objects then
+        for _, obj in pairs(markerData.objects) do
+            if obj:isValid() then
+                local dt = this.getMarker(obj.id, groupId)
+                if dt then
+                    table.insert(out, dt)
+                end
+            end
         end
     end
     if markerData.objectId then
@@ -228,6 +238,24 @@ function this.removeMarker(id, groupId)
         if mrk then
             mrk.invalid = true
             this.markers[marker.object.id][id] = nil
+        end
+    end
+
+    if marker.objects then
+        for _, obj in pairs(marker.objects) do
+            if obj:isValid() then
+                local mrk = this.getMarker(id, obj.id)
+                if mrk then
+                    mrk.invalid = true
+                    this.markers[obj.id][id] = nil
+                end
+            end
+        end
+
+        local mk = this.getMarker(id, common.referencesLabel)
+        if mk then
+            mk.invalid = true
+            this.markers[common.referencesLabel][id] = nil
         end
     end
 

@@ -1084,6 +1084,14 @@ function this.update(params)
                         end
                     end
 
+                    if markerRecordData.objects then
+                        local posData = activeObjects.getClosestReferencePosition(markerRecordData.objects, player, markerRecordData.itemId, filterDead)
+                        if posData then
+                            table.insert(trackingPositionsData, posData)
+                            foundPos = true
+                        end
+                    end
+
                     if markerRecordData.objectId and (not foundPos or trackAllTypes) then
                         local trackedObjPosition = activeObjects.getClosestObjectPosition(markerRecordData.objectId, player, markerRecordData.itemId, filterDead)
                         if trackedObjPosition then

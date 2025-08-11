@@ -66,6 +66,7 @@ local settingStorage = storage.playerSection(common.settingStorageId)
 ---@field positions proximityTool.position[]?
 ---@field objectId string?
 ---@field object any?
+---@field objects any[]?
 ---@field objectIds string[]?
 ---@field itemId string?
 ---@field temporary boolean? if true, this marker will not be saved to the save file
@@ -211,6 +212,9 @@ local function registerMarker(markerData)
         if markerData.object and activeObjects.isContainRefId(markerData.object.recordId, markerData.object.id) then
             valid = true
         end
+        if markerData.objects and activeObjects.isCointainValidRefs(markerData.objects) then
+            valid = true
+        end
         if markerData.objectIds and activeObjects.isContainValidRecordIds(markerData.objectIds) then
             valid = true
         end
@@ -291,6 +295,18 @@ local function addMarker(data)
         local markerDataCopy = tableLib.deepcopy(markerData)
         markerDataCopy.groupId = markerData.object.id
 
+        mapData.addMarker(markerDataCopy.id, markerDataCopy.groupId, markerDataCopy)
+        groupId = markerDataCopy.groupId
+    end
+
+    if markerData.objects then
+        local markerDataCopy = tableLib.deepcopy(markerData)
+        markerDataCopy.groupId = common.referencesLabel
+        for _, obj in pairs(markerDataCopy.objects) do
+            local dt = tableLib.deepcopy(markerDataCopy)
+            dt.groupId = obj.id
+            mapData.addMarker(markerDataCopy.id, dt.groupId, dt)
+        end
         mapData.addMarker(markerDataCopy.id, markerDataCopy.groupId, markerDataCopy)
         groupId = markerDataCopy.groupId
     end

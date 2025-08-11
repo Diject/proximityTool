@@ -5,6 +5,7 @@ local this = {}
 this.worldCellLabel = "__world_cell__"
 
 this.objectsLabel = "__objects__"
+this.referencesLabel = "__references__"
 this.positionsLabel = "__positions__"
 this.textMarkerLabel = "__text__"
 

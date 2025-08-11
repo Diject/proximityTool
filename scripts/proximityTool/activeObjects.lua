@@ -223,6 +223,31 @@ function this.getClosestObjectPositionsByGroupName(groupName, refToCompare, item
 end
 
 
+---@param referenceList any[]
+---@return {object: any, position : any, dif : number?}?
+function this.getClosestReferencePosition(referenceList, refObject, itemId, withoutDead)
+    local positions = {}
+    for id, ref in pairs(referenceList) do
+        if ref:isValid() then
+            if not withoutDead or (Actor.objectIsInstance(ref) and getHealth(ref).current > 0) then
+                local posData = this.getObjectPositionData(ref, refObject, itemId)
+                if posData then
+                    table.insert(positions, posData)
+                end
+            end
+        end
+    end
+
+    if next(positions) then
+        table.sort(positions, function (a, b)
+            return (a.dif or math.huge) < (b.dif or math.huge)
+        end)
+
+        return positions[1]
+    end
+end
+
+
 ---@param recordId string
 ---@param refId string
 ---@return {x: number, y: number, z: number}?
@@ -265,6 +290,17 @@ function this.isContainRefId(recordId, refId)
     if not data then return false end
     local ref = data:get(refId)
     return ref ~= nil
+end
+
+
+---@param refs any[]
+---@return boolean
+function this.isCointainValidRefs(refs)
+    for _, ref in pairs(refs) do
+        local res = this.isContainRefId(ref.recordId, ref.id)
+        if res then return true end
+    end
+    return false
 end
 
 

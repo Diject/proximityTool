@@ -131,6 +131,7 @@ function activeMarker:update()
                     or marker.objectId and activeObjects.isContainValidRecordId(marker.objectId)
                     or marker.objectIds and activeObjects.isContainValidRecordIds(marker.objectIds)
                     or marker.object and marker.object:isValid()
+                    or marker.objects and activeObjects.isCointainValidRefs(marker.objects)
                     or data.type == 16 then
                 foundValid = true
             else
@@ -188,6 +189,8 @@ function this.register(params)
         activeMarkerId = params.objectId
     elseif params.object then
         activeMarkerId = params.object.id
+    elseif params.objects then
+        activeMarkerId = getNameColorHashId(record.name, record.nameColor)
     elseif params.objectIds then
         activeMarkerId = getNameColorHashId(record.name, record.nameColor)
     elseif params.positions then
@@ -239,7 +242,10 @@ function this.register(params)
     if params.objectIds then
         activeMarkerData.type = util.bitOr(activeMarkerData.type, 8)
     end
-    if not params.objectId and not params.object and not params.positions and not params.objectIds then
+    if params.objects then
+        activeMarkerData.type = util.bitOr(activeMarkerData.type, 32)
+    end
+    if not params.objectId and not params.object and not params.positions and not params.objectIds and not params.objects then
         activeMarkerData.type = 16
     end
 
