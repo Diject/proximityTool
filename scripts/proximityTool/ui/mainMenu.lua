@@ -202,26 +202,46 @@ function this.registerMarker(activeMarker)
     ---@type proximityTool.activeMarkerData
     local topRecord = activeMarker.topMarker
 
+    local scrollEvents = this.element.layout.userData.scrollEvents
+
     local unitedEvents = {
-        mouseMove = async:callback(function(coord, layout)
-            tooltipFuncs.tooltipMoveOrCreate(coord, layout)
+        mouseMove = async:callback(function(e, layout)
+            tooltipFuncs.tooltipMoveOrCreate(e, layout)
+            scrollEvents:mouseMove(e)
 
             if not layout.userData or not layout.userData.data then return end
             local activeM = layout.userData.data
-            activeM:triggerEvent("mouseMove", coord)
+            activeM:triggerEvent("mouseMove", e)
         end),
 
         focusLoss = async:callback(function(e, layout)
             tooltipFuncs.tooltipDestroy(layout)
+            scrollEvents:focusLoss(e)
 
             if not layout.userData or not layout.userData.data then return end
             local activeM = layout.userData.data
             activeM:triggerEvent("focusLoss", e)
         end),
+
+        mousePress = async:callback(function(e, layout)
+            scrollEvents:mousePress(e)
+
+            if not layout.userData or not layout.userData.data then return end
+            local activeM = layout.userData.data
+            activeM:triggerEvent("mousePress", e)
+        end),
+
+        mouseRelease = async:callback(function(e, layout)
+            scrollEvents:mouseRelease(e)
+
+            if not layout.userData or not layout.userData.data or scrollEvents.lastMovedDistance >= 30 then return end
+            local activeM = layout.userData.data
+            activeM:triggerEvent("mouseRelease", e)
+        end),
     }
 
     for _, eventName in pairs(eventNames) do
-        unitedEvents[eventName] = async:callback(function(e, layout)
+        unitedEvents[eventName] = unitedEvents[eventName] or async:callback(function(e, layout)
             if not layout.userData or not layout.userData.data then return end
             ---@type proximityTool.activeMarker
             local activeM = layout.userData.data
@@ -231,8 +251,9 @@ function this.registerMarker(activeMarker)
 
 
     local eventsForRecord = {
-        mouseMove = async:callback(function(coord, layout)
-            tooltipFuncs.tooltipMoveOrCreate(coord, layout, true)
+        mouseMove = async:callback(function(e, layout)
+            tooltipFuncs.tooltipMoveOrCreate(e, layout, true)
+            scrollEvents:mouseMove(e)
 
             if not layout.userData or not layout.userData.record then return end
             ---@type proximityTool.markerRecord
@@ -242,16 +263,35 @@ function this.registerMarker(activeMarker)
 
         focusLoss = async:callback(function(e, layout)
             tooltipFuncs.tooltipDestroy(layout)
+            scrollEvents:focusLoss(e)
 
             if not layout.userData or not layout.userData.record then return end
             ---@type proximityTool.markerRecord
             local record = layout.userData.record
             if record.events and record.events["focusLoss"] then record.events["focusLoss"]() end
         end),
+
+        mousePress = async:callback(function(e, layout)
+            scrollEvents:mousePress(e)
+
+            if not layout.userData or not layout.userData.record then return end
+            ---@type proximityTool.markerRecord
+            local record = layout.userData.record
+            if record.events and record.events["mousePress"] then record.events["mousePress"]() end
+        end),
+
+        mouseRelease = async:callback(function(e, layout)
+            scrollEvents:mouseRelease(e)
+
+            if not layout.userData or not layout.userData.record or scrollEvents.lastMovedDistance >= 30 then return end
+            ---@type proximityTool.markerRecord
+            local record = layout.userData.record
+            if record.events and record.events["mouseRelease"] then record.events["mouseRelease"]() end
+        end),
     }
 
     for _, eventName in pairs(eventNames) do
-        eventsForRecord[eventName] = async:callback(function(e, layout)
+        eventsForRecord[eventName] = eventsForRecord[eventName] or async:callback(function(e, layout)
             if not layout.userData or not layout.userData.record then return end
             ---@type proximityTool.markerRecord
             local record = layout.userData.record
@@ -561,7 +601,10 @@ function this.create(params)
 
     local mainContent
 
-    local function scrollUp(val)
+    local scrollEvents = {}
+    scrollEvents.__index = scrollEvents
+
+    function scrollEvents.scrollUp(self, val)
         local pos = mainContent.content[1].props.position
         if not pos then return end
 
@@ -569,7 +612,7 @@ function this.create(params)
         this.element:update()
     end
 
-    local function scrollDown(val)
+    function scrollEvents.scrollDown(self, val)
         local pos = mainContent.content[1].props.position
         if not pos then return end
 
@@ -577,32 +620,63 @@ function this.create(params)
         this.element:update()
     end
 
+    scrollEvents.lastMovedDistance = 0
+
+    scrollEvents.mousePress = function (self, e)
+        if e.button ~= 1 then return end
+        local layout = mainContent.content[1]
+        layout.userData.lastMousePos = util.vector2(e.position.x, e.position.y)
+        self.lastMovedDistance = 0
+    end
+
+    scrollEvents.mouseRelease = function (self, e)
+        if e.button ~= 1 then return end
+        local layout = mainContent.content[1]
+        layout.userData.lastMousePos = nil
+    end
+
+    scrollEvents.focusLoss = function (self, e)
+        local layout = mainContent.content[1]
+        layout.userData.lastMousePos = nil
+        self.lastMovedDistance = 0
+    end
+
+    scrollEvents.mouseMove = function (self, e)
+        local layout = mainContent.content[1]
+        if not layout.userData.lastMousePos then return end
+
+        local posDIff = e.position - layout.userData.lastMousePos
+
+        if posDIff.y > 0 then
+            self:scrollUp(posDIff.y)
+        elseif posDIff.y < 0 then
+            self:scrollDown(-posDIff.y)
+        end
+
+        layout.userData.lastMousePos = e.position
+
+        self.lastMovedDistance = self.lastMovedDistance + math.abs(posDIff.x) + math.abs(posDIff.y) ---@diagnostic disable-line: need-check-nil
+    end
+
+    scrollEvents = setmetatable({}, scrollEvents)
+
+
     local function getScrollEvents()
         return {
-            mousePress = async:callback(function(coord, layout)
-                layout.userData.lastMousePos = util.vector2(coord.position.x, coord.position.y)
+            mousePress = async:callback(function(e, layout)
+                scrollEvents:mousePress(e)
             end),
 
-            mouseRelease = async:callback(function(_, layout)
-                layout.userData.lastMousePos = nil
+            mouseRelease = async:callback(function(e, layout)
+                scrollEvents:mouseRelease(e)
             end),
 
-            focusLoss = async:callback(function(_, layout)
-                layout.userData.lastMousePos = nil
+            focusLoss = async:callback(function(e, layout)
+                scrollEvents:focusLoss(e)
             end),
 
-            mouseMove = async:callback(function(coord, layout)
-                if not layout.userData.lastMousePos then return end
-
-                local posDIff = coord.position - layout.userData.lastMousePos
-
-                if posDIff.y > 0 then
-                    scrollUp(posDIff.y)
-                elseif posDIff.y < 0 then
-                    scrollDown(-posDIff.y)
-                end
-
-                layout.userData.lastMousePos = coord.position
+            mouseMove = async:callback(function(e, layout)
+                scrollEvents:mouseMove(e)
             end),
         }
     end
@@ -695,10 +769,10 @@ function this.create(params)
                 -- addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
                 addButton{menu = this, textSize = config.data.ui.fontSize, text = "<<", textColor = config.data.ui.defaultColor,
                     event = function (layout)
-                        scrollUp(config.data.ui.fontSize * 2)
+                        scrollEvents:scrollUp(config.data.ui.fontSize * 2)
                     end,
                     intervalEvent = function (layout)
-                        scrollUp(config.data.ui.fontSize)
+                        scrollEvents:scrollUp(config.data.ui.fontSize)
                     end,
                     tooltipContent = config.data.ui.helpTooltips and ui.content {
                         {
@@ -714,10 +788,10 @@ function this.create(params)
                 addInterval(config.data.ui.fontSize / 2, config.data.ui.fontSize / 2),
                 addButton{menu = this, textSize = config.data.ui.fontSize, text = ">>", textColor = config.data.ui.defaultColor,
                     event = function (layout)
-                        scrollDown(config.data.ui.fontSize * 2)
+                        scrollEvents:scrollDown(config.data.ui.fontSize * 2)
                     end,
                     intervalEvent = function (layout)
-                        scrollDown(config.data.ui.fontSize)
+                        scrollEvents:scrollDown(config.data.ui.fontSize)
                     end,
                     tooltipContent = config.data.ui.helpTooltips and ui.content {
                         {
@@ -862,7 +936,7 @@ function this.create(params)
         position = util.vector2(config.data.ui.position.x / 100, config.data.ui.position.y / 100)
     end
 
-    local base = mainWindowBox(parentContent, params.showBorder)
+    local base = mainWindowBox(parentContent, params.showBorder, {})
     base.props = {
         autoSize = true,
         horizontal = false,
@@ -872,6 +946,7 @@ function this.create(params)
         alpha = isMainHidden and 0 or 1,
     }
     base.layer = params.showBorder and "Windows" or "HUD"
+    base.userData.scrollEvents = scrollEvents
 
     this.maxLines = not params.showBorder and math.ceil(screenSize.y * config.data.ui.size.y / 100 / config.data.ui.fontSize) or 999
 
