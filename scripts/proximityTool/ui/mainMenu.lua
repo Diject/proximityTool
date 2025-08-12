@@ -823,18 +823,23 @@ function this.create(params)
                 },
                 userData = {
                     lastMousePos = nil,
+                    lastMousePropPos = nil,
+                    movedDistance = 0
                 },
                 events = {
                     mousePress = async:callback(function(coord, layout)
                         layout.userData.doDrag = false
                         local screenSize = uiUtils.getScaledScreenSize()
                         layout.userData.lastMousePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
+                        layout.userData.lastMousePos = util.vector2(coord.position.x, coord.position.y)
+                        layout.userData.lastMousePropPos = layout.userData.lastMousePos:ediv(screenSize)
+                        layout.userData.movedDistance = 0
                     end),
 
                     mouseRelease = async:callback(function(_, layout)
                         layout.userData.lastMousePos = nil
-
-                        if not layout.userData.doDrag then
+                        layout.userData.lastMousePropPos = nil
+                        if not layout.userData.doDrag or layout.userData.movedDistance < 30 then
                             if isMainHidden then
                                 parentContent[1].props.size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100)
                             else
@@ -847,6 +852,7 @@ function this.create(params)
                             this.element:update()
                         end
                         layout.userData.doDrag = false
+                        layout.userData.movedDistance = 0
                     end),
 
                     mouseMove = async:callback(function(coord, layout)
@@ -865,20 +871,26 @@ function this.create(params)
 
                         if not layout.userData.lastMousePos then return end
 
+                        local diff = coord.position - layout.userData.lastMousePos
+                        layout.userData.movedDistance = layout.userData.movedDistance + math.abs(diff.x) + math.abs(diff.y)
+                        layout.userData.lastMousePos = coord.position
+
+                        if layout.userData.movedDistance < 30 then return end
+
                         layout.userData.doDrag = true
 
                         local screenSize = uiUtils.getScaledScreenSize()
                         local props = this.element.layout.props
                         local relativePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
 
-                        props.relativePosition = props.relativePosition - (layout.userData.lastMousePos - relativePos)
+                        props.relativePosition = props.relativePosition - (layout.userData.lastMousePropPos - relativePos)
                         elementRelPos = props.relativePosition
                         config.setLocal("ui.positionInMenu.x", elementRelPos.x * 100)
                         config.setLocal("ui.positionInMenu.y", elementRelPos.y * 100)
 
                         this.element:update()
 
-                        layout.userData.lastMousePos = relativePos
+                        layout.userData.lastMousePropPos = relativePos
                     end),
 
                     focusLoss = async:callback(function(e, layout)
