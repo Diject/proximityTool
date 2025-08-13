@@ -62,7 +62,6 @@
 ---@field addRecord fun(recordData: proximityTool.record): string?
 ---@field update fun()
 ---@field updateRecord fun(id: string, recordData: proximityTool.record): boolean?
----@field registerEvent fun(eventId: string, recordId: string, func: fun(arg1: any, arg2: any)): boolean?
 ---@field removeRecord fun(id: string): boolean?
 ---@field removeMarker fun(id: string, groupId: string): boolean?
 ---@field setVisibility fun(id: string, groupId: string?, value: boolean): boolean?
