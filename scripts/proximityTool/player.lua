@@ -437,6 +437,13 @@ local function getMarkerData(id, groupId)
 
     if markerData then
         markerData = tableLib.deepcopy(markerData)
+    else
+        return
+    end
+
+    markerData.invalid = nil
+    if markerData.record and type(markerData.record) == "table" then
+        markerData.record.invalid = nil
     end
 
     return markerData
@@ -501,6 +508,7 @@ local function getHUDMdata(id)
     if markerData then
         markerData = tableLib.deepcopy(markerData)
     end
+    markerData.invalid = nil
 
     return markerData
 end
