@@ -363,7 +363,7 @@ local function setVisibility(id, groupId, val)
         local markersData = mapData.getMarkers(id, groupId)
         if not markersData then
             log(string.format("setVisibility: Error: marker data not found. id %s, groupId %s", tostring(id), tostring(groupId)))
-            return
+            return false
         end
 
         for _, markerData in pairs(markersData) do
@@ -375,11 +375,46 @@ local function setVisibility(id, groupId, val)
     else
         local record = mapData.getRecord(id)
         if not record then
-            log(string.format("setVisibility: Error: record data not found. id %s, groupId %s", tostring(id)))
+            log(string.format("setVisibility: Error: record data not found. id %s", tostring(id)))
             return false
         end
 
         record.hidden = not val
+    end
+
+    return true
+end
+
+
+local function setUserData(id, groupId, newUserData)
+    if groupId then
+        local markersData = mapData.getMarkers(id, groupId)
+        if not markersData then
+            log(string.format("updateUserData: Error: marker data not found. id %s, groupId %s", tostring(id), tostring(groupId)))
+            return false
+        end
+
+        for _, markerData in pairs(markersData) do
+            if markerData.userData then
+                tableLib.clear(markerData.userData)
+                tableLib.deepcopy(newUserData, markerData.userData)
+            else
+                markerData.userData = tableLib.deepcopy(newUserData)
+            end
+        end
+    else
+        local record = mapData.getRecord(id)
+        if not record then
+            log(string.format("updateUserData: Error: record data not found. id %s", tostring(id)))
+            return false
+        end
+
+        if record.userData then
+            tableLib.clear(record.userData)
+            tableLib.deepcopy(newUserData, record.userData)
+        else
+            record.userData = tableLib.deepcopy(newUserData)
+        end
     end
 
     return true
@@ -539,6 +574,7 @@ return {
         update = updateMarkers,
         updateHUDM = updateHUDMarkers,
         updateRecord = updateRecord,
+        setUserData = setUserData,
         getMarkerData = getMarkerData,
         getHUDMdata = getHUDMdata,
         setVisibility = setVisibility,

@@ -75,6 +75,7 @@
 ---@field removeRecord fun(id: string): boolean?
 ---@field removeMarker fun(id: string, groupId: string): boolean?
 ---@field setVisibility fun(id: string, groupId: string?, value: boolean): boolean?
+---@field setUserData fun(id: string, groupId: string?, userData: table): boolean?
 ---@field getMarkerData fun(id: string, groupId: string?): proximityTool.marker|proximityTool.record|nil
 ---@field addHUDM fun(hudmData: proximityTool.hudm): string?
 ---@field updateHUDM fun()
