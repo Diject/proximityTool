@@ -543,15 +543,6 @@ return {
         getHUDMdata = getHUDMdata,
         setVisibility = setVisibility,
         setHUDMvisibility = setHUDMvisibility,
-        --TODO chage event sys
-        -- registerEvent = function (eventId, id, groupId, data)
-        --     local record = mapData.getRecord(id)
-        --     if not record then return end
-        --     if not record.events then record.events = {} end
-
-        --     record.events[eventId] = data
-        --     return true
-        -- end,
         removeRecord = function (recordId)
             return mapData.removeRecord(recordId)
         end,
