@@ -400,6 +400,10 @@ local function getMarkerData(id, groupId)
         markerData = mapData.getRecord(id)
     end
 
+    if markerData then
+        markerData = tableLib.deepcopy(markerData)
+    end
+
     return markerData
 end
 
@@ -457,7 +461,13 @@ local function getHUDMdata(id)
     local markers = mapData.getHUDMarkers(id)
     if not markers then return end
 
-    return markers[id]
+    local markerData = markers[id]
+
+    if markerData then
+        markerData = tableLib.deepcopy(markerData)
+    end
+
+    return markerData
 end
 
 
