@@ -1,5 +1,7 @@
 local player = require('openmw.self')
 local util = require("openmw.util")
+local core = require("openmw.core")
+local types = require("openmw.types")
 
 local log = require("scripts.proximityTool.utils.log")
 local tableLib = require("scripts.proximityTool.utils.table")
@@ -29,6 +31,29 @@ local this = {}
 this.data = {}
 
 
+---@param markerData proximityTool.activeMarkerData
+---@param eventName string
+---@param eventParams table?
+function this.triggerEventForMarkerData(markerData, eventName, eventParams)
+    if markerData.record.invalid or markerData.marker.invalid
+            or not markerData.record.events or not markerData.record.events[eventName] then
+        return
+    end
+
+    local eventCallbackName = markerData.record.events[eventName]
+
+    local eventData = {
+        id = markerData.marker.id,
+        groupId = markerData.marker.groupId,
+        data = markerData.marker,
+        recordId = markerData.record.id,
+        recordData = markerData.record,
+        eventArgument = eventParams,
+    }
+
+    player:sendEvent(eventCallbackName, eventData)
+end
+
 
 ---@class proximityTool.activeMarker
 local activeMarker = {}
@@ -46,11 +71,18 @@ function activeMarker:getTopPriorityRecord()
     return topRecord
 end
 
+---@param eventName string
+---@param eventParams table?
 function activeMarker:triggerEvent(eventName, eventParams)
+    if not self.isValid then return end
+
     for _, rec in pairs(self.markers) do
-        if rec.record.events and rec.record.events[eventName] and
-                (not rec.record.options or rec.record.options.enableGroupEvent ~= false) then
-            rec.record.events[eventName](eventParams, rec)
+
+        if not rec.record.invalid and not rec.marker.invalid
+                and rec.record.events and rec.record.events[eventName]
+                and (not rec.record.options or rec.record.options.enableGroupEvent ~= false) then
+
+            this.triggerEventForMarkerData(rec, eventName, eventParams)
         end
     end
 end

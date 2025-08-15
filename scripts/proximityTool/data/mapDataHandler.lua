@@ -33,8 +33,6 @@ function this.save(dataTable)
     for id, data in pairs(records) do
         if data.invalid or data.temporary then
             records[id] = nil
-        elseif data.events then
-            (records[id]  or {}).events = nil
         end
     end
 

@@ -54,7 +54,6 @@ local settingStorage = storage.playerSection(common.settingStorageId)
 ---@field priority number?
 ---@field noteId string?
 ---@field cellWhereRegistered any?
----@field events table<string, function>?
 ---@field isValid boolean?
 
 ---@class proximityTool.markerData
@@ -71,6 +70,7 @@ local settingStorage = storage.playerSection(common.settingStorageId)
 ---@field itemId string?
 ---@field temporary boolean? if true, this marker will not be saved to the save file
 ---@field shortTerm boolean? if true, this marker will be deleted after the cell has changed
+---@field userData table?
 ---@field invalid boolean?
 
 ---@class proximityTool.markerRecord.options
@@ -96,7 +96,8 @@ local settingStorage = storage.playerSection(common.settingStorageId)
 ---@field proximity number?
 ---@field priority number?
 ---@field temporary boolean? if true, this record will not be saved to the save file
----@field events table<string, function>?
+---@field events table<string, string>?
+---@field userData table?
 ---@field options proximityTool.markerRecord.options?
 ---@field invalid boolean?
 

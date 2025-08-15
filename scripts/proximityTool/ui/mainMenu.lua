@@ -45,17 +45,6 @@ this.hiddenGroupElement = {
     content = ui.content{}
 }
 
-local eventNames = {
-    "keyPress",
-    "keyRelease",
-    "mouseClick",
-    "mouseDoubleClick",
-    "mousePress",
-    "mouseRelease",
-    "textInput",
-    "focusGain"
-}
-
 this.element = nil
 ---@type proximityTool.elementSafeContainer
 this.tooltip = nil
@@ -208,96 +197,68 @@ function this.registerMarker(activeMarker)
         mouseMove = async:callback(function(e, layout)
             tooltipFuncs.tooltipMoveOrCreate(e, layout)
             scrollEvents:mouseMove(e)
-
-            if not layout.userData or not layout.userData.data then return end
-            local activeM = layout.userData.data
-            activeM:triggerEvent("mouseMove", e)
         end),
 
         focusLoss = async:callback(function(e, layout)
             tooltipFuncs.tooltipDestroy(layout)
             scrollEvents:focusLoss(e)
 
-            if not layout.userData or not layout.userData.data then return end
-            local activeM = layout.userData.data
-            activeM:triggerEvent("focusLoss", e)
+            if layout.userData then
+                layout.userData.mouseClicked = nil
+            end
         end),
 
         mousePress = async:callback(function(e, layout)
             scrollEvents:mousePress(e)
 
-            if not layout.userData or not layout.userData.data then return end
-            local activeM = layout.userData.data
-            activeM:triggerEvent("mousePress", e)
+            if layout.userData then
+                layout.userData.mouseClicked = true
+            end
         end),
 
         mouseRelease = async:callback(function(e, layout)
             scrollEvents:mouseRelease(e)
 
-            if not layout.userData or not layout.userData.data or scrollEvents.lastMovedDistance >= 30 then return end
+            if not layout.userData or not layout.userData.data
+                    or scrollEvents.lastMovedDistance >= 30 or not layout.userData.mouseClicked then
+                return
+            end
             local activeM = layout.userData.data
-            activeM:triggerEvent("mouseRelease", e)
+            activeM:triggerEvent("MouseClick", e)
         end),
     }
-
-    for _, eventName in pairs(eventNames) do
-        unitedEvents[eventName] = unitedEvents[eventName] or async:callback(function(e, layout)
-            if not layout.userData or not layout.userData.data then return end
-            ---@type proximityTool.activeMarker
-            local activeM = layout.userData.data
-            activeM:triggerEvent(eventName, e)
-        end)
-    end
 
 
     local eventsForRecord = {
         mouseMove = async:callback(function(e, layout)
             tooltipFuncs.tooltipMoveOrCreate(e, layout, true)
             scrollEvents:mouseMove(e)
-
-            if not layout.userData or not layout.userData.record then return end
-            ---@type proximityTool.markerRecord
-            local record = layout.userData.record
-            if record.events and record.events["mouseMove"] then record.events["mouseMove"]() end
         end),
 
         focusLoss = async:callback(function(e, layout)
             tooltipFuncs.tooltipDestroy(layout)
             scrollEvents:focusLoss(e)
 
-            if not layout.userData or not layout.userData.record then return end
-            ---@type proximityTool.markerRecord
-            local record = layout.userData.record
-            if record.events and record.events["focusLoss"] then record.events["focusLoss"]() end
+            if layout.userData then
+                layout.userData.mouseClicked = nil
+            end
         end),
 
         mousePress = async:callback(function(e, layout)
             scrollEvents:mousePress(e)
 
-            if not layout.userData or not layout.userData.record then return end
-            ---@type proximityTool.markerRecord
-            local record = layout.userData.record
-            if record.events and record.events["mousePress"] then record.events["mousePress"]() end
+            if layout.userData then
+                layout.userData.mouseClicked = true
+            end
         end),
 
         mouseRelease = async:callback(function(e, layout)
             scrollEvents:mouseRelease(e)
 
-            if not layout.userData or not layout.userData.record or scrollEvents.lastMovedDistance >= 30 then return end
-            ---@type proximityTool.markerRecord
-            local record = layout.userData.record
-            if record.events and record.events["mouseRelease"] then record.events["mouseRelease"]() end
+            if not layout.userData or not layout.userData.aMarkerData or scrollEvents.lastMovedDistance >= 30 then return end
+            activeMarkers.triggerEventForMarkerData(layout.userData.aMarkerData, "MouseClick", e)
         end),
     }
-
-    for _, eventName in pairs(eventNames) do
-        eventsForRecord[eventName] = eventsForRecord[eventName] or async:callback(function(e, layout)
-            if not layout.userData or not layout.userData.record then return end
-            ---@type proximityTool.markerRecord
-            local record = layout.userData.record
-            if record.events and record.events[eventName] then record.events[eventName]() end
-        end)
-    end
 
     local nameColorData = topRecord.record.nameColor
     local nameColor = nameColorData and util.color.rgb(nameColorData[1] or 1, nameColorData[2] or 1, nameColorData[3] or 1) or config.data.ui.defaultColor
@@ -439,6 +400,7 @@ function this.registerMarker(activeMarker)
                 userData = {
                     recordId = rDt.recordId,
                     record = rDt.record,
+                    aMarkerData = rDt,
                     data = activeMarker,
                 },
             }
@@ -451,7 +413,8 @@ function this.registerMarker(activeMarker)
                 },
                 userData = {
                     recordId = rDt.recordId,
-                    record = rDt.record
+                    record = rDt.record,
+                    aMarkerData = rDt,
                 },
                 events = eventsForRecord,
                 content = noteContent,
@@ -486,6 +449,7 @@ function this.registerMarker(activeMarker)
                 userData = {
                     recordId = rDt.recordId,
                     record = rDt.record,
+                    aMarkerData = rDt,
                     data = activeMarker,
                 },
             }
@@ -510,6 +474,7 @@ function this.registerMarker(activeMarker)
                     if record and (record.priority or 0) < (rec.priority or 0) then
                         elem.userData.record = rec
                         elem.userData.recordId = rDt.recordId
+                        elem.userData.aMarkerData = rDt
                         elem.props.resource = texture
                     end
                 else
