@@ -29,18 +29,18 @@ function this.values(t, sort)
 end
 
 
----@param t table
+---@param from table
 ---@return table
-function this.deepcopy(t)
+function this.deepcopy(from, to)
 	local copy = nil
-	if type(t) == "table" then
-		copy = {}
-		for k, v in next, t, nil do
+	if type(from) == "table" then
+		copy = to or {}
+		for k, v in next, from, nil do
 			copy[this.deepcopy(k)] = this.deepcopy(v)
 		end
-		setmetatable(copy, this.deepcopy(getmetatable(t)))
+		setmetatable(copy, this.deepcopy(getmetatable(from)))
 	else
-		copy = t
+		copy = from
 	end
 	return copy
 end
