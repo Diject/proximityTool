@@ -22,7 +22,9 @@ end
 
 local function objectInactive(object)
     world.players[1]:sendEvent("proximityTool:removeActiveObject", object)
-    object:removeScript("scripts/proximityTool/objectLocal.lua")
+    if object:hasScript("scripts/proximityTool/objectLocal.lua") then
+        object:removeScript("scripts/proximityTool/objectLocal.lua")
+    end
 end
 
 
