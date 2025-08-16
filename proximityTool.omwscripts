@@ -1,4 +1,4 @@
 GLOBAL: scripts/proximityTool/main.lua
-ACTIVATOR, ARMOR, BOOK, CLOTHING, CONTAINER, CREATURE, DOOR, INGREDIENT, LIGHT, MISC_ITEM, NPC, POTION, WEAPON, APPARATUS, LOCKPICK, PROBE, REPAIR: scripts/proximityTool/objectLocal.lua
+CUSTOM: scripts/proximityTool/objectLocal.lua
 PLAYER: scripts/proximityTool/player.lua
 MENU: scripts/proximityTool/settings.lua
