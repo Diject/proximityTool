@@ -7,7 +7,7 @@ local function onInactive()
 end
 
 local function onActivated()
-    if self.count == 0 then
+    if self:isValid() and self.count == 0 then
         core.sendGlobalEvent("proximityTool:objectInactive", self)
     end
 end
