@@ -1152,15 +1152,6 @@ function this.update(params)
                         end
                     end
 
-                    if markerRecordData.positions and (not foundPos or trackAllTypes) then
-                        local pos, distance = cellLib.getClosestPosition(markerRecordData.positions)
-
-                        if pos then
-                            table.insert(trackingPositionsData, {dif = distance, object = {position = pos}})
-                            foundPos = true
-                        end
-                    end
-
                     if markerRecordData.objectIds and (not foundPos or trackAllTypes) then
                         local trackedObjPositions = activeObjects.getClosestObjectPositionsByGroupName(markerRecordData.id, player, markerRecordData.itemId, filterDead)
                         if trackedObjPositions and next(trackingPositionsData) then
@@ -1172,6 +1163,15 @@ function this.update(params)
                         local pos = trackedObjPositions and trackedObjPositions[1]
                         if pos then
                             table.insert(trackingPositionsData, pos)
+                            foundPos = true
+                        end
+                    end
+
+                    if markerRecordData.positions and (not foundPos or trackAllTypes) then
+                        local pos, distance = cellLib.getClosestPosition(markerRecordData.positions)
+
+                        if pos then
+                            table.insert(trackingPositionsData, {dif = distance, object = {position = pos}})
                             foundPos = true
                         end
                     end
