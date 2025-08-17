@@ -140,7 +140,7 @@ I.Settings.registerGroup{
         numberSetting{key = "ui.fontSize", name = "fontSize", description = "fontSizeDescription", integer = true, min = 10, max = 100, default = config.default.ui.fontSize},
         numberSetting{key = "ui.maxAlpha", name = "maxAlpha", description = "maxAlphaDescription", min = 20, max = 100, default = config.default.ui.maxAlpha},
         boolSetting{key = "ui.hideWindow", name = "hideWindow", description = "hideWindowDescription", default = config.default.ui.hideWindow},
-        boolSetting{key = "ui.minimizeToAnchor", name = "minimizeToAnchor", description = "minimizeToAnchorDescription", default = config.default.ui.minimizeToAnchor},
+        -- boolSetting{key = "ui.minimizeToAnchor", name = "minimizeToAnchor", description = "minimizeToAnchorDescription", default = config.default.ui.minimizeToAnchor}, --deprecated
         boolSetting{key = "ui.hideHUD", name = "hideHUD", description = "hideHUDDescription", default = config.default.ui.hideHUD},
         boolSetting{key = "ui.hideHUDInMenus", name = "hideHUDInMenus", description = "hideHUDInMenusDescription", default = config.default.ui.hideHUDInMenus},
         boolSetting{key = "ui.imperialUnits", name = "imperialUnits", default = config.default.ui.imperialUnits},

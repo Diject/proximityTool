@@ -814,6 +814,7 @@ function this.create(params)
                             setMainBoxVisibility(isMainHidden)
                             setHeaderContentVisibility(isMainHidden)
                             isMainHidden = not isMainHidden
+                            config.setLocal("ui.minimizeToAnchor", isMainHidden)
                             this.element:update()
                         end
                         layout.userData.doDrag = false
