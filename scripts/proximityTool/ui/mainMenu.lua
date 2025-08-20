@@ -5,6 +5,7 @@ local async = require('openmw.async')
 local core = require('openmw.core')
 local playerObj = require('openmw.self')
 local camera = require('openmw.camera')
+local vfs = require('openmw.vfs')
 
 local commonData = require("scripts.proximityTool.common")
 
@@ -421,7 +422,7 @@ function this.registerMarker(activeMarker)
             }
         end
 
-        if rec.icon then
+        if rec.icon and vfs.fileExists(rec.icon) then
             local texture = ui.texture{path = rec.icon}
             local iconColor = rec.iconColor and util.color.rgb(rec.iconColor[1] or 1, rec.iconColor[2] or 1, rec.iconColor[3] or 1) or nil
             local name = rec.icon..tostring(iconColor)

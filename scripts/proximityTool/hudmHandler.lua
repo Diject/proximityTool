@@ -1,5 +1,6 @@
 local I = require('openmw.interfaces')
 local Actor = require("openmw.types").Actor
+local vfs = require('openmw.vfs')
 
 local tableLib = require("scripts.proximityTool.utils.table")
 
@@ -149,7 +150,8 @@ end
 ---@param ref any
 ---@return boolean?
 local function addMarkers(marker, ref)
-    if (marker.version or 0) > this.version or marker.invalid then return end
+    if (marker.version or 0) > this.version or marker.invalid
+            or not marker.params.icon or not vfs.fileExists(marker.params.icon) then return end
 
     if this.activeByObject[ref.id] and this.activeByObject[ref.id][marker.id] then return end
 
