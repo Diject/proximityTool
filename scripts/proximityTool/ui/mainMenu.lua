@@ -6,6 +6,7 @@ local core = require('openmw.core')
 local playerObj = require('openmw.self')
 local camera = require('openmw.camera')
 local vfs = require('openmw.vfs')
+local UI = require('openmw.interfaces').UI
 
 local commonData = require("scripts.proximityTool.common")
 
@@ -923,6 +924,7 @@ function this.create(params)
         relativePosition = position,
         anchor = util.vector2(1, 0),
         alpha = isMainHidden and 0 or 1,
+        visible = params.showBorder or UI.isHudVisible(),
     }
     base.layer = params.showBorder and "Windows" or "HUD"
     base.userData.scrollEvents = scrollEvents
@@ -967,6 +969,13 @@ end
 function this.update(params)
     if not this.element then return end
     if not params then params = {} end
+
+    local visible = this.element.layout.layer ~= "HUD" or UI.isHudVisible()
+    if visible ~= this.element.layout.props.visible then
+        this.element.layout.props.visible = visible
+        this.element:update()
+        return
+    end
 
     local parentElement = getMarkerParentElement()
     local hiddenGroupElement = getMarkerParentElement(commonData.hiddenGroupId)
