@@ -42,7 +42,7 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
                 if str and str ~= "" then
                     added = true
 
-                    textWidth = textWidth or math.min(screenSize.x * 0.5, utf8.len(str) * config.data.ui.fontSize * 0.7)
+                    textWidth = textWidth or math.min(screenSize.x * 0.5, (utf8.len(str) or string.len(str)) * config.data.ui.fontSize * 0.7)
                     local textHeight = uiUtils.getTextHeight(str, config.data.ui.fontSize, textWidth, 0.7)
 
                     line.content:add{
@@ -76,7 +76,7 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
                 addDescrLine(record.description, color)
             else
                 for i, str in pairs(record.description) do ---@diagnostic disable-line: param-type-mismatch
-                    textWidth = math.max(textWidth or 0, math.min(screenSize.x * 0.5, utf8.len(str) * config.data.ui.fontSize * 0.7))
+                    textWidth = math.max(textWidth or 0, math.min(screenSize.x * 0.5, (utf8.len(str) or string.len(str)) * config.data.ui.fontSize * 0.7))
                 end
 
                 for i, str in ipairs(record.description) do ---@diagnostic disable-line: param-type-mismatch

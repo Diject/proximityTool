@@ -116,7 +116,8 @@ local function createGroup(groupName, params)
 
     local groupNameText = groupName
     local groupNameFontSize = config.data.ui.fontSize
-    if utf8.len(groupName) > 0 and string.sub(groupName, 1, 1) == "~"
+    local strLen = utf8.len(groupName) or string.len(groupName)
+    if strLen > 0 and string.sub(groupName, 1, 1) == "~"
             or groupNameText == commonData.hiddenGroupId or groupNameText == commonData.defaultGroupId then
         groupNameText = ""
         groupNameFontSize = 1

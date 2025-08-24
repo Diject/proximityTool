@@ -39,7 +39,7 @@ function this.getTextHeight(text, fontSize, width, mul)
     for line in text:gmatch("[^\n]+") do
         local currentRowSize = 0
         for word in line:gmatch("%S+") do
-            local wordSize = utf8.len(word)
+            local wordSize = utf8.len(word) or string.len(word)
             if currentRowSize + wordSize <= rowMaxSize then
                 currentRowSize = currentRowSize + wordSize + 1
             else
