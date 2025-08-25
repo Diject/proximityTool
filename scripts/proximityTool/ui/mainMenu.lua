@@ -115,7 +115,7 @@ local function createGroup(groupName, params)
     if parentIndex then return end
 
     local groupNameText = groupName
-    local groupNameFontSize = config.data.ui.fontSize
+    local groupNameFontSize = config.data.ui.fontSize * 1.1
     local strLen = utf8.len(groupName) or string.len(groupName)
     if strLen > 0 and string.sub(groupName, 1, 1) == "~"
             or groupNameText == commonData.hiddenGroupId or groupNameText == commonData.defaultGroupId then
@@ -175,7 +175,7 @@ local function createGroup(groupName, params)
 
                 },
             },
-            addInterval(8, 8),
+            addInterval(8, config.data.ui.fontSize),
         },
     }
 
