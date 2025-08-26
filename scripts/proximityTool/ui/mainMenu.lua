@@ -7,6 +7,7 @@ local playerObj = require('openmw.self')
 local camera = require('openmw.camera')
 local vfs = require('openmw.vfs')
 local UI = require('openmw.interfaces').UI
+local input = require('openmw.input')
 
 local commonData = require("scripts.proximityTool.common")
 
@@ -235,7 +236,8 @@ function this.registerMarker(activeMarker)
             scrollEvents:mouseRelease(e)
 
             if not layout.userData or not layout.userData.data
-                    or scrollEvents.lastMovedDistance >= 30 or not layout.userData.mouseClicked then
+                    or scrollEvents.lastMovedDistance >= 30 or not layout.userData.mouseClicked
+                    or input.isAltPressed() then
                 return
             end
             local activeM = layout.userData.data
@@ -270,7 +272,11 @@ function this.registerMarker(activeMarker)
         mouseRelease = async:callback(function(e, layout)
             scrollEvents:mouseRelease(e)
 
-            if not layout.userData or not layout.userData.aMarkerData or scrollEvents.lastMovedDistance >= 30 then return end
+            if not layout.userData or not layout.userData.aMarkerData
+                or scrollEvents.lastMovedDistance >= 30
+                or input.isAltPressed() then
+                    return
+            end
             activeMarkers.triggerEventForMarkerData(layout.userData.aMarkerData, "MouseClick", e)
         end),
     }
