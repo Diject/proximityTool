@@ -2,6 +2,9 @@ local I = require('openmw.interfaces')
 local ui = require('openmw.ui')
 local util = require('openmw.util')
 local async = require('openmw.async')
+local core = require('openmw.core')
+local time = require('openmw_aux.time')
+local UI = require('openmw.interfaces').UI
 
 local safeContainers = require("scripts.proximityTool.ui.safeContainer")
 local uiUtils = require("scripts.proximityTool.ui.utils")
@@ -58,9 +61,20 @@ function this.createOrMove(coord, parent, layoutContent)
         }
 
         tooltipHandler:create(tooltipLayout)
-        async:newUnsavableSimulationTimer(0.1, function ()
-            tooltipHandler:destroy()
-        end)
+
+        if core.isWorldPaused() then
+            local timer = async:newUnsavableSimulationTimer(0.1, function ()
+                tooltipHandler:destroy()
+            end)
+        else
+            local timer
+            timer = time.runRepeatedly(function ()
+                if UI.getMode() == nil then
+                    timer()
+                    tooltipHandler:destroy()
+                end
+            end, 0.2)
+        end
 
         return
     end
