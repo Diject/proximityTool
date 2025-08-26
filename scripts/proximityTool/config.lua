@@ -31,6 +31,7 @@ this.default = {
         helpTooltips = true,
         imperialUnits = false,
         fontSize = 20,
+        mouseScrollAmount = 40,
         defaultColor = common.defaultColor,
         maxAlpha = 100,
         align = "End",

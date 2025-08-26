@@ -37,6 +37,8 @@ maxAlpha: "Maximum Transparency"
 maxAlphaDescription: "Maximum transparency of the mod window. In %."
 hideHUDInMenus: "Hide HUD window in menus"
 hideHUDInMenusDescription: "Hide the HUD window in game menus."
+mouseScrollAmount: "Mouse scroll amount"
+mouseScrollAmountDescription: "The amount of scrolling that occurs when using the mouse wheel. In pixels."
 
 trackingAnchor: "Tracking:"
 trackingAnchorTooltip: "Click to show/hide. Drag to move."

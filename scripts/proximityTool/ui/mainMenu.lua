@@ -96,6 +96,18 @@ local function getMarkerParentElement(groupName)
 end
 
 
+local function onMouseWheelCallback(layout, value)
+    if not layout.userData or not layout.userData.inFocus then return end
+    local scrollEvents = this.element.layout.userData.scrollEvents
+
+    if value > 0 then
+        scrollEvents:scrollUp(config.data.ui.mouseScrollAmount)
+    elseif value < 0 then
+        scrollEvents:scrollDown(config.data.ui.mouseScrollAmount)
+    end
+end
+
+
 ---@param groupName string
 ---@param params {priority : number?, protected : boolean?}?
 local function createGroup(groupName, params)
@@ -353,6 +365,7 @@ function this.registerMarker(activeMarker)
                 distanceIndex = 1,
                 directionIconIndex = 2,
                 textIndex = 6,
+                onMouseWheel = onMouseWheelCallback,
             },
             events = unitedEvents,
             content = nil
@@ -405,6 +418,7 @@ function this.registerMarker(activeMarker)
                     record = rDt.record,
                     aMarkerData = rDt,
                     data = activeMarker,
+                    onMouseWheel = onMouseWheelCallback,
                 },
             }
 
@@ -418,6 +432,7 @@ function this.registerMarker(activeMarker)
                     recordId = rDt.recordId,
                     record = rDt.record,
                     aMarkerData = rDt,
+                    onMouseWheel = onMouseWheelCallback,
                 },
                 events = eventsForRecord,
                 content = noteContent,
@@ -606,11 +621,13 @@ function this.create(params)
     scrollEvents.focusLoss = function (self, e)
         local layout = mainContent.content[1]
         layout.userData.lastMousePos = nil
+        layout.userData.inFocus = false
         self.lastMovedDistance = 0
     end
 
     scrollEvents.mouseMove = function (self, e)
         local layout = mainContent.content[1]
+        layout.userData.inFocus = true
         if not layout.userData.lastMousePos then return end
 
         local posDIff = e.position - layout.userData.lastMousePos
@@ -661,7 +678,9 @@ function this.create(params)
                     horizontal = false,
                     arrange = uiUtils.convertAlign(config.data.ui.align),
                 },
-                userData = {},
+                userData = {
+                    onMouseWheel = onMouseWheelCallback,
+                },
                 events = getScrollEvents(),
                 content = ui.content {
 
@@ -901,7 +920,9 @@ function this.create(params)
                 horizontal = false,
                 arrange = uiUtils.convertAlign(config.data.ui.align),
             },
-            userData = {},
+            userData = {
+                onMouseWheel = onMouseWheelCallback,
+            },
             events = getScrollEvents(),
             content = ui.content {
                 header,

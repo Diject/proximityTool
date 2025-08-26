@@ -660,6 +660,27 @@ return {
         end,
         onActive = function ()
             registerMarkersForCell()
-        end
+        end,
+        onMouseWheel = function (value)
+            if not mainMenu.element or I.UI.getMode() == nil then return end
+
+            local function onMouseWheelCallback(content)
+                for _, dt in pairs(content) do
+                    if not type(dt) == "table" then goto continue end
+                    if dt.userData and dt.userData.onMouseWheel then
+                        dt.userData.onMouseWheel(dt, value)
+                    end
+
+                    if dt.content then
+                        onMouseWheelCallback(dt.content)
+                    end
+
+                    ::continue::
+                end
+            end
+
+            local layout = mainMenu.element.layout
+            onMouseWheelCallback(layout.content)
+        end,
     },
 }
