@@ -630,11 +630,13 @@ return {
 
             hudmHandler.addObject(object)
         end,
-        ["proximityTool:removeActiveObject"] = function(object)
-            activeObjects.remove(object)
-            activeMarkers.update(object.recordId)
+        ["proximityTool:removeActiveObject"] = function(objectData)
+            local refId = objectData[2]
+            local recordId = objectData[3]
+            activeObjects.remove(refId, recordId)
+            activeMarkers.update(recordId)
 
-            hudmHandler.removeObject(object)
+            hudmHandler.removeObject(refId)
         end,
     },
     engineHandlers = {

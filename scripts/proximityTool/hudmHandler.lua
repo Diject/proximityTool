@@ -209,15 +209,15 @@ function this.addObject(ref)
 end
 
 
-function this.removeObject(ref)
-    if not this.init() or not ref then return end
+function this.removeObject(refId)
+    if not this.init() or not refId then return end
 
     local found = false
-    for id, data in pairs(this.activeByObject[ref.id] or {}) do
+    for id, data in pairs(this.activeByObject[refId] or {}) do
         local hudmData = this.activeData[data.modName]
 
         if hudmData then
-            hudmData[getHashVal(ref.id, id)] = nil
+            hudmData[getHashVal(refId, id)] = nil
         end
 
         if data.marker.shortTerm then
@@ -228,8 +228,8 @@ function this.removeObject(ref)
             end
         end
 
-        this.activeByObject[ref.id][id] = nil
-        removeItemFilteredObject(ref.id, id)
+        this.activeByObject[refId][id] = nil
+        removeItemFilteredObject(refId, id)
 
         found = true
     end

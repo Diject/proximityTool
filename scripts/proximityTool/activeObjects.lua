@@ -50,11 +50,11 @@ function objectHandler:get(refId)
     return ref
 end
 
-function objectHandler:remove(object)
-    if self.objects[object.id] then
+function objectHandler:remove(refId)
+    if self.objects[refId] then
         self.count = self.count - 1
     end
-    self.objects[object.id] = nil
+    self.objects[refId] = nil
 end
 
 local function calcDistance(obj1, obj2)
@@ -141,12 +141,12 @@ function this.add(object)
 end
 
 
-function this.remove(object)
-    local objHandler = this.data[object.recordId]
+function this.remove(refId, recordId)
+    local objHandler = this.data[recordId]
     if not objHandler then return end
-    objHandler:remove(object)
+    objHandler:remove(refId)
     if objHandler.count == 0 then
-        this.data[object.recordId] = nil
+        this.data[recordId] = nil
     end
 end
 

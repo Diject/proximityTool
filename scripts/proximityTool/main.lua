@@ -20,10 +20,23 @@ local function onObjectActive(object)
     world.players[1]:sendEvent("proximityTool:addActiveObject", object)
 end
 
-local function objectInactive(object)
-    world.players[1]:sendEvent("proximityTool:removeActiveObject", object)
-    if object:hasScript("scripts/proximityTool/objectLocal.lua") then
+local function objectInactive(objectData)
+    local object = objectData[1]
+    world.players[1]:sendEvent("proximityTool:removeActiveObject", objectData)
+    if object:isValid() and object:hasScript("scripts/proximityTool/objectLocal.lua") then
         object:removeScript("scripts/proximityTool/objectLocal.lua")
+    end
+end
+
+local function checkObjectStatus(objectData)
+    local object = objectData[1]
+    if not object:isValid() then return end
+
+    if not object.cell or not object.enabled then
+        world.players[1]:sendEvent("proximityTool:removeActiveObject", objectData)
+        if object:hasScript("scripts/proximityTool/objectLocal.lua") then
+            object:removeScript("scripts/proximityTool/objectLocal.lua")
+        end
     end
 end
 
@@ -36,5 +49,6 @@ return {
     eventHandlers = {
         ["proximityTool:objectInactive"] = objectInactive,
         ["proximityTool:objectActive"] = onObjectActive,
+        ["proximityTool:checkObjectStatus"] = checkObjectStatus,
     },
 }
