@@ -995,7 +995,7 @@ end
 
 ---@param params objectTrackingBD.mainMenu.update.params?
 function this.update(params)
-    if not this.element then return end
+    if not this.element or not this.element.layout then return end
     if not params then params = {} end
 
     local visible = this.element.layout.layer ~= "HUD" or UI.isHudVisible()
