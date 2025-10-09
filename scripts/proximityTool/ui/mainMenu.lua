@@ -1152,6 +1152,10 @@ function this.update(params)
                 goto continue
             end
 
+            if trackingData.hidden and not elem.props.visible then
+                goto continue
+            end
+
             local trackingPos
             ---@type {object: any, position : any, dif : number?}[]
             local trackingPositionsData = {}
