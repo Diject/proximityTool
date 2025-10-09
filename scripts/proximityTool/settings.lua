@@ -123,6 +123,12 @@ local function selectSetting(args)
 end
 
 
+input.registerTrigger {
+    key = commonData.toggleHUDTriggerId,
+    l10n = commonData.l10nKey,
+}
+
+
 
 I.Settings.registerGroup{
     key = commonData.settingStorageId,
@@ -143,6 +149,7 @@ I.Settings.registerGroup{
         boolSetting{key = "ui.hideWindow", name = "hideWindow", description = "hideWindowDescription", default = config.default.ui.hideWindow},
         -- boolSetting{key = "ui.minimizeToAnchor", name = "minimizeToAnchor", description = "minimizeToAnchorDescription", default = config.default.ui.minimizeToAnchor}, --deprecated
         boolSetting{key = "ui.hideHUD", name = "hideHUD", description = "hideHUDDescription", default = config.default.ui.hideHUD},
+        inputKey{key = "keyToToggleHUDVisibility", name = "toggleHUDKey", description = "toggleHUDKeyDescription", argType = "trigger", argKey = commonData.toggleHUDTriggerId, default = config.default.keyToToggleHUDVisibility},
         boolSetting{key = "ui.hideHUDInMenus", name = "hideHUDInMenus", description = "hideHUDInMenusDescription", default = config.default.ui.hideHUDInMenus},
         boolSetting{key = "ui.imperialUnits", name = "imperialUnits", default = config.default.ui.imperialUnits},
         boolSetting{key = "ui.helpTooltips", name = "helpTooltips", description = "helpTooltipsDescription", default = config.default.ui.helpTooltips},

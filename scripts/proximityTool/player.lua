@@ -6,6 +6,7 @@ local time = require('openmw_aux.time')
 local player = require('openmw.self')
 local async = require('openmw.async')
 local storage = require('openmw.storage')
+local input = require("openmw.input")
 
 local common = require("scripts.proximityTool.common")
 
@@ -181,6 +182,21 @@ storageToRemove:subscribe(async:callback(function(section, key)
                 storageToRemove:set("removeAll", false)
             end
         end)
+    end
+end))
+
+
+input.registerTriggerHandler(common.toggleHUDTriggerId, async:callback(function()
+    local settigStorage = storage.playerSection(common.settingStorageId)
+    local val = not settigStorage:get("ui.hideHUD")
+    settigStorage:set("ui.hideHUD", val)
+    if I.UI.getMode() == nil then
+        mainMenu.create{showBorder = false}
+    else
+        mainMenu.create{showBorder = true}
+        for i = 1, 3 do
+            mainMenu.update{force = true}
+        end
     end
 end))
 

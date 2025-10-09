@@ -715,6 +715,20 @@ function this.create(params)
     end
 
     headerContentArr = {
+        {
+            type = ui.TYPE.Text,
+            userData = {
+                isHeader = true,
+            },
+            props = {
+                text = l10n("hidden"),
+                textSize = config.data.ui.fontSize * 0.75,
+                textColor = config.data.ui.defaultColor,
+                textAlignH = uiUtils.convertAlign(config.data.ui.align),
+                visible = config.data.ui.hideHUD
+            }
+        },
+        addInterval(config.data.ui.fontSize / 2, 0),
         addButton{menu = this, textSize = config.data.ui.fontSize, text = "P", textColor = config.data.ui.defaultColor,
             event = function (layout)
                 local position = this.element.layout.props.relativePosition
@@ -907,6 +921,7 @@ function this.create(params)
             horizontal = true,
             visible = config.data.ui.showHeader or params.showBorder,
             propagateEvents = false,
+            arrange = ui.ALIGNMENT.Center,
         },
         content = ui.content(headerContentArr)
     }

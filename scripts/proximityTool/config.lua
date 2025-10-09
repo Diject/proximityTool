@@ -22,6 +22,7 @@ this.default = {
     enabled = true,
     updateInterval = 80, -- ms
     objectPosUpdateInterval = 3, -- s,
+    keyToToggleHUDVisibility = "Semicolon",
     ui = {
         hideHUD = false,
         hideWindow = false,

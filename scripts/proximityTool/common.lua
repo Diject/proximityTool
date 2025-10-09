@@ -33,6 +33,8 @@ this.l10nKey = "proximityTool"
 
 this.settingPage = "proximityTool:Settings"
 
+this.toggleHUDTriggerId = "proximityTool:trigger.toggleHUD"
+
 
 this.defaultColorData = {202/255, 165/255, 96/255}
 this.defaultColor = util.color.rgb(this.defaultColorData[1], this.defaultColorData[2], this.defaultColorData[3])
