@@ -10,22 +10,46 @@ end
 
 
 function this.removeFromContent(content, index)
-    local removedEl = table.remove(content, index)
-    if not removedEl then return end
-
-    if removedEl.name then
-        content.__nameIndex[removedEl.name] = nil
+    if type(index) == "string" then
+        index = content.__nameIndex[index]
     end
 
-    for i = index, #content do
-        local elem = content[i]
+    if not index then return end
 
-        if elem.name then
-            content.__nameIndex[elem.name] = i
+    local val = rawget(content, index)
+    if not val then return end
+
+    local oldName = val and val.name
+    if oldName then
+        content.__nameIndex[oldName] = nil
+    end
+
+    for i = index, #content - 1 do
+        local v = rawget(content, i + 1)
+        rawset(content, i, v)
+        if type(v.name) == 'string' then
+            content.__nameIndex[v.name] = i
         end
     end
+    rawset(content, #content, nil)
 
-    return removedEl
+    return true
+end
+
+
+function this.clearContent(content)
+    for i = #content, 1, -1 do
+        this.removeFromContent(content, i)
+    end
+end
+
+
+function this.isExistsInContent(content, index)
+    if type(index) == "string" then
+        return rawget(content.__nameIndex, index) ~= nil
+    else
+        return rawget(content, index) ~= nil
+    end
 end
 
 
