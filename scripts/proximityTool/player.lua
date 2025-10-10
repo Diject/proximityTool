@@ -309,16 +309,23 @@ local function addMarker(data)
     end
 
     if markerData.object then
+        local object = markerData.object
+        markerData.object = nil
         local markerDataCopy = tableLib.deepcopy(markerData)
-        markerDataCopy.groupId = markerData.object.id
+        markerDataCopy.object = object
+        markerDataCopy.groupId = object.id
 
         mapData.addMarker(markerDataCopy.id, markerDataCopy.groupId, markerDataCopy)
         groupId = markerDataCopy.groupId
     end
 
     if markerData.objects then
+        local objects = markerData.objects
+        markerData.objects = nil
         local markerDataCopy = tableLib.deepcopy(markerData)
+        markerDataCopy.objects = objects
         markerDataCopy.groupId = common.referencesLabel
+
         for _, obj in pairs(markerDataCopy.objects) do
             local dt = tableLib.deepcopy(markerDataCopy)
             dt.groupId = obj.id
@@ -474,8 +481,11 @@ local function addHUDMarker(data)
         return
     end
 
+    local objects = data.objects
+    data.objects = nil
     ---@type proximityTool.HUDMarker
     local markerData = tableLib.deepcopy(data)
+    markerData.objects = objects
 
     markerData.id = uniqueId.get()
     markerData.version = markerData.version or hudmHandler.version or 5
@@ -590,7 +600,7 @@ end
 return {
     interfaceName = "proximityTool",
     interface = {
-        version = 1,
+        version = 2,
         addMarker = addMarker,
         addRecord = addRecord,
         addHUDM = addHUDMarker,
