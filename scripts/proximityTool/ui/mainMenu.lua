@@ -21,6 +21,7 @@ local uiUtils = require("scripts.proximityTool.ui.utils")
 local log = require("scripts.proximityTool.utils.log")
 
 local icons = require("scripts.proximityTool.icons")
+local templates = require("scripts.proximityTool.ui.templates")
 
 local activeObjects = require("scripts.proximityTool.activeObjects")
 local activeMarkers = require("scripts.proximityTool.activeMarkers")
@@ -157,7 +158,6 @@ local function createGroup(groupName, params)
         name = groupName,
         content = ui.content{
             {
-                template = I.MWUI.templates.textNormal,
                 type = ui.TYPE.Text,
                 props = {
                     text = groupNameText,
@@ -286,7 +286,6 @@ function this.registerMarker(activeMarker)
 
     local mainLine = {
         {
-            template = I.MWUI.templates.textNormal,
             type = ui.TYPE.Text,
             props = {
                 text = "",
@@ -555,8 +554,8 @@ end
 
 local function mainWindowBox(content, showBorder, userData)
     return {
-        template = showBorder and I.MWUI.templates.boxSolid or nil,
-        type = not showBorder and ui.TYPE.Flex or nil,
+        template = showBorder and templates.boxSolid,
+        type = ui.TYPE.Widget,
         props = {
             autoSize = true,
             inheritAlpha = false,
@@ -697,9 +696,10 @@ function this.create(params)
 
     local isMainHidden = params.showBorder and config.data.ui.minimizeToAnchor or false
 
+    local base
     local parentContent
 
-    local headerHeight = config.data.ui.fontSize * 1.2 + 6
+    local headerHeight = config.data.ui.fontSize * 1.2 + 8
 
     local trackingLabelText = l10n("trackingAnchor")
     trackingLabelText = config.data.ui.orderH == "Right to left" and " "..trackingLabelText or trackingLabelText.." "
@@ -814,99 +814,112 @@ function this.create(params)
             },
         },
         addInterval(config.data.ui.fontSize, config.data.ui.fontSize),
-        mainWindowBox({
-            {
-                template = I.MWUI.templates.textHeader,
-                type = ui.TYPE.Text,
-                props = {
-                    text = trackingLabelText,
-                    textSize = config.data.ui.fontSize * 1.2,
-                    textColor = config.data.ui.defaultColor,
-                    multiline = false,
-                    wordWrap = false,
-                    textAlignH = uiUtils.convertAlign(config.data.ui.align),
-                    textShadow = true,
-                    textShadowColor = util.color.rgb(0, 0, 0),
-                },
-                userData = {
-                    lastMousePos = nil,
-                    lastMousePropPos = nil,
-                    movedDistance = 0
-                },
-                events = {
-                    mousePress = async:callback(function(coord, layout)
-                        layout.userData.doDrag = false
-                        local screenSize = uiUtils.getScaledScreenSize()
-                        layout.userData.lastMousePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
-                        layout.userData.lastMousePos = util.vector2(coord.position.x, coord.position.y)
-                        layout.userData.lastMousePropPos = layout.userData.lastMousePos:ediv(screenSize)
-                        layout.userData.movedDistance = 0
-                    end),
+        {
+            template = I.MWUI.templates.boxSolid,
+            props = {
+                autoSize = true,
+                inheritAlpha = false,
+            },
+            userData = {
+                isHeader = true,
+            },
+            content = ui.content{
+                {
+                    type = ui.TYPE.Text,
+                    props = {
+                        text = trackingLabelText,
+                        textSize = config.data.ui.fontSize * 1.2,
+                        textColor = config.data.ui.defaultColor,
+                        multiline = false,
+                        wordWrap = false,
+                        textAlignH = uiUtils.convertAlign(config.data.ui.align),
+                        textShadow = true,
+                        textShadowColor = util.color.rgb(0, 0, 0),
+                    },
+                    userData = {
+                        lastMousePos = nil,
+                        lastMousePropPos = nil,
+                        movedDistance = 0
+                    },
+                    events = {
+                        mousePress = async:callback(function(coord, layout)
+                            layout.userData.doDrag = false
+                            local screenSize = uiUtils.getScaledScreenSize()
+                            layout.userData.lastMousePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
+                            layout.userData.lastMousePos = util.vector2(coord.position.x, coord.position.y)
+                            layout.userData.lastMousePropPos = layout.userData.lastMousePos:ediv(screenSize)
+                            layout.userData.movedDistance = 0
+                        end),
 
-                    mouseRelease = async:callback(function(_, layout)
-                        layout.userData.lastMousePos = nil
-                        layout.userData.lastMousePropPos = nil
-                        if not layout.userData.doDrag or layout.userData.movedDistance < 30 then
-                            if isMainHidden then
-                                parentContent[1].props.size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100)
-                            else
-                                parentContent[1].props.size = util.vector2(screenSize.x * config.data.ui.size.x / 100, headerHeight)
+                        mouseRelease = async:callback(function(_, layout)
+                            layout.userData.lastMousePos = nil
+                            layout.userData.lastMousePropPos = nil
+                            if not layout.userData.doDrag or layout.userData.movedDistance < 30 then
+                                if isMainHidden then
+                                    local size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100)
+                                    parentContent[1].props.size = util.vector2(size.x - 8, size.y - 4)
+                                    base.props.size = size
+                                else
+                                    local size = util.vector2(screenSize.x * config.data.ui.size.x / 100, headerHeight)
+                                    parentContent[1].props.size = util.vector2(size.x - 8, size.y)
+                                    base.props.size = size
+                                end
+
+                                setMainBoxVisibility(isMainHidden)
+                                setHeaderContentVisibility(isMainHidden)
+                                isMainHidden = not isMainHidden
+                                config.setLocal("ui.minimizeToAnchor", isMainHidden)
+                                this.element:update()
+                            end
+                            layout.userData.doDrag = false
+                            layout.userData.movedDistance = 0
+                        end),
+
+                        mouseMove = async:callback(function(coord, layout)
+                            if config.data.ui.helpTooltips then
+                                tooltip.createOrMove(coord, layout, ui.content {
+                                    {
+                                        template = I.MWUI.templates.textNormal,
+                                        props = {
+                                            text = l10n("trackingAnchorTooltip"),
+                                            textSize = config.data.ui.fontSize,
+                                            textColor = config.data.ui.defaultColor,
+                                        },
+                                    }
+                                })
                             end
 
-                            setMainBoxVisibility(isMainHidden)
-                            setHeaderContentVisibility(isMainHidden)
-                            isMainHidden = not isMainHidden
-                            config.setLocal("ui.minimizeToAnchor", isMainHidden)
+                            if not layout.userData.lastMousePos then return end
+
+                            local diff = coord.position - layout.userData.lastMousePos
+                            layout.userData.movedDistance = layout.userData.movedDistance + math.abs(diff.x) + math.abs(diff.y)
+                            layout.userData.lastMousePos = coord.position
+
+                            if layout.userData.movedDistance < 30 then return end
+
+                            layout.userData.doDrag = true
+
+                            local screenSize = uiUtils.getScaledScreenSize()
+                            local props = this.element.layout.props
+                            local relativePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
+
+                            props.relativePosition = props.relativePosition - (layout.userData.lastMousePropPos - relativePos)
+                            elementRelPos = props.relativePosition
+                            config.setLocal("ui.positionInMenu.x", elementRelPos.x * 100)
+                            config.setLocal("ui.positionInMenu.y", elementRelPos.y * 100)
+
                             this.element:update()
-                        end
-                        layout.userData.doDrag = false
-                        layout.userData.movedDistance = 0
-                    end),
 
-                    mouseMove = async:callback(function(coord, layout)
-                        if config.data.ui.helpTooltips then
-                            tooltip.createOrMove(coord, layout, ui.content {
-                                {
-                                    template = I.MWUI.templates.textNormal,
-                                    props = {
-                                        text = l10n("trackingAnchorTooltip"),
-                                        textSize = config.data.ui.fontSize,
-                                        textColor = config.data.ui.defaultColor,
-                                    },
-                                }
-                            })
-                        end
+                            layout.userData.lastMousePropPos = relativePos
+                        end),
 
-                        if not layout.userData.lastMousePos then return end
-
-                        local diff = coord.position - layout.userData.lastMousePos
-                        layout.userData.movedDistance = layout.userData.movedDistance + math.abs(diff.x) + math.abs(diff.y)
-                        layout.userData.lastMousePos = coord.position
-
-                        if layout.userData.movedDistance < 30 then return end
-
-                        layout.userData.doDrag = true
-
-                        local screenSize = uiUtils.getScaledScreenSize()
-                        local props = this.element.layout.props
-                        local relativePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
-
-                        props.relativePosition = props.relativePosition - (layout.userData.lastMousePropPos - relativePos)
-                        elementRelPos = props.relativePosition
-                        config.setLocal("ui.positionInMenu.x", elementRelPos.x * 100)
-                        config.setLocal("ui.positionInMenu.y", elementRelPos.y * 100)
-
-                        this.element:update()
-
-                        layout.userData.lastMousePropPos = relativePos
-                    end),
-
-                    focusLoss = async:callback(function(e, layout)
-                        tooltip.destroy(layout)
-                    end),
-                },
+                        focusLoss = async:callback(function(e, layout)
+                            tooltip.destroy(layout)
+                        end),
+                    },
+                }
             }
-        }, params.showBorder, {isHeader = true}),
+        },
     }
 
     setHeaderContentVisibility(not isMainHidden)
@@ -926,18 +939,19 @@ function this.create(params)
         content = ui.content(headerContentArr)
     }
 
-    local parantContentHeight
+    local parentSize
     if isMainHidden then
-        parantContentHeight = util.vector2(screenSize.x * config.data.ui.size.x / 100, headerHeight)
+        parentSize = util.vector2(screenSize.x * config.data.ui.size.x / 100, headerHeight)
     else
-        parantContentHeight = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100)
+        parentSize = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100)
     end
     parentContent = {
         {
             type = ui.TYPE.Flex,
             props = {
                 autoSize = false,
-                size = parantContentHeight,
+                size = util.vector2(parentSize.x - 8, parentSize.y - 4),
+                position = util.vector2(4, 2),
                 horizontal = false,
                 arrange = uiUtils.convertAlign(config.data.ui.align),
             },
@@ -959,7 +973,7 @@ function this.create(params)
         position = util.vector2(config.data.ui.position.x / 100, config.data.ui.position.y / 100)
     end
 
-    local base = mainWindowBox(parentContent, params.showBorder, {})
+    base = mainWindowBox(parentContent, params.showBorder, {})
     base.props = {
         autoSize = true,
         horizontal = false,
@@ -968,6 +982,7 @@ function this.create(params)
         anchor = util.vector2(1, 0),
         alpha = isMainHidden and 0 or 1,
         visible = params.showBorder or UI.isHudVisible(),
+        size = parentSize
     }
     base.layer = params.showBorder and "Windows" or "HUD"
     base.userData.scrollEvents = scrollEvents
