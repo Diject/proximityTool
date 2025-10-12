@@ -191,7 +191,7 @@ end
 
 local function getNameColorHashId(name, colorArr)
     colorArr = colorArr or {}
-    return string.format("%s_%d_%d_%d", name or "", colorArr[1] or 0, colorArr[2] or 0, colorArr[3] or 0)
+    return string.format("%s_%d_%d_%d", name or "", (colorArr[1] or 0) * 255, (colorArr[2] or 0) * 255, (colorArr[3] or 0) * 255)
 end
 
 
