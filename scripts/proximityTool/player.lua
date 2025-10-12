@@ -208,7 +208,7 @@ local function addRecord(params)
     ---@type proximityTool.markerRecord
     local record = tableLib.deepcopy(params)
     record.id = uniqueId.get()
-    mapData.addRecord(record.id, params)
+    mapData.addRecord(record.id, record)
     return record.id
 end
 
@@ -276,8 +276,14 @@ local function addMarker(data)
         return
     end
 
+    local object = data.object
+    local objects = data.objects
+    data.object = nil
+    data.objects = nil
+
     ---@type proximityTool.markerData
     local markerData = tableLib.deepcopy(data)
+    local record = data.record
 
     markerData.id = uniqueId.get()
     local groupId
@@ -308,29 +314,33 @@ local function addMarker(data)
         groupId = markerDataCopy.groupId
     end
 
-    if markerData.object then
-        local object = markerData.object
-        markerData.object = nil
+    if object then
         local markerDataCopy = tableLib.deepcopy(markerData)
+        markerData.object = object
         markerDataCopy.object = object
         markerDataCopy.groupId = object.id
+        markerDataCopy.record = record
 
         mapData.addMarker(markerDataCopy.id, markerDataCopy.groupId, markerDataCopy)
         groupId = markerDataCopy.groupId
     end
 
-    if markerData.objects then
-        local objects = markerData.objects
-        markerData.objects = nil
+    if objects then
         local markerDataCopy = tableLib.deepcopy(markerData)
-        markerDataCopy.objects = objects
         markerDataCopy.groupId = common.referencesLabel
 
-        for _, obj in pairs(markerDataCopy.objects) do
+        for _, obj in pairs(objects) do
             local dt = tableLib.deepcopy(markerDataCopy)
+            dt.objects = tableLib.copy(objects)
+            dt.record = record
             dt.groupId = obj.id
             mapData.addMarker(markerDataCopy.id, dt.groupId, dt)
         end
+
+        markerData.objects = tableLib.copy(objects)
+        markerDataCopy.objects = tableLib.copy(objects)
+        markerDataCopy.record = record
+
         mapData.addMarker(markerDataCopy.id, markerDataCopy.groupId, markerDataCopy)
         groupId = markerDataCopy.groupId
     end
