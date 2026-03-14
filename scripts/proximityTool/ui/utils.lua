@@ -97,7 +97,7 @@ function this.getElementHeight(elem)
     elseif elem.props and elem.props.size and elem.props.autoSize ~= true then
         return math.floor(elem.props.size.y)
     elseif elem.props and elem.props.textSize and elem.props.autoSize ~= false then
-        return math.floor(elem.props.textSize + (elem.props.textShadow and 1 or 0))
+        return math.floor(elem.props.textSize + (elem.props.textShadow and 2 or 0))
     elseif elem.content then
         return this.getContentHeight(elem.content, elem.props and elem.props.horizontal or false)
     end
