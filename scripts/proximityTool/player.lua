@@ -6,7 +6,6 @@ local time = require('openmw_aux.time')
 local player = require('openmw.self')
 local async = require('openmw.async')
 local storage = require('openmw.storage')
-local input = require("openmw.input")
 
 local common = require("scripts.proximityTool.common")
 
@@ -186,7 +185,7 @@ storageToRemove:subscribe(async:callback(function(section, key)
 end))
 
 
-input.registerTriggerHandler(common.toggleHUDTriggerId, async:callback(function()
+I.DijectKeyBindings.action.register(common.toggleHUDTriggerId, async:callback(function()
     local settigStorage = storage.playerSection(common.settingStorageId)
     local val = not settigStorage:get("ui.hideHUD")
     settigStorage:set("ui.hideHUD", val)

@@ -23,7 +23,10 @@ this.default = {
     enabled = true,
     updateInterval = 80, -- ms
     objectPosUpdateInterval = 3, -- s,
-    keyToToggleHUDVisibility = "Semicolon",
+    keyToToggleHUDVisibility = nil,
+    input = {
+        initialized = false,
+    },
     ui = {
         hideHUD = false,
         hideWindow = false,

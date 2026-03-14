@@ -1,3 +1,6 @@
+MENU: scripts/proximityTool/input/bindingRenderer.lua
+PLAYER: scripts/proximityTool/input/keyBindingInterface.lua
+
 GLOBAL: scripts/proximityTool/main.lua
 CUSTOM: scripts/proximityTool/objectLocal.lua
 PLAYER: scripts/proximityTool/player.lua

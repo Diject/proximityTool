@@ -78,14 +78,13 @@ end
 
 local function inputKey(args)
     local data = {
-        renderer = "inputBinding",
+        renderer = "DijectKeyBindings:inputBinding",
         key = args.key,
         name = args.name,
         description = args.description,
         default = args.default,
         argument = {
-            key = args.argKey,
-            type = args.argType
+            action = args.action
         }
     }
     return data
@@ -123,10 +122,48 @@ local function selectSetting(args)
 end
 
 
-input.registerTrigger {
-    key = commonData.toggleHUDTriggerId,
-    l10n = commonData.l10nKey,
-}
+local res, err = pcall(function()
+    local bindingSection = storage.playerSection("OMWInputBindings")
+
+    local initialized = config.data.input.initialized
+    if initialized then return end
+
+    local binds = bindingSection:asTable()
+    local function getKey(triggerId)
+        for kId, dt in pairs(binds) do
+            if dt.key == triggerId and dt.button then
+                if dt.device == "keyboard" then
+                    for k, id in pairs(input.KEY) do
+                        if dt.button == id then
+                            return k, kId
+                        end
+                    end
+                elseif dt.device == "mouse" then
+                    local keys = {"LMB", "MMB", "RMB", "MB4", "MB5"}
+                    return keys[dt.button], kId
+                elseif dt.device == "controller" then
+                    for k, id in pairs(input.CONTROLLER_BUTTON) do
+                        if dt.button == id then
+                            return "C_"..tostring(k), kId
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    local key, keySection = getKey(commonData.toggleHUDTriggerId)
+
+    if key ~= nil then
+        bindingSection:set(keySection, nil)
+        I.DijectKeyBindings.registerKey(commonData.toggleHUDTriggerId, key)
+    end
+
+    config.setLocal("input.initialized", true)
+end)
+if not res then
+    print(err)
+end
 
 
 
@@ -149,7 +186,7 @@ I.Settings.registerGroup{
         boolSetting{key = "ui.hideWindow", name = "hideWindow", description = "hideWindowDescription", default = config.default.ui.hideWindow},
         -- boolSetting{key = "ui.minimizeToAnchor", name = "minimizeToAnchor", description = "minimizeToAnchorDescription", default = config.default.ui.minimizeToAnchor}, --deprecated
         boolSetting{key = "ui.hideHUD", name = "hideHUD", description = "hideHUDDescription", default = config.default.ui.hideHUD},
-        inputKey{key = "keyToToggleHUDVisibility", name = "toggleHUDKey", description = "toggleHUDKeyDescription", argType = "trigger", argKey = commonData.toggleHUDTriggerId, default = config.default.keyToToggleHUDVisibility},
+        inputKey{key = "keyToToggleHUDVisibility", name = "toggleHUDKey", description = "toggleHUDKeyDescription", action = commonData.toggleHUDTriggerId, default = config.default.keyToToggleHUDVisibility},
         boolSetting{key = "ui.hideHUDInMenus", name = "hideHUDInMenus", description = "hideHUDInMenusDescription", default = config.default.ui.hideHUDInMenus},
         boolSetting{key = "ui.imperialUnits", name = "imperialUnits", default = config.default.ui.imperialUnits},
         boolSetting{key = "ui.helpTooltips", name = "helpTooltips", description = "helpTooltipsDescription", default = config.default.ui.helpTooltips},
