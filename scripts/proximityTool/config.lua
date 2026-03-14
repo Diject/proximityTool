@@ -19,6 +19,7 @@ this.storageSections = {
 
 ---@class proximityTool.config
 this.default = {
+    version = 2,
     enabled = true,
     updateInterval = 80, -- ms
     objectPosUpdateInterval = 3, -- s,
@@ -31,7 +32,7 @@ this.default = {
         showHeader = false,
         helpTooltips = true,
         imperialUnits = false,
-        fontSize = 20,
+        fontSize = 16,
         mouseScrollAmount = 40,
         defaultColor = common.defaultColor,
         maxAlpha = 100,
@@ -94,6 +95,16 @@ function this.setLocal(path, value)
     tableLib.setValueByPath(this.data, path, value)
     localStorage:set(path, value)
 end
+
+
+
+if not localStorage:get("version") then
+    local fontSize = settingStorage:get("ui.fontSize")
+    if fontSize and fontSize > 18 then
+        this.setValue("ui.fontSize", 16)
+    end
+end
+this.setLocal("version", this.default.version)
 
 
 return this

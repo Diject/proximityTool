@@ -139,11 +139,11 @@ I.Settings.registerGroup{
     order = 0,
     settings = {
         boolSetting{key = "enabled", name = "enableMod", default = config.default.enabled},
+        numberSetting{key = "ui.fontSize", name = "fontSize", description = "fontSizeDescription", integer = true, min = 10, max = 100, default = config.default.ui.fontSize},
         numberSetting{key = "updateInterval", name = "updateInterval", description = "updateIntervalDescription", integer = true, min = 1, max = 1000, default = config.default.updateInterval},
         numberSetting{key = "objectPosUpdateInterval", name = "objectPosUpdateInterval", description = "objectPosUpdateIntervalDescription", min = 0, max = 10, default = config.default.objectPosUpdateInterval},
         numberSetting{key = "ui.size.x", name = "windowSizeX", description = "windowSizeXDescription", integer = true, min = 10, max = 100, default = config.default.ui.size.x},
         numberSetting{key = "ui.size.y", name = "windowSizeY", description = "windowSizeYDescription", integer = true, min = 10, max = 100, default = config.default.ui.size.y},
-        numberSetting{key = "ui.fontSize", name = "fontSize", description = "fontSizeDescription", integer = true, min = 10, max = 100, default = config.default.ui.fontSize},
         numberSetting{key = "ui.mouseScrollAmount", name = "mouseScrollAmount", description = "mouseScrollAmountDescription", integer = true, min = 1, max = 200, default = config.default.ui.mouseScrollAmount},
         numberSetting{key = "ui.maxAlpha", name = "maxAlpha", description = "maxAlphaDescription", min = 20, max = 100, default = config.default.ui.maxAlpha},
         boolSetting{key = "ui.hideWindow", name = "hideWindow", description = "hideWindowDescription", default = config.default.ui.hideWindow},
