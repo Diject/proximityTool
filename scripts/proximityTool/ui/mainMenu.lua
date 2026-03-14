@@ -40,6 +40,8 @@ local l10n = core.l10n(commonData.l10nKey)
 
 local this = {}
 
+local screenSize = uiUtils.getScaledScreenSize()
+
 local elementRelPos = util.vector2(config.data.ui.positionInMenu.x / 100, config.data.ui.positionInMenu.y / 100)
 
 this.hiddenGroupElement = {
@@ -129,7 +131,7 @@ local function createGroup(groupName, params)
     if parentIndex then return end
 
     local groupNameText = groupName
-    local groupNameFontSize = config.data.ui.fontSize * 1.1
+    local groupNameFontSize = math.floor(config.data.ui.fontSize * 1.1)
     local strLen = utf8.len(groupName) or string.len(groupName)
     if strLen > 0 and string.sub(groupName, 1, 1) == "~"
             or groupNameText == commonData.hiddenGroupId or groupNameText == commonData.defaultGroupId then
@@ -154,6 +156,7 @@ local function createGroup(groupName, params)
             orderCounter = 0,
             alpha = config.data.ui.maxAlpha * 0.01,
             groupName = groupName,
+            height = groupNameFontSize + config.data.ui.fontSize,
         },
         name = groupName,
         content = ui.content{
@@ -528,6 +531,9 @@ function this.registerMarker(activeMarker)
         name = elementId,
         content = ui.content(content),
     }
+
+    local elementHeight = uiUtils.getElementHeight(uiData)
+    uiData.userData.height = elementHeight
 
     local function updateInGroupIfExists(grName)
         local grContent = (getMarkerParentElement(grName) or {}).content
@@ -1047,6 +1053,7 @@ function this.update(params)
     local cameraYaw = camera.getYaw() + camera.getExtraYaw()
 
     local doUpdate = params.force or false
+    local doLayoutUpdate = params.force or false
 
     local alphaAdditiveVal = params.force and 1 or config.data.updateInterval / 1500
     local alphaAdditiveValAlt = params.force and 1 or alphaAdditiveVal * 1.5
@@ -1073,6 +1080,7 @@ function this.update(params)
                 if element.props.visible then
                     element.props.alpha = params.force and 0 or element.props.alpha - alphaAdditiveVal
                     doUpdate = true
+                    doLayoutUpdate = true
                     if element.props.alpha <= 0 then
                         element.userData.locked = true
                         element.props.alpha = 0
@@ -1113,6 +1121,7 @@ function this.update(params)
                             parent.content.__nameIndex[elem2.name], parent.content.__nameIndex[element.name]
                         parent.content[index], parent.content[i] = element, elem2
                         doUpdate = true
+                        doLayoutUpdate = true
                     end
 
                     goto continue
@@ -1133,6 +1142,7 @@ function this.update(params)
                 if not element.props.visible then
                     element.props.visible = true
                     doUpdate = true
+                    doLayoutUpdate = true
                 end
 
                 if parent.userData and parent.userData.groupName and parent.userData.groupName == commonData.hiddenGroupId then
@@ -1146,6 +1156,7 @@ function this.update(params)
                         uiUtils.removeFromContent(parent.content, i)
                         groupElement.content:add(element)
                         doUpdate = true
+                        doLayoutUpdate = true
                         goto continue
                     end
                 end
@@ -1171,6 +1182,7 @@ function this.update(params)
             if not trackingData.isValid then
                 uiUtils.removeFromContent(contentOwner.content, i)
                 doUpdate = true
+                doLayoutUpdate = true
                 goto continue
             end
 
@@ -1179,6 +1191,7 @@ function this.update(params)
             if not topMarkerRecord then
                 uiUtils.removeFromContent(contentOwner.content, i)
                 doUpdate = true
+                doLayoutUpdate = true
                 goto continue
             end
 
@@ -1266,6 +1279,7 @@ function this.update(params)
                 elseif not next(trackingPositionsData) then
                     uiUtils.removeFromContent(contentOwner.content, i)
                     doUpdate = true
+                    doLayoutUpdate = true
                     goto continue
                 end
 
@@ -1285,6 +1299,7 @@ function this.update(params)
             if not trackingPos then
                 uiUtils.removeFromContent(contentOwner.content, i)
                 doUpdate = true
+                doLayoutUpdate = true
                 goto continue
             end
 
@@ -1301,6 +1316,7 @@ function this.update(params)
             local hide = (distance > trackingData.proximity) or (trackingData.alpha <= 0) or trackingData.hidden
             if elem.userData.disabled ~= hide then
                 doUpdate = true
+                doLayoutUpdate = true
             end
             elem.userData.disabled = hide
             if not elem.props.visible and hide then
@@ -1373,6 +1389,7 @@ function this.update(params)
         if not elem.userData.isProtected and #contentElement.content == 0 then
             uiUtils.removeFromContent(parentElement.content, i)
             doUpdate = true
+            doLayoutUpdate = true
             goto continue
         end
 
@@ -1385,16 +1402,23 @@ function this.update(params)
 
     orderAndOpacity(parentElement)
 
-    if doUpdate then
+    if doLayoutUpdate then
         local mainFlex = getMainFlex()
         if mainFlex then
+            local maxHeight = screenSize.y * config.data.ui.size.y / 100 - (config.data.ui.fontSize * 1.2 + 8)
             mainFlex.content = ui.content{}
-            local maxLines = this.maxLines or 999
             for i, groupData in ipairs(this.markerElementsData.content) do
                 local group = tableLib.copy(groupData)
                 group.content = ui.content{}
-                for _, elem in ipairs(groupData.content) do
-                    group.content:add(tableLib.copy(elem))
+
+                if maxHeight >= (group.userData.height - config.data.ui.fontSize) then
+                    for _, elem in ipairs(groupData.content) do
+                        group.content:add(tableLib.copy(elem))
+                    end
+
+                    maxHeight = maxHeight - group.userData.height
+                else
+                    goto endLabel
                 end
 
                 local content = ui.content{}
@@ -1402,20 +1426,22 @@ function this.update(params)
 
                 mainFlex.content:add(group)
 
-                maxLines = maxLines - 1
                 for i, elem in ipairs(groupData.content[2].content) do
-                    if maxLines > 0 then
-                        maxLines = maxLines - 1
+                    if maxHeight >= elem.userData.height then
                         content:add(elem)
+                        maxHeight = maxHeight - elem.userData.height
                     else
                         goto endLabel
                     end
                 end
-                if maxLines <= 0 then goto endLabel end
+                if maxHeight <= 0 then goto endLabel end
             end
 
             ::endLabel::
         end
+    end
+
+    if doUpdate then
         this.element:update()
     end
 end
