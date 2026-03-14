@@ -201,7 +201,7 @@ end
 
 ---@param activeMarker proximityTool.activeMarker
 function this.registerMarker(activeMarker)
-    if not activeMarker or not this.element then return end
+    if not activeMarker or not this.element or not this.element.layout then return end
 
     local elementId = activeMarker.markerId or uniqueId.get()
 
