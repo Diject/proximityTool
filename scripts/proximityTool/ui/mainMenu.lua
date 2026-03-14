@@ -37,6 +37,9 @@ local addInterval = require("scripts.proximityTool.ui.interval")
 
 local l10n = core.l10n(commonData.l10nKey)
 
+local ellipsis = l10n("ellipsis")
+local ellipsisLen = (utf8.len(ellipsis) or string.len(ellipsis)) / 2
+
 
 local this = {}
 
@@ -112,6 +115,15 @@ local function onMouseWheelCallback(layout, value)
 end
 
 
+local function getLimitedStr(str)
+    if (utf8.len(str) or string.len(str)) > config.data.maxStrLength + ellipsisLen then
+        return string.sub(str, 1, utf8.offset(str, config.data.maxStrLength))..ellipsis
+    else
+        return str
+    end
+end
+
+
 ---@param groupName string
 ---@param params {priority : number?, protected : boolean?}?
 local function createGroup(groupName, params)
@@ -130,7 +142,7 @@ local function createGroup(groupName, params)
     local parentIndex = parentContent:indexOf(groupName)
     if parentIndex then return end
 
-    local groupNameText = groupName
+    local groupNameText = getLimitedStr(groupName)
     local groupNameFontSize = math.floor(config.data.ui.fontSize * 1.1)
     local strLen = utf8.len(groupName) or string.len(groupName)
     if strLen > 0 and string.sub(groupName, 1, 1) == "~"
@@ -347,7 +359,7 @@ function this.registerMarker(activeMarker)
                 data = activeMarker,
             },
             props = {
-                text = topRecord.name,
+                text = getLimitedStr(topRecord.name),
                 textSize = config.data.ui.fontSize,
                 multiline = false,
                 wordWrap = false,
@@ -411,7 +423,7 @@ function this.registerMarker(activeMarker)
                 type = ui.TYPE.Text,
                 name = rDt.noteId,
                 props = {
-                    text = tostring(rec.note):sub(1, 50),
+                    text = getLimitedStr(tostring(rec.note)),
                     textColor = noteColor,
                     textSize = config.data.ui.fontSize,
                     multiline = false,

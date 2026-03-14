@@ -177,6 +177,7 @@ I.Settings.registerGroup{
     settings = {
         boolSetting{key = "enabled", name = "enableMod", default = config.default.enabled},
         numberSetting{key = "ui.fontSize", name = "fontSize", description = "fontSizeDescription", integer = true, min = 10, max = 100, default = config.default.ui.fontSize},
+        numberSetting{key = "maxStrLength", name = "maxStrLength", description = "maxStrLengthDescription", integer = true, min = 1, default = config.default.maxStrLength},
         numberSetting{key = "updateInterval", name = "updateInterval", description = "updateIntervalDescription", integer = true, min = 1, max = 1000, default = config.default.updateInterval},
         numberSetting{key = "objectPosUpdateInterval", name = "objectPosUpdateInterval", description = "objectPosUpdateIntervalDescription", min = 0, max = 10, default = config.default.objectPosUpdateInterval},
         numberSetting{key = "ui.size.x", name = "windowSizeX", description = "windowSizeXDescription", integer = true, min = 10, max = 100, default = config.default.ui.size.x},

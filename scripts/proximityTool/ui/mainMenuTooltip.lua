@@ -22,6 +22,7 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
         local tooltipLayoutContent = ui.content {}
 
         local screenSize = uiUtils.getScaledScreenSize()
+        local fontSize = config.data.ui.fontSize + 5
 
         local function drawDescription(record)
             if not record.description then return end
@@ -42,20 +43,20 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
                 if str and str ~= "" then
                     added = true
 
-                    textWidth = textWidth or math.min(screenSize.x * 0.5, (utf8.len(str) or string.len(str)) * config.data.ui.fontSize * 0.7)
-                    local textHeight = uiUtils.getTextHeight(str, config.data.ui.fontSize, textWidth, 0.7)
+                    textWidth = textWidth or math.min(screenSize.x * 0.4, (utf8.len(str) or string.len(str)) * fontSize * 0.7)
 
                     line.content:add{
-                        type = ui.TYPE.Text,
+                        type = ui.TYPE.TextEdit,
                         props = {
                             text = str,
-                            textSize = config.data.ui.fontSize,
+                            textSize = fontSize,
                             multiline = true,
                             wordWrap = true,
-                            autoSize = false,
-                            size = util.vector2(textWidth, textHeight),
+                            autoSize = true,
+                            size = util.vector2(textWidth, 0),
                             textAlignH = ui.ALIGNMENT.Center,
                             textAlignV = ui.ALIGNMENT.Center,
+                            readOnly = true,
                             textColor = color or config.data.ui.defaultColor,
                         },
                     }
@@ -76,7 +77,7 @@ function this.tooltipMoveOrCreate(coord, layout, forRecord)
                 addDescrLine(record.description, color)
             else
                 for i, str in pairs(record.description) do ---@diagnostic disable-line: param-type-mismatch
-                    textWidth = math.max(textWidth or 0, math.min(screenSize.x * 0.5, (utf8.len(str) or string.len(str)) * config.data.ui.fontSize * 0.7))
+                    textWidth = math.max(textWidth or 0, math.min(screenSize.x * 0.4, (utf8.len(str) or string.len(str)) * fontSize * 0.7))
                 end
 
                 for i, str in ipairs(record.description) do ---@diagnostic disable-line: param-type-mismatch

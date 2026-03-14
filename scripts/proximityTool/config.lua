@@ -24,6 +24,7 @@ this.default = {
     updateInterval = 80, -- ms
     objectPosUpdateInterval = 3, -- s,
     keyToToggleHUDVisibility = nil,
+    maxStrLength = 25,
     input = {
         initialized = false,
     },
@@ -35,7 +36,7 @@ this.default = {
         showHeader = false,
         helpTooltips = true,
         imperialUnits = false,
-        fontSize = 16,
+        fontSize = 15,
         mouseScrollAmount = 40,
         defaultColor = common.defaultColor,
         maxAlpha = 100,
@@ -104,7 +105,7 @@ end
 if not localStorage:get("version") then
     local fontSize = settingStorage:get("ui.fontSize")
     if fontSize and fontSize > 18 then
-        this.setValue("ui.fontSize", 16)
+        this.setValue("ui.fontSize", 15)
     end
 end
 this.setLocal("version", this.default.version)
