@@ -835,7 +835,6 @@ function this.create(params)
         {
             template = I.MWUI.templates.boxSolid,
             props = {
-                autoSize = true,
                 inheritAlpha = false,
             },
             userData = {
@@ -993,9 +992,9 @@ function this.create(params)
 
     base = mainWindowBox(parentContent, params.showBorder, {})
     base.props = {
-        autoSize = true,
-        horizontal = false,
-        arrange = uiUtils.convertAlign(config.data.ui.align),
+        -- autoSize = true,
+        -- horizontal = false,
+        -- arrange = uiUtils.convertAlign(config.data.ui.align),
         relativePosition = position,
         anchor = util.vector2(1, 0),
         alpha = isMainHidden and 0 or 1,
