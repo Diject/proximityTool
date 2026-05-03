@@ -1,5 +1,6 @@
 local storage = require('openmw.storage')
 local async = require('openmw.async')
+local I = require('openmw.interfaces')
 
 local common = require("scripts.proximityTool.common")
 
@@ -57,6 +58,10 @@ this.default = {
     },
 }
 
+this.keyToTriggerMap = {
+    ["keyToToggleHUDVisibility"] = common.toggleHUDTriggerId,
+}
+
 
 ---@class proximityTool.config
 this.data = {}
@@ -73,7 +78,12 @@ end
 for _, section in pairs(this.storageSections) do
     section:subscribe(async:callback(function(s, key)
         if key then
-            tableLib.setValueByPath(this.data, key, section:get(key))
+            local value = section:get(key)
+            tableLib.setValueByPath(this.data, key, value)
+
+            if this.keyToTriggerMap[key] and I.DijectKeyBindings then
+                I.DijectKeyBindings.registerKey(this.keyToTriggerMap[key], value)
+            end
         else
             this.loadFromStorage(section)
         end
