@@ -605,6 +605,14 @@ local function removeHUDMModMarkers(modName)
 end
 
 
+local forbiddenUIModes = {
+    ["Book"] = true,
+    ["Scroll"] = true,
+    ["Alchemy"] = true,
+    ["Repair"] = true,
+    ["Enchanting"] = true,
+}
+
 
 return {
     interfaceName = "proximityTool",
@@ -646,6 +654,8 @@ return {
                     mainMenu.update{force = true}
                 end
             elseif data.newMode ~= nil and config.data.ui.hideHUDInMenus then
+                mainMenu.destroy()
+            elseif forbiddenUIModes[data.newMode] then
                 mainMenu.destroy()
             end
 
