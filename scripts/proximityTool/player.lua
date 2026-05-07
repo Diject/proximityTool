@@ -611,6 +611,7 @@ local forbiddenUIModes = {
     ["Alchemy"] = true,
     ["Repair"] = true,
     ["Enchanting"] = true,
+    ["Recharge"] = true,
 }
 
 
