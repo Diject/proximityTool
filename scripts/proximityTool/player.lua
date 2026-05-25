@@ -651,7 +651,7 @@ return {
                 mainMenu.create{showBorder = false}
             elseif data.newMode == "Interface" then
                 mainMenu.create{showBorder = true}
-                for i = 1, 3 do
+                for i = 1, 4 do
                     mainMenu.update{force = true}
                 end
             elseif data.newMode ~= nil and config.data.ui.hideHUDInMenus then

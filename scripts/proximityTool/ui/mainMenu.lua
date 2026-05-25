@@ -594,6 +594,11 @@ end
 function this.create(params)
     if not params then params = {} end
     if this.element then
+        if this.element.layout.userData and this.element.layout.userData.params then
+            if this.element.layout.userData.params.showBorder == params.showBorder then
+                return
+            end
+        end
         markerParentElement = nil
         this.element:destroy()
         mainMenuSafeContainer.element = nil
@@ -1003,6 +1008,7 @@ function this.create(params)
     }
     base.layer = params.showBorder and "Windows" or "HUD"
     base.userData.scrollEvents = scrollEvents
+    base.userData.params = params
 
     this.maxLines = not params.showBorder and math.ceil(screenSize.y * config.data.ui.size.y / 100 / config.data.ui.fontSize) or 999
 
@@ -1065,6 +1071,7 @@ function this.update(params)
 
     local doUpdate = params.force or false
     local doLayoutUpdate = params.force or false
+    local hasVisible = false
 
     local alphaAdditiveVal = params.force and 1 or config.data.updateInterval / 1500
     local alphaAdditiveValAlt = params.force and 1 or alphaAdditiveVal * 1.5
@@ -1147,6 +1154,10 @@ function this.update(params)
                     elseif element.props.alpha > element.userData.alpha then
                         element.props.alpha = params.force and 0 or math.max(element.props.alpha - alphaAdditiveVal, element.userData.alpha)
                         doUpdate = true
+                    end
+
+                    if element.userData.alpha > 0 then
+                        hasVisible = true
                     end
                 end
 
@@ -1453,6 +1464,8 @@ function this.update(params)
     end
 
     if doUpdate then
+        this.element.layout.props.visible = hasVisible
+
         this.element:update()
     end
 end
