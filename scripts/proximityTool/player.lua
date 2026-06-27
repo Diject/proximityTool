@@ -728,7 +728,9 @@ return {
             end
 
             local layout = mainMenu.element.layout
-            onMouseWheelCallback(layout.content)
+            if layout then
+                onMouseWheelCallback(layout.content)
+            end
         end,
     },
 }

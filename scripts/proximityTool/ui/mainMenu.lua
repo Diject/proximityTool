@@ -593,7 +593,7 @@ end
 
 function this.create(params)
     if not params then params = {} end
-    if this.element then
+    if this.element and this.element.layout then
         if this.element.layout.userData and this.element.layout.userData.params then
             if this.element.layout.userData.params.showBorder == params.showBorder then
                 return
@@ -1051,10 +1051,12 @@ function this.update(params)
     if not this.element or not this.element.layout then return end
     if not params then params = {} end
 
-    local visible = this.element.layout.layer ~= "HUD" or UI.isHudVisible()
-    if visible ~= this.element.layout.props.visible then
-        this.element.layout.props.visible = visible
-        this.element:update()
+    local visible = this.element.layout.layer ~= "HUD" or (not config.data.ui.hideHUD and UI.isHudVisible())
+    if not visible then
+        if visible ~= this.element.layout.props.visible then
+            this.element.layout.props.visible = visible
+            this.element:update()
+        end
         return
     end
 
@@ -1463,7 +1465,7 @@ function this.update(params)
         end
     end
 
-    if doUpdate then
+    if doUpdate or this.element.layout.props.visible ~= hasVisible then
         this.element.layout.props.visible = hasVisible
 
         this.element:update()
