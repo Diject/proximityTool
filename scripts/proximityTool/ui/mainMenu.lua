@@ -108,9 +108,9 @@ local function onMouseWheelCallback(layout, value)
     local scrollEvents = this.element.layout.userData.scrollEvents
 
     if value > 0 then
-        scrollEvents:scrollUp(config.data.ui.mouseScrollAmount)
+        scrollEvents:scrollUp(config.data.ui.mouseScrollAmount * value)
     elseif value < 0 then
-        scrollEvents:scrollDown(config.data.ui.mouseScrollAmount)
+        scrollEvents:scrollDown(config.data.ui.mouseScrollAmount * -value)
     end
 end
 
