@@ -1263,14 +1263,8 @@ function this.update(params)
                     end
 
                     if markerRecordData.objectIds and (not foundPos or trackAllTypes) then
-                        local trackedObjPositions = activeObjects.getClosestObjectPositionsByGroupName(markerRecordData.id, player, markerRecordData.itemId, filterDead)
-                        if trackedObjPositions and next(trackingPositionsData) then
-                            table.sort(trackedObjPositions, function (a, b)
-                                return (a.dif or math.huge) < (b.dif or math.huge)
-                            end)
-                        end
+                        local pos = activeObjects.getClosestObjectPositionByGroupName(markerRecordData.id, player, markerRecordData.itemId, filterDead)
 
-                        local pos = trackedObjPositions and trackedObjPositions[1]
                         if pos then
                             table.insert(trackingPositionsData, pos)
                             foundPos = true

@@ -80,21 +80,42 @@ function objectHandler:positions(refObject, itemId, withoutDead)
     return ret
 end
 
+
 ---@return {object: any, position : any, dif : number?}?
 function objectHandler:closestPosition(refObject, itemId, withoutDead)
 
-    local positions = self:positions(refObject, itemId, withoutDead)
+    local position, dif, obj = self:closestPositionOpt(refObject, itemId, withoutDead)
+    if not position then return end
 
+    return {object = obj, position = position, dif = dif}
+end
+
+
+---@return any? position
+---@return number? distance
+---@return any? object
+function objectHandler:closestPositionOpt(refObject, itemId, withoutDead)
     local position
-    if next(positions) then
-        table.sort(positions, function (a, b)
-            return (a.dif or math.huge) < (b.dif or math.huge)
-        end)
+    local dist = math.huge
+    local obj
 
-        position = positions[1]
+    for id, object in pairs(self.objects) do
+        if object:isValid() then
+            if not withoutDead or (Actor.objectIsInstance(object) and getHealth(object).current > 0) then
+                local _, pos, dif = this.getObjectPositionDataUnpacked(object, refObject, itemId)
+                if pos and (dif or math.huge) < dist then
+                    position = pos
+                    dist = dif ---@diagnostic disable-line: cast-local-type
+                    obj = object
+                end
+            end
+        else
+            self.objects[id] = nil
+            self.count = self.count - 1
+        end
     end
 
-    return position
+    return position, dist, obj
 end
 
 
@@ -111,6 +132,23 @@ function this.getObjectPositionData(object, refObject, itemId, withoutDead)
                 position = object.position,
                 dif = refObject and calcDistance(refObject, object)
             }
+        end
+
+    end
+end
+
+
+---@return any? object
+---@return any? position
+---@return number? dif
+function this.getObjectPositionDataUnpacked(object, refObject, itemId, withoutDead)
+    if not object then return end
+    if object:isValid() and object.enabled and object.cell
+            and playerRef.cell:isInSameSpace(object)
+            and (not withoutDead or (Actor.objectIsInstance(object) and getHealth(object).current > 0)) then
+
+        if not itemId or inventoryLib.countOf(object, itemId, true, 1) > 0 then
+            return object, object.position, refObject and calcDistance(refObject, object) or nil
         end
 
     end
@@ -193,7 +231,7 @@ end
 
 
 ---@param groupName string
----@return {object: any, position : any, dif : number?}?
+---@return {object: any, position : any, dif : number?}[]
 function this.getClosestObjectPositionsByGroupName(groupName, refToCompare, itemId, withoutDead)
     local res = {}
     for _, recordId in pairs(this.objectRecordIdsByGroupId[groupName] or {}) do
@@ -201,7 +239,9 @@ function this.getClosestObjectPositionsByGroupName(groupName, refToCompare, item
         if not objHandler or objHandler.count == 0 then goto continue end
 
         local position = objHandler:closestPosition(refToCompare, itemId, withoutDead)
-        table.insert(res, position)
+        if position then
+            table.insert(res, position)
+        end
 
         ::continue::
     end
@@ -210,27 +250,54 @@ function this.getClosestObjectPositionsByGroupName(groupName, refToCompare, item
 end
 
 
+---@param groupName string
+---@return {object: any, position : any, dif : number?}?
+function this.getClosestObjectPositionByGroupName(groupName, refToCompare, itemId, withoutDead)
+    local position
+    local dist = math.huge
+    local object
+    for _, recordId in pairs(this.objectRecordIdsByGroupId[groupName] or {}) do
+        local objHandler = this.data[recordId]
+        if not objHandler or objHandler.count == 0 then goto continue end
+
+        local pos, d, obj = objHandler:closestPositionOpt(refToCompare, itemId, withoutDead)
+        if pos and (d or math.huge) < dist then
+            position = pos
+            dist = d ---@diagnostic disable-line: cast-local-type
+            object = obj
+        end
+
+        ::continue::
+    end
+
+    if position then
+        return {object = object, position = position, dif = dist}
+    end
+end
+
+
 ---@param referenceList any[]
 ---@return {object: any, position : any, dif : number?}?
 function this.getClosestReferencePosition(referenceList, refObject, itemId, withoutDead)
-    local positions = {}
+    local position
+    local dist = math.huge
+    local object
+
     for id, ref in pairs(referenceList) do
         if ref:isValid() then
             if not withoutDead or (Actor.objectIsInstance(ref) and getHealth(ref).current > 0) then
-                local posData = this.getObjectPositionData(ref, refObject, itemId)
-                if posData then
-                    table.insert(positions, posData)
+                local obj, pos, d = this.getObjectPositionDataUnpacked(ref, refObject, itemId)
+                if pos and (d or math.huge) < dist then
+                    position = pos
+                    dist = d ---@diagnostic disable-line: cast-local-type
+                    object = obj
                 end
             end
         end
     end
 
-    if next(positions) then
-        table.sort(positions, function (a, b)
-            return (a.dif or math.huge) < (b.dif or math.huge)
-        end)
-
-        return positions[1]
+    if position then
+        return {object = object, position = position, dif = dist}
     end
 end
 
