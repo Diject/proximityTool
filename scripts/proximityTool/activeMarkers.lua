@@ -8,6 +8,7 @@ local tableLib = require("scripts.proximityTool.utils.table")
 local getObject = require("scripts.proximityTool.utils.getObject")
 local uniqueId = require("scripts.proximityTool.uniqueId")
 local common = require("scripts.proximityTool.common")
+local config = require("scripts.proximityTool.config")
 
 local mapData = require("scripts.proximityTool.data.mapDataHandler")
 local activeObjects = require("scripts.proximityTool.activeObjects")
@@ -19,6 +20,7 @@ local this = {}
 ---@field markerId string?
 ---@field markers table<string, proximityTool.activeMarkerData> by marker id
 ---@field topMarker proximityTool.activeMarkerData?
+---@field topIconMarker proximityTool.activeMarkerData?
 ---@field groupName string
 ---@field nextUpdate number
 ---@field lastTrackedObject any
@@ -29,6 +31,11 @@ local this = {}
 
 ---@type table<string, proximityTool.activeMarker> by record id
 this.data = {}
+
+
+local function getNexUpdateTimestamp(val)
+    return val + config.data.objectPosUpdateInterval * (1 + (math.random() - 0.5) * 0.5)
+end
 
 
 ---@param markerData proximityTool.activeMarkerData
@@ -60,15 +67,20 @@ local activeMarker = {}
 activeMarker.__index = activeMarker
 
 
----@return proximityTool.activeMarkerData?
+---@return proximityTool.activeMarkerData? topRecord
+---@return proximityTool.activeMarkerData? topRecordWithIcon
 function activeMarker:getTopPriorityRecord()
     local topRecord
+    local topIconRecord
     for markerId, data in pairs(self.markers) do
         if not topRecord or topRecord.record.priority < data.record.priority then
             topRecord = data
         end
+        if data.record.icon and (not topIconRecord or topIconRecord.record.priority < data.record.priority) then
+            topRecord = data
+        end
     end
-    return topRecord
+    return topRecord, topIconRecord
 end
 
 ---@param eventName string
@@ -98,6 +110,112 @@ function activeMarker:removeRecord(recordId)
         self.isValid = false
         this.data[recordId] = nil
     end
+end
+
+function activeMarker:getClosestPos()
+    local posData = {}
+
+    local resultPos, resultObject
+    local timestamp = core.getRealTime()
+
+    if self.nextUpdate < timestamp or not self.lastTrackedObject then
+        ---@type proximityTool.activeMarkerData?
+        local topMarkerRecord = self.topMarker
+        if not topMarkerRecord then return end
+
+        for _, markerRecord in pairs(self.markers) do
+
+            local markerRecordData = markerRecord.marker
+            local filterDead = markerRecord.record.options and markerRecord.record.options.hideDead
+
+            local foundPos = false
+            local trackAllTypes = markerRecord.record.options and markerRecord.record.options.trackAllTypesTogether
+
+            if markerRecordData.object then
+                local objectRef = markerRecordData.object
+                local posData = activeObjects.getObjectPositionData(objectRef, nil, markerRecordData.itemId, filterDead)
+                if posData then
+                    table.insert(posData, posData)
+                    foundPos = true
+                end
+            end
+
+            if markerRecordData.objects then
+                local posData = activeObjects.getClosestReferencePosition(markerRecordData.objects, player, markerRecordData.itemId, filterDead)
+                if posData then
+                    table.insert(posData, posData)
+                    foundPos = true
+                end
+            end
+
+            if markerRecordData.objectId and (not foundPos or trackAllTypes) then
+                local trackedObjPosition = activeObjects.getClosestObjectPosition(markerRecordData.objectId, player, markerRecordData.itemId, filterDead)
+                if trackedObjPosition then
+                    table.insert(posData, trackedObjPosition)
+                    foundPos = true
+                end
+            end
+
+            if markerRecordData.objectIds and (not foundPos or trackAllTypes) then
+                local pos = activeObjects.getClosestObjectPositionByGroupName(markerRecordData.id, player, markerRecordData.itemId, filterDead)
+
+                if pos then
+                    table.insert(posData, pos)
+                    foundPos = true
+                end
+            end
+
+            if markerRecordData.positions and (not foundPos or trackAllTypes) then
+                local pos, distance = cellLib.getClosestPosition(markerRecordData.positions)
+
+                if pos then
+                    table.insert(posData, {dif = distance, object = {position = pos}})
+                    foundPos = true
+                end
+            end
+        end
+
+        if not next(posData) then
+            return
+        end
+
+
+        table.sort(posData, function (a, b)
+            return (a.dif or math.huge) < (b.dif or math.huge)
+        end)
+        local closest = posData[1]
+        resultObject = closest.object
+        resultPos = resultObject.position
+        if not closest.object.isValid then
+            closest.object.isValid = function ()
+                return topMarkerRecord.isValid and self.isValid
+            end
+        end
+        self.lastTrackedObject = closest.object
+        self.nextUpdate = getNexUpdateTimestamp(timestamp)
+
+    else
+        resultObject = self.lastTrackedObject
+        resultPos = resultObject.position
+    end
+
+    return resultPos, resultObject
+end
+
+---@return number? distance3D
+---@return number? distance2D
+---@return number? zDistance negative if player is below the marker, positive if above
+---@return any? targetObject
+function activeMarker:getDistancesToPlayer()
+    local targetPos, targetObj = self:getClosestPos()
+    if not targetPos then return end
+    local playerPos = player.position
+
+    local distance3D = (playerPos - targetPos):length()
+    local distance2D = math.sqrt((playerPos.x - targetPos.x)^2 + (playerPos.y - targetPos.y)^2)
+    local zDistance = playerPos.z - targetPos.z
+
+    return distance3D, distance2D, zDistance, targetObj
 end
 
 ---@return number
@@ -175,7 +293,7 @@ function activeMarker:update()
     end
 
     if foundValid then
-        self.topMarker = self:getTopPriorityRecord()
+        self.topMarker, self.topIconMarker = self:getTopPriorityRecord()
         self.proximity = self:calcProximityValue()
         self.priority = self:calcPriorityValue()
         self.alpha = self:calcAlphaValue()
@@ -318,7 +436,7 @@ function this.register(params)
     marker.isValid = true
 
     ---@type proximityTool.activeMarkerData?
-    marker.topMarker = marker:getTopPriorityRecord()
+    marker.topMarker, marker.topIconMarker = marker:getTopPriorityRecord()
     ---@type number
     marker.proximity = marker:calcProximityValue()
     ---@type number
@@ -331,6 +449,11 @@ function this.register(params)
     marker.trackAllTypes = marker.topMarker.record.options and marker.topMarker.record.options.trackAllTypesTogether or false
 
     this.data[activeMarkerId] = marker
+    if shouldCreateUIElement then
+        player:sendEvent("proximityTool:activeMarkerAdded", activeMarkerId)
+    else
+        player:sendEvent("proximityTool:activeMarkerUpdated", activeMarkerId)
+    end
 
     return marker, shouldCreateUIElement
 end
@@ -375,8 +498,20 @@ function this.update(recordId)
         actMarker:update()
         if not actMarker.isValid then
             this.data[activeMarkerId] = nil
+            player:sendEvent("proximityTool:activeMarkerRemoved", activeMarkerId)
         end
     end
+end
+
+
+---@return fun(): string, proximityTool.activeMarker iterator marker id, marker data
+function this.iterator()
+    local function iterator()
+        for id, data in pairs(this.data) do
+            coroutine.yield(id, data)
+        end
+    end
+    return coroutine.wrap(iterator)
 end
 
 
