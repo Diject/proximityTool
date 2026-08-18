@@ -196,5 +196,6 @@ I.Settings.registerGroup{
         color{key = "ui.defaultColor", name = "defaultColor", description = "defaultColorDescription", default = config.default.ui.defaultColor},
         numberSetting{key = "ui.position.x", name = "positionX", description = "positionXDescription", min = 0, max = 100, default = config.default.ui.position.x},
         numberSetting{key = "ui.position.y", name = "positionY", min = 0, max = 100, default = config.default.ui.position.y},
+        boolSetting{key = "horizontalCompassIntegration", name = "horizontalCompassIntegration", description = "horizontalCompassIntegrationDescription", default = config.default.horizontalCompassIntegration},
     },
 }

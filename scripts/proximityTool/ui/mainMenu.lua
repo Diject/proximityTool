@@ -65,11 +65,6 @@ local mainMenuSafeContainer = safeContainers.new("mainMenu")
 local markerParentElement = nil
 
 
-local function getNexUpdateTimestamp(val)
-    return val + config.data.objectPosUpdateInterval * (1 + (math.random() - 0.5) * 0.5)
-end
-
-
 local function getMainFlex()
     if not this.element or not this.element.layout then return end
 
@@ -605,7 +600,7 @@ function this.create(params)
         this.markerElementsData = nil
     end
 
-    if config.data.ui.hideHUD and not params.showBorder then return end
+    if (config.data.ui.hideHUD or config.data.ui.hideHUDAlt) and not params.showBorder then return end
     if config.data.ui.hideWindow and params.showBorder then return end
 
     local screenSize = uiUtils.getScaledScreenSize()
@@ -1223,108 +1218,15 @@ function this.update(params)
                 goto continue
             end
 
-            local trackingPos
-            ---@type {object: any, position : any, dif : number?}[]
-            local trackingPositionsData = {}
-
-            if trackingData.nextUpdate < timestamp or not trackingData.lastTrackedObject then
-
-                for _, markerRecord in pairs(trackingData.markers) do
-
-                    local markerRecordData = markerRecord.marker
-                    local filterDead = markerRecord.record.options and markerRecord.record.options.hideDead
-
-                    local foundPos = false
-                    local trackAllTypes = markerRecord.record.options and markerRecord.record.options.trackAllTypesTogether
-
-                    if markerRecordData.object then
-                        local objectRef = markerRecordData.object
-                        local posData = activeObjects.getObjectPositionData(objectRef, nil, markerRecordData.itemId, filterDead)
-                        if posData then
-                            table.insert(trackingPositionsData, posData)
-                            foundPos = true
-                        end
-                    end
-
-                    if markerRecordData.objects then
-                        local posData = activeObjects.getClosestReferencePosition(markerRecordData.objects, player, markerRecordData.itemId, filterDead)
-                        if posData then
-                            table.insert(trackingPositionsData, posData)
-                            foundPos = true
-                        end
-                    end
-
-                    if markerRecordData.objectId and (not foundPos or trackAllTypes) then
-                        local trackedObjPosition = activeObjects.getClosestObjectPosition(markerRecordData.objectId, player, markerRecordData.itemId, filterDead)
-                        if trackedObjPosition then
-                            table.insert(trackingPositionsData, trackedObjPosition)
-                            foundPos = true
-                        end
-                    end
-
-                    if markerRecordData.objectIds and (not foundPos or trackAllTypes) then
-                        local pos = activeObjects.getClosestObjectPositionByGroupName(markerRecordData.id, player, markerRecordData.itemId, filterDead)
-
-                        if pos then
-                            table.insert(trackingPositionsData, pos)
-                            foundPos = true
-                        end
-                    end
-
-                    if markerRecordData.positions and (not foundPos or trackAllTypes) then
-                        local pos, distance = cellLib.getClosestPosition(markerRecordData.positions)
-
-                        if pos then
-                            table.insert(trackingPositionsData, {dif = distance, object = {position = pos}})
-                            foundPos = true
-                        end
-                    end
-                end
-
-                if topMarkerRecord.type == 16 then
-                    elem.userData.priority = trackingData.priority
-                    local textIndex = elem.content[1].userData.textIndex
-                    if elem.content[1].content[textIndex or 6].props.text ~= topMarkerRecord.record.name then
-                        elem.content[1].content[textIndex or 6].props.text = topMarkerRecord.record.name
-                        doUpdate = true
-                    end
-                    elem.userData.distance = 0
-                    elem.userData.distance2D = 0
-                    elem.userData.heightDiff = 0
-                    elem.userData.alpha = params.force and 1 or math.min(trackingData.alpha, config.data.ui.maxAlpha * 0.01)
-                    goto continue
-
-                elseif not next(trackingPositionsData) then
-                    uiUtils.removeFromContent(contentOwner.content, i)
-                    doUpdate = true
-                    doLayoutUpdate = true
-                    goto continue
-                end
-
-
-                table.sort(trackingPositionsData, function (a, b)
-                    return (a.dif or math.huge) < (b.dif or math.huge)
-                end)
-                local closest = trackingPositionsData[1]
-                trackingPos = closest.object.position
-                trackingData.lastTrackedObject = closest.object
-                trackingData.nextUpdate = getNexUpdateTimestamp(timestamp)
-
-            else
-                trackingPos = trackingData.lastTrackedObject.position
-            end
-
-            if not trackingPos then
+            local distance, distance2D, heightDiff, trackingObj = trackingData:getDistancesToPlayer()
+            if not distance or not trackingObj then
                 uiUtils.removeFromContent(contentOwner.content, i)
                 doUpdate = true
                 doLayoutUpdate = true
                 goto continue
             end
 
-
-            local distance = (playerPos - trackingPos):length()
-            local distance2D = math.sqrt((playerPos.x - trackingPos.x)^2 + (playerPos.y - trackingPos.y)^2)
-            local heightDiff = playerPos.z - trackingPos.z
+            local trackingPos = trackingObj.position
 
             elem.userData.distance = distance
             elem.userData.distance2D = distance2D

@@ -6,6 +6,7 @@ local time = require('openmw_aux.time')
 local player = require('openmw.self')
 local async = require('openmw.async')
 local storage = require('openmw.storage')
+local UI = I.UI
 
 local common = require("scripts.proximityTool.common")
 
@@ -13,6 +14,7 @@ local log = require("scripts.proximityTool.utils.log")
 local uniqueId = require("scripts.proximityTool.uniqueId")
 local activeObjects = require("scripts.proximityTool.activeObjects")
 local hudmHandler = require("scripts.proximityTool.hudmHandler")
+local horizontalCompassHandler = require("scripts.proximityTool.horizontalCompassHandler")
 local cellLib = require("scripts.proximityTool.cell")
 
 local getObject = require("scripts.proximityTool.utils.getObject")
@@ -126,6 +128,7 @@ end
 
 local function updateTimer()
     mainMenu.update()
+    horizontalCompassHandler.update()
 end
 
 local stopTimer = time.runRepeatedly(updateTimer, config.data.updateInterval / 1000 * time.second, { type = time.SimulationTime })
@@ -242,6 +245,7 @@ local function registerMarker(markerData)
     if not marker then return end
 
     mainMenu.registerMarker(marker)
+    horizontalCompassHandler.registerMarker(marker)
 end
 
 
@@ -615,10 +619,20 @@ local forbiddenUIModes = {
 }
 
 
+local function destroyMenu()
+    mainMenu.destroy()
+end
+
+---@return proximityTool.config
+local function getConfig()
+    return config.data
+end
+
+
 return {
     interfaceName = "proximityTool",
     interface = {
-        version = 2,
+        version = 3,
         addMarker = addMarker,
         addRecord = addRecord,
         addHUDM = addHUDMarker,
@@ -641,6 +655,11 @@ return {
         removeGroupNameMarkers = removeGroupNameMarkers,
         removeHUDMModMarkers = removeHUDMModMarkers,
 
+        destroyMenu = destroyMenu,
+        getConfig = getConfig,
+        ---@module "scripts.proximityTool.activeMarkers"
+        activeMarkersModule = activeMarkers,
+
         newRealTimer = realTimer.newTimer,
     },
     eventHandlers = {
@@ -657,6 +676,8 @@ return {
             elseif data.newMode ~= nil and config.data.ui.hideHUDInMenus then
                 mainMenu.destroy()
             elseif forbiddenUIModes[data.newMode] then
+                mainMenu.destroy()
+            elseif (config.data.ui.hideHUD or config.data.ui.hideHUDAlt) and data.newMode == nil then
                 mainMenu.destroy()
             end
 

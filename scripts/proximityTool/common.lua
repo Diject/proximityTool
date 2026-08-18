@@ -40,4 +40,8 @@ this.defaultColorData = {202/255, 165/255, 96/255}
 this.defaultColor = util.color.rgb(this.defaultColorData[1], this.defaultColorData[2], this.defaultColorData[3])
 
 
+this.qgDoorIconPath = "textures/icons/quest_guider/toDoorIcon.dds"
+this.qgMapMarkerIconPath = "textures/icons/quest_guider/mapMarker.dds"
+this.qgMapMarkerDoorIconPath = "textures/icons/quest_guider/mapMarker.dds"
+
 return this

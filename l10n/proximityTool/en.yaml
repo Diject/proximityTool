@@ -43,6 +43,8 @@ toggleHUDKey: "Toggle HUD Key"
 toggleHUDKeyDescription: "The key to show or hide the HUD window."
 maxStrLength: "Maximum Label Length"
 maxStrLengthDescription: "The maximum length of labels displayed by the mod. Longer labels will be truncated with an ellipsis."
+horizontalCompassIntegration: "Integrate with Horizontal Compass"
+horizontalCompassIntegrationDescription: "Integrate the mod's markers with the Horizontal Compass mod, if it is installed. This will hide the mod's HUD window and display markers on the compass instead. Requires restart."
 
 trackingAnchor: "Tracking:"
 trackingAnchorTooltip: "Click to show/hide. Drag to move."

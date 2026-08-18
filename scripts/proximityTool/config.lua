@@ -20,7 +20,7 @@ this.storageSections = {
 
 ---@class proximityTool.config
 this.default = {
-    version = 2,
+    version = 3,
     enabled = true,
     updateInterval = 80, -- ms
     objectPosUpdateInterval = 3, -- s,
@@ -31,6 +31,7 @@ this.default = {
     },
     ui = {
         hideHUD = false,
+        hideHUDAlt = false, -- alternative hideHUD settings to disable HUD menu when using Horizontal Compass mod
         hideWindow = false,
         hideHUDInMenus = false,
         minimizeToAnchor = true, -- in local storage
@@ -56,6 +57,7 @@ this.default = {
         },
         orderH = "Left to right", -- "Left to right", "Right to left"
     },
+    horizontalCompassIntegration = true,
 }
 
 this.keyToTriggerMap = {
