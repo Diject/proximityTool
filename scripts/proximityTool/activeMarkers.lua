@@ -133,17 +133,17 @@ function activeMarker:getClosestPos()
 
             if markerRecordData.object then
                 local objectRef = markerRecordData.object
-                local posData = activeObjects.getObjectPositionData(objectRef, nil, markerRecordData.itemId, filterDead)
-                if posData then
-                    table.insert(posData, posData)
+                local dt = activeObjects.getObjectPositionData(objectRef, nil, markerRecordData.itemId, filterDead)
+                if dt then
+                    table.insert(posData, dt)
                     foundPos = true
                 end
             end
 
             if markerRecordData.objects then
-                local posData = activeObjects.getClosestReferencePosition(markerRecordData.objects, player, markerRecordData.itemId, filterDead)
-                if posData then
-                    table.insert(posData, posData)
+                local dt = activeObjects.getClosestReferencePosition(markerRecordData.objects, player, markerRecordData.itemId, filterDead)
+                if dt then
+                    table.insert(posData, dt)
                     foundPos = true
                 end
             end
