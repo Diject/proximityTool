@@ -52,6 +52,7 @@ scrollToStart: "Scroll to start"
 scrollUp: "Scroll up"
 scrollDown: "Scroll down"
 setPosition: "Set position for HUD window"
+setPositionSize: "Set position and size for HUD window"
 hidden: "Hidden"
 
 ellipsis: "..."

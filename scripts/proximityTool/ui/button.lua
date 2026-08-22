@@ -98,7 +98,7 @@ return function (params)
             {
                 type = ui.TYPE.Flex,
                 props = {
-                    autoSize = params.size and false or true,
+                    autoSize = params.size == nil,
                     size = params.size,
                     horizontal = true,
                     align = ui.ALIGNMENT.Center,

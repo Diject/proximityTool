@@ -134,6 +134,7 @@ end
 local stopTimer = time.runRepeatedly(updateTimer, config.data.updateInterval / 1000 * time.second, { type = time.SimulationTime })
 
 settingStorage:subscribe(async:callback(function(section, key)
+    if key ~= "enabled" and key ~= "updateInterval" then return end
     local enabled = settingStorage:get("enabled")
     if enabled then
         mainMenu.create{showBorder = false}
@@ -616,6 +617,7 @@ local forbiddenUIModes = {
     ["Repair"] = true,
     ["Enchanting"] = true,
     ["Recharge"] = true,
+    ["MainMenu"] = true,
 }
 
 

@@ -55,6 +55,10 @@ this.default = {
             x = 100,
             y = 30,
         },
+        sizeInMenu = {
+            x = 30,
+            y = 40,
+        },
         orderH = "Left to right", -- "Left to right", "Right to left"
     },
     horizontalCompassIntegration = true,
@@ -85,6 +89,18 @@ for _, section in pairs(this.storageSections) do
 
             if this.keyToTriggerMap[key] and I.DijectKeyBindings then
                 I.DijectKeyBindings.registerKey(this.keyToTriggerMap[key], value)
+            elseif key == "ui.position.x" then
+                localStorage:set("ui.positionInMenu.x", value)
+                this.data.ui.positionInMenu.x = value
+            elseif key == "ui.position.y" then
+                localStorage:set("ui.positionInMenu.y", value)
+                this.data.ui.positionInMenu.y = value
+            elseif key == "ui.size.x" then
+                localStorage:set("ui.sizeInMenu.x", value)
+                this.data.ui.sizeInMenu.x = value
+            elseif key == "ui.size.y" then
+                localStorage:set("ui.sizeInMenu.y", value)
+                this.data.ui.sizeInMenu.y = value
             end
         else
             this.loadFromStorage(section)

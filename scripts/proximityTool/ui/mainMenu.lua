@@ -59,7 +59,7 @@ this.element = nil
 this.tooltip = nil
 ---@type {content : any}
 this.markerElementsData = nil
-this.maxLines = math.huge
+this.maxHeight = 99999
 
 local mainMenuSafeContainer = safeContainers.new("mainMenu")
 local markerParentElement = nil
@@ -604,6 +604,7 @@ function this.create(params)
     if config.data.ui.hideWindow and params.showBorder then return end
 
     local screenSize = uiUtils.getScaledScreenSize()
+    local sizeConfig = params.showBorder and config.data.ui.sizeInMenu or config.data.ui.size
 
     local mainContent
 
@@ -622,7 +623,8 @@ function this.create(params)
         local pos = mainContent.content[1].props.position
         if not pos then return end
 
-        mainContent.content[1].props.position = util.vector2(0, pos.y - val)
+        local limit = -(this.element.layout.userData.contentHeight or 99999) + config.data.ui.fontSize * 2
+        mainContent.content[1].props.position = util.vector2(0, math.max(limit, pos.y - val))
         this.element:update()
     end
 
@@ -750,14 +752,16 @@ function this.create(params)
         addButton{menu = this, textSize = config.data.ui.fontSize, text = "P", textColor = config.data.ui.defaultColor,
             event = function (layout)
                 local position = this.element.layout.props.relativePosition
-                config.setValue("ui.position.x", position.x * 100)
-                config.setValue("ui.position.y", position.y * 100)
+                config.setValue("ui.position.x", math.floor(position.x * 10000) / 100)
+                config.setValue("ui.position.y", math.floor(position.y * 10000) / 100)
+                config.setValue("ui.size.x", math.floor(config.data.ui.sizeInMenu.x * 100) / 100)
+                config.setValue("ui.size.y", math.floor(config.data.ui.sizeInMenu.y * 100) / 100)
             end,
             tooltipContent = config.data.ui.helpTooltips and ui.content {
                 {
                     template = I.MWUI.templates.textNormal,
                     props = {
-                        text = l10n("setPosition"),
+                        text = l10n("setPositionSize"),
                         textSize = config.data.ui.fontSize,
                         textColor = config.data.ui.defaultColor,
                     },
@@ -871,13 +875,13 @@ function this.create(params)
                         mouseRelease = async:callback(function(_, layout)
                             layout.userData.lastMousePos = nil
                             layout.userData.lastMousePropPos = nil
-                            if not layout.userData.doDrag or layout.userData.movedDistance < 30 then
+                            if not layout.userData.doDrag or layout.userData.movedDistance < 20 then
                                 if isMainHidden then
-                                    local size = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100)
+                                    local size = util.vector2(screenSize.x * sizeConfig.x / 100, screenSize.y * sizeConfig.y / 100)
                                     parentContent[1].props.size = util.vector2(size.x - 8, size.y - 4)
                                     base.props.size = size
                                 else
-                                    local size = util.vector2(screenSize.x * config.data.ui.size.x / 100, headerHeight)
+                                    local size = util.vector2(screenSize.x * sizeConfig.x / 100, headerHeight)
                                     parentContent[1].props.size = util.vector2(size.x - 8, size.y)
                                     base.props.size = size
                                 end
@@ -887,6 +891,10 @@ function this.create(params)
                                 isMainHidden = not isMainHidden
                                 config.setLocal("ui.minimizeToAnchor", isMainHidden)
                                 this.element:update()
+                            else
+                                elementRelPos = this.element.layout.props.relativePosition
+                                config.setLocal("ui.positionInMenu.x", elementRelPos.x * 100)
+                                config.setLocal("ui.positionInMenu.y", elementRelPos.y * 100)
                             end
                             layout.userData.doDrag = false
                             layout.userData.movedDistance = 0
@@ -921,9 +929,6 @@ function this.create(params)
                             local relativePos = util.vector2(coord.position.x / screenSize.x, coord.position.y / screenSize.y)
 
                             props.relativePosition = props.relativePosition - (layout.userData.lastMousePropPos - relativePos)
-                            elementRelPos = props.relativePosition
-                            config.setLocal("ui.positionInMenu.x", elementRelPos.x * 100)
-                            config.setLocal("ui.positionInMenu.y", elementRelPos.y * 100)
 
                             this.element:update()
 
@@ -958,9 +963,9 @@ function this.create(params)
 
     local parentSize
     if isMainHidden then
-        parentSize = util.vector2(screenSize.x * config.data.ui.size.x / 100, headerHeight)
+        parentSize = util.vector2(screenSize.x * sizeConfig.x / 100, headerHeight)
     else
-        parentSize = util.vector2(screenSize.x * config.data.ui.size.x / 100, screenSize.y * config.data.ui.size.y / 100)
+        parentSize = util.vector2(screenSize.x * sizeConfig.x / 100, screenSize.y * sizeConfig.y / 100)
     end
     parentContent = {
         {
@@ -985,12 +990,83 @@ function this.create(params)
 
     local position
     if params.showBorder and elementRelPos then
+        elementRelPos = util.vector2(config.data.ui.positionInMenu.x / 100, config.data.ui.positionInMenu.y / 100)
         position = elementRelPos
     else
         position = util.vector2(config.data.ui.position.x / 100, config.data.ui.position.y / 100)
     end
 
+    local resizer = {
+        type = ui.TYPE.Image,
+        props = {
+            resource = ui.texture{ path = "white" },
+            size = util.vector2(config.data.ui.fontSize, config.data.ui.fontSize),
+            color = config.data.ui.defaultColor,
+            alpha = 0.5,
+            anchor = config.data.ui.align == "Start" and util.vector2(1, 1) or util.vector2(0, 1),
+            relativePosition = config.data.ui.align == "Start" and util.vector2(1, 1) or util.vector2(0, 1),
+            propagateEvents = false,
+        },
+        userData = {},
+        events = {
+            mousePress = async:callback(function(e, layout)
+                layout.userData.lastMousePos = e.position
+            end),
+
+            mouseRelease = async:callback(function(_, layout)
+                layout.userData.lastMousePos = nil
+                if this.element and this.element.layout then
+                    this.element:update()
+
+                    local screenSize = uiUtils.getScaledScreenSize()
+
+                    config.setLocal("ui.sizeInMenu.x", math.floor(this.element.layout.props.size.x / screenSize.x * 10000) / 100)
+                    config.setLocal("ui.sizeInMenu.y", math.floor(this.element.layout.props.size.y / screenSize.y * 10000) / 100)
+
+                    local relPos = this.element.layout.props.relativePosition
+                    elementRelPos = this.element.layout.props.relativePosition
+                    config.setLocal("ui.positionInMenu.x", math.floor(relPos.x * 10000) / 100)
+                    config.setLocal("ui.positionInMenu.y", math.floor(relPos.y * 10000) / 100)
+                end
+            end),
+
+            mouseMove = async:callback(function(e, layout)
+                local lastPos = layout.userData.lastMousePos
+                if not lastPos or not this.element or not this.element.layout then return end
+
+                local posDif = util.vector2(e.position.x - lastPos.x, e.position.y - lastPos.y)
+                local minSize = util.vector2(200, 50)
+
+                local screenSize = uiUtils.getScaledScreenSize()
+
+                local mapSize = this.element.layout.props.size
+                local newSize = util.vector2(math.max(minSize.x, mapSize.x - posDif.x), math.max(minSize.y, mapSize.y + posDif.y))
+
+                if config.data.ui.align == "Start" then
+                    newSize = util.vector2(math.max(minSize.x, mapSize.x + posDif.x), newSize.y)
+                    local newPos = this.element.layout.props.relativePosition:emul(screenSize)
+                    newPos = util.vector2(newPos.x - (mapSize.x - newSize.x), newPos.y)
+                    this.element.layout.props.relativePosition = newPos:ediv(screenSize)
+                end
+
+                local flexSize = util.vector2(newSize.x - 8, newSize.y - 4)
+                parentContent[1].props.size = flexSize
+
+                this.element.layout.props.size = newSize
+
+                this.element:update()
+
+                layout.userData.lastMousePos = e.position
+            end),
+        }
+    }
+
     base = mainWindowBox(parentContent, params.showBorder, {})
+
+    if params.showBorder then
+        base.content:add(resizer)
+    end
+
     base.props = {
         -- autoSize = true,
         -- horizontal = false,
@@ -1005,7 +1081,7 @@ function this.create(params)
     base.userData.scrollEvents = scrollEvents
     base.userData.params = params
 
-    this.maxLines = not params.showBorder and math.ceil(screenSize.y * config.data.ui.size.y / 100 / config.data.ui.fontSize) or 999
+    this.maxHeight = params.showBorder and 99999 or (screenSize.y * config.data.ui.size.y / 100 - (config.data.ui.fontSize * 1.2 + 8))
 
     this.element = ui.create(base)
     this.markerElementsData = {content = ui.content {}}
@@ -1059,10 +1135,6 @@ function this.update(params)
     local hiddenGroupElement = getMarkerParentElement(commonData.hiddenGroupId)
     if not parentElement or not hiddenGroupElement then return end
 
-    local timestamp = core.getRealTime()
-
-    local player = playerObj.object
-    local playerPos = player.position
     local cameraPos = camera.getPosition()
     local cameraYaw = camera.getYaw() + camera.getExtraYaw()
 
@@ -1325,18 +1397,19 @@ function this.update(params)
     if doLayoutUpdate then
         local mainFlex = getMainFlex()
         if mainFlex then
-            local maxHeight = screenSize.y * config.data.ui.size.y / 100 - (config.data.ui.fontSize * 1.2 + 8)
+            local maxHeight = this.maxHeight
+            local availableHeight = maxHeight
             mainFlex.content = ui.content{}
             for i, groupData in ipairs(this.markerElementsData.content) do
                 local group = tableLib.copy(groupData)
                 group.content = ui.content{}
 
-                if maxHeight >= (group.userData.height - config.data.ui.fontSize) then
+                if availableHeight >= (group.userData.height - config.data.ui.fontSize) then
                     for _, elem in ipairs(groupData.content) do
                         group.content:add(tableLib.copy(elem))
                     end
 
-                    maxHeight = maxHeight - group.userData.height
+                    availableHeight = availableHeight - group.userData.height
                 else
                     goto endLabel
                 end
@@ -1347,15 +1420,17 @@ function this.update(params)
                 mainFlex.content:add(group)
 
                 for i, elem in ipairs(groupData.content[2].content) do
-                    if maxHeight >= elem.userData.height then
+                    if availableHeight >= elem.userData.height then
                         content:add(elem)
-                        maxHeight = maxHeight - elem.userData.height
+                        availableHeight = availableHeight - elem.userData.height
                     else
                         goto endLabel
                     end
                 end
-                if maxHeight <= 0 then goto endLabel end
+                if availableHeight <= 0 then goto endLabel end
             end
+
+            this.element.layout.userData.contentHeight = math.max(0, maxHeight - availableHeight)
 
             ::endLabel::
         end
