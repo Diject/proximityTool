@@ -94,7 +94,8 @@ function this.registerMarker(activeMarker)
         texture = icon,
         propSize = propSize,
         object = obj,
-        color = iconColor
+        color = iconColor,
+        name = topRecord.name,
     }
     local markerId = interface.createMarker(params)
 
