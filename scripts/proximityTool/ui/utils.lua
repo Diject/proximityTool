@@ -10,30 +10,13 @@ end
 
 
 function this.removeFromContent(content, index)
-    if type(index) == "string" then
-        index = content.__nameIndex[index]
-    end
-
-    if not index then return end
-
-    local val = rawget(content, index)
-    if not val then return end
-
-    local oldName = val and val.name
-    if oldName then
-        content.__nameIndex[oldName] = nil
-    end
-
-    for i = index, #content - 1 do
-        local v = rawget(content, i + 1)
-        rawset(content, i, v)
-        if type(v.name) == 'string' then
-            content.__nameIndex[v.name] = i
+    local ss, res = pcall(function ()
+        local elem = content[index]
+        if elem then
+            content[elem.name or index] = nil
         end
-    end
-    rawset(content, #content, nil)
-
-    return true
+    end)
+    return ss and index or nil
 end
 
 
@@ -45,11 +28,7 @@ end
 
 
 function this.isExistsInContent(content, index)
-    if type(index) == "string" then
-        return rawget(content.__nameIndex, index) ~= nil
-    else
-        return rawget(content, index) ~= nil
-    end
+    return this.getFromContent(content, index) ~= nil
 end
 
 
