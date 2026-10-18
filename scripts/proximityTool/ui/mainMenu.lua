@@ -1157,9 +1157,8 @@ function this.update(params)
             return a.priority > b.priority
         end)
 
-        for i = #parent.content, 1, -1 do
-            local element = parent.content[i]
-            if not element or not element.userData or not element.userData then goto continue end
+        local function processElement(i, element)
+            if not element or not element.userData or not element.userData then return end
 
             local disabled = element.userData.disabled
 
@@ -1175,7 +1174,7 @@ function this.update(params)
 
                         uiUtils.removeFromContent(parent.content, i)
                         hiddenGroupElement.content:add(element)
-                        goto continue
+                        return
                     end
                 end
             else
@@ -1184,37 +1183,34 @@ function this.update(params)
                 if orderElemData then
                     local elem2 = orderElemData.element
                     local index = parent.content:indexOf(elem2)
-                    if not index or math.floor(element.userData.priority or 0) == math.floor(elem2.userData.priority or 0) or
-                        element.userData.disabled or elem2.userData.disabled then
-                            goto nextAction
-                    end
+                    if not (not index or math.floor(element.userData.priority or 0) == math.floor(elem2.userData.priority or 0) or
+                        element.userData.disabled or elem2.userData.disabled) then
 
-                    local alpha1 = element.props.alpha
-                    if alpha1 > halfAlpha then
-                        alpha1 = params.force and halfAlpha or math.max(0, alpha1 - alphaAdditiveValAlt)
-                        element.props.alpha = alpha1
-                        doUpdate = true
-                    end
+                        local alpha1 = element.props.alpha
+                        if alpha1 > halfAlpha then
+                            alpha1 = params.force and halfAlpha or math.max(0, alpha1 - alphaAdditiveValAlt)
+                            element.props.alpha = alpha1
+                            doUpdate = true
+                        end
 
-                    local alpha2 = elem2.props.alpha
-                    if alpha2 > halfAlpha then
-                        alpha2 = params.force and halfAlpha or math.max(0, alpha2 - alphaAdditiveValAlt)
-                        elem2.props.alpha = alpha2
-                        doUpdate = true
-                    end
+                        local alpha2 = elem2.props.alpha
+                        if alpha2 > halfAlpha then
+                            alpha2 = params.force and halfAlpha or math.max(0, alpha2 - alphaAdditiveValAlt)
+                            elem2.props.alpha = alpha2
+                            doUpdate = true
+                        end
 
-                    if alpha1 <= halfAlpha and alpha2 <= halfAlpha then
-                        parent.content.__nameIndex[element.name], parent.content.__nameIndex[elem2.name] =
-                            parent.content.__nameIndex[elem2.name], parent.content.__nameIndex[element.name]
-                        parent.content[index], parent.content[i] = element, elem2
-                        doUpdate = true
-                        doLayoutUpdate = true
-                    end
+                        if alpha1 <= halfAlpha and alpha2 <= halfAlpha then
+                            parent.content.__nameIndex[element.name], parent.content.__nameIndex[elem2.name] =
+                                parent.content.__nameIndex[elem2.name], parent.content.__nameIndex[element.name]
+                            parent.content[index], parent.content[i] = element, elem2
+                            doUpdate = true
+                            doLayoutUpdate = true
+                        end
 
-                    goto continue
+                        return
+                    end
                 end
-
-                ::nextAction::
 
                 if element.userData.alpha then
                     if element.props.alpha < element.userData.alpha then
@@ -1248,12 +1244,15 @@ function this.update(params)
                         groupElement.content:add(element)
                         doUpdate = true
                         doLayoutUpdate = true
-                        goto continue
+                        return
                     end
                 end
             end
+        end
 
-            ::continue::
+        for i = #parent.content, 1, -1 do
+            local element = parent.content[i]
+            processElement(i, element)
         end
     end
 
@@ -1261,9 +1260,8 @@ function this.update(params)
     local function processGroup(contentOwner, parent)
         if not contentOwner then return end
 
-        for i = #contentOwner.content, 1, -1 do
-            local elem = contentOwner.content[i]
-            if not elem or not elem.props or not elem.userData or not elem.userData.data then goto continue end
+        local function processElement(i, elem)
+            if not elem or not elem.props or not elem.userData or not elem.userData.data then return end
 
             elem.userData.locked = false
 
@@ -1274,7 +1272,7 @@ function this.update(params)
                 uiUtils.removeFromContent(contentOwner.content, i)
                 doUpdate = true
                 doLayoutUpdate = true
-                goto continue
+                return
             end
 
             ---@type proximityTool.activeMarkerData?
@@ -1283,11 +1281,11 @@ function this.update(params)
                 uiUtils.removeFromContent(contentOwner.content, i)
                 doUpdate = true
                 doLayoutUpdate = true
-                goto continue
+                return
             end
 
             if trackingData.hidden and not elem.props.visible then
-                goto continue
+                return
             end
 
             local distance, distance2D, heightDiff, trackingObj = trackingData:getDistancesToPlayer()
@@ -1295,7 +1293,7 @@ function this.update(params)
                 uiUtils.removeFromContent(contentOwner.content, i)
                 doUpdate = true
                 doLayoutUpdate = true
-                goto continue
+                return
             end
 
             local trackingPos = trackingObj.position
@@ -1312,7 +1310,7 @@ function this.update(params)
             end
             elem.userData.disabled = hide
             if not elem.props.visible and hide then
-                goto continue
+                return
             end
 
             -- for ordering
@@ -1361,33 +1359,38 @@ function this.update(params)
                 elem.content[1].content[directionIndex or 2].props.resource = iconImage
                 doUpdate = true
             end
+        end
 
-            ::continue::
+        for i = #contentOwner.content, 1, -1 do
+            local elem = contentOwner.content[i]
+            processElement(i, elem)
         end
 
         orderAndOpacity(contentOwner)
     end
 
 
-    for i = #parentElement.content, 1, -1 do
-        local elem = parentElement.content[i]
-        if not elem or not elem.userData or not elem.userData.groupName then goto continue end
+    local function processParentElem(i, elem)
+        if not elem or not elem.userData or not elem.userData.groupName then return end
 
         elem.userData.priority = -math.huge
 
         local contentElement = getMarkerParentElement(elem.userData.groupName)
-        if not contentElement then goto continue end
+        if not contentElement then return end
 
         if not elem.userData.isProtected and #contentElement.content == 0 then
             uiUtils.removeFromContent(parentElement.content, i)
             doUpdate = true
             doLayoutUpdate = true
-            goto continue
+            return
         end
 
         processGroup(contentElement, elem)
+    end
 
-        ::continue::
+    for i = #parentElement.content, 1, -1 do
+        local elem = parentElement.content[i]
+        processParentElem(i, elem)
     end
 
     processGroup(hiddenGroupElement)
@@ -1400,7 +1403,9 @@ function this.update(params)
             local maxHeight = this.maxHeight
             local availableHeight = maxHeight
             mainFlex.content = ui.content{}
-            for i, groupData in ipairs(this.markerElementsData.content) do
+
+            local function process()
+                for i, groupData in ipairs(this.markerElementsData.content) do
                 local group = tableLib.copy(groupData)
                 group.content = ui.content{}
 
@@ -1411,7 +1416,7 @@ function this.update(params)
 
                     availableHeight = availableHeight - group.userData.height
                 else
-                    goto endLabel
+                    return
                 end
 
                 local content = ui.content{}
@@ -1424,15 +1429,16 @@ function this.update(params)
                         content:add(elem)
                         availableHeight = availableHeight - elem.userData.height
                     else
-                        goto endLabel
+                        return
                     end
                 end
-                if availableHeight <= 0 then goto endLabel end
+                if availableHeight <= 0 then return end
             end
 
             this.element.layout.userData.contentHeight = math.max(0, maxHeight - availableHeight)
+            end
 
-            ::endLabel::
+            process()
         end
     end
 

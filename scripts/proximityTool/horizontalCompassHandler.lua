@@ -129,25 +129,27 @@ function this.update()
 
     local removed = {}
 
-    for activeMarkerId, markerParams in pairs(this.markers) do
+    local function processMarker(activeMarkerId, markerParams)
         local activeMarker = activeMarkers.get(activeMarkerId)
         if not activeMarker or not activeMarker.isValid or not activeMarker.topMarker then
             table.insert(removed, activeMarkerId)
-            goto continue
+            return
         end
 
         local distance, distance2D, heightDiff, obj = activeMarker:getDistancesToPlayer()
         if not obj or not obj:isValid() then
             table.insert(removed, activeMarkerId)
-            goto continue
+            return
         end
 
         markerParams.object = obj
 
         local hide = (distance > activeMarker.proximity) or (activeMarker.alpha <= 0) or activeMarker.hidden
         interface.updateMarkerAlpha(markerParams.id or "", hide and 0 or 1)
+    end
 
-        ::continue::
+    for activeMarkerId, markerParams in pairs(this.markers) do
+        processMarker(activeMarkerId, markerParams)
     end
 
     for _, mId in pairs(removed) do

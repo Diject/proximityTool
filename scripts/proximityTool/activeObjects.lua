@@ -216,14 +216,13 @@ function this.getObjectPositionsByGroupName(groupName, refToCompare, itemId, wit
     local res = {}
     for _, recordId in pairs(this.objectRecordIdsByGroupId[groupName] or {}) do
         local objHandler = this.data[recordId]
-        if not objHandler or objHandler.count == 0 then goto continue end
 
-        local positions = objHandler:positions(refToCompare, itemId, withoutDead)
-        tableLib.add(positions, res)
+        if objHandler and objHandler.count > 0 then
+            local positions = objHandler:positions(refToCompare, itemId, withoutDead)
+            tableLib.add(positions, res)
 
-        found = true
-
-        ::continue::
+            found = true
+        end
     end
 
     return found and res or nil
@@ -236,14 +235,13 @@ function this.getClosestObjectPositionsByGroupName(groupName, refToCompare, item
     local res = {}
     for _, recordId in pairs(this.objectRecordIdsByGroupId[groupName] or {}) do
         local objHandler = this.data[recordId]
-        if not objHandler or objHandler.count == 0 then goto continue end
 
-        local position = objHandler:closestPosition(refToCompare, itemId, withoutDead)
-        if position then
-            table.insert(res, position)
+        if objHandler and objHandler.count > 0 then
+            local position = objHandler:closestPosition(refToCompare, itemId, withoutDead)
+            if position then
+                table.insert(res, position)
+            end
         end
-
-        ::continue::
     end
 
     return res
@@ -258,16 +256,15 @@ function this.getClosestObjectPositionByGroupName(groupName, refToCompare, itemI
     local object
     for _, recordId in pairs(this.objectRecordIdsByGroupId[groupName] or {}) do
         local objHandler = this.data[recordId]
-        if not objHandler or objHandler.count == 0 then goto continue end
 
-        local pos, d, obj = objHandler:closestPositionOpt(refToCompare, itemId, withoutDead)
-        if pos and (d or math.huge) < dist then
-            position = pos
-            dist = d ---@diagnostic disable-line: cast-local-type
-            object = obj
+        if objHandler and objHandler.count > 0 then
+            local pos, d, obj = objHandler:closestPositionOpt(refToCompare, itemId, withoutDead)
+            if pos and (d or math.huge) < dist then
+                position = pos
+                dist = d ---@diagnostic disable-line: cast-local-type
+                object = obj
+            end
         end
-
-        ::continue::
     end
 
     if position then
@@ -399,11 +396,9 @@ end
 function this.updateGroups()
     for recId, dt in pairs(this.data) do
         local groups = this.groupIdsByObjectRecordId[recId]
-        if not groups then goto continue end
-
-        dt.groups = groups
-
-        ::continue::
+        if groups then
+            dt.groups = groups
+        end
     end
 end
 

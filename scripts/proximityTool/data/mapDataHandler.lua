@@ -312,15 +312,15 @@ function this.removeHUDMarker(id)
     for markerId, marker in pairs(markers) do
         if marker.objects then
             for _, object in pairs(marker.objects) do
-                if not object:isValid() then goto continue end
+                if object:isValid() then
 
-                local objectMarkers = this.hudm[object.id]
-                if objectMarkers and objectMarkers[id] then
-                    objectMarkers[id].invalid = true
-                    this.hudm[object.id][id] = nil
+                    local objectMarkers = this.hudm[object.id]
+                    if objectMarkers and objectMarkers[id] then
+                        objectMarkers[id].invalid = true
+                        this.hudm[object.id][id] = nil
+                    end
+
                 end
-
-                ::continue::
             end
         end
         if marker.objectIds then
@@ -367,14 +367,14 @@ function this.getHUDMarkersByMarkerId(markerId)
     local out = {markerData}
     if markerData.objects then
         for _, object in pairs(markerData.objects) do
-            if not object:isValid() then goto continue end
+            if object:isValid() then
 
-            local objectMarkers = this.hudm[object.id]
-            if objectMarkers and objectMarkers[markerId] then
-                table.insert(out, objectMarkers[markerId])
+                local objectMarkers = this.hudm[object.id]
+                if objectMarkers and objectMarkers[markerId] then
+                    table.insert(out, objectMarkers[markerId])
+                end
+
             end
-
-            ::continue::
         end
     end
     if markerData.objectIds then

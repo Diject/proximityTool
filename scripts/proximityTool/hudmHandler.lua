@@ -121,25 +121,25 @@ function this.update()
     for refId, dt in pairs(this.activeByObject) do
         for markerId, data in pairs(dt) do
             local activeData = this.activeData[data.modName]
-            if not activeData then goto continue end
+            if activeData then
 
-            if data.marker.invalid or not data.object:isValid() then
-                activeData[getHashVal(refId, markerId)] = nil
+                if data.marker.invalid or not data.object:isValid() then
+                    activeData[getHashVal(refId, markerId)] = nil
 
-                dt[markerId] = nil
+                    dt[markerId] = nil
 
-            elseif data.marker.hidden then
-                activeData[getHashVal(refId, markerId)] = nil
+                elseif data.marker.hidden then
+                    activeData[getHashVal(refId, markerId)] = nil
 
-            elseif not data.marker.hidden and not activeData[getHashVal(refId, markerId)] then
-                local params = tableLib.deepcopy(data.marker.params)
-                params.object = data.object
+                elseif not data.marker.hidden and not activeData[getHashVal(refId, markerId)] then
+                    local params = tableLib.deepcopy(data.marker.params)
+                    params.object = data.object
 
-                activeData[getHashVal(refId, markerId)] = params
+                    activeData[getHashVal(refId, markerId)] = params
+
+                end
 
             end
-
-            ::continue::
         end
     end
 

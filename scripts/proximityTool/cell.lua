@@ -13,18 +13,18 @@ function this.getClosestPosition(positions)
     local closestPos
     local minDistance = math.huge
     for _, posDt in pairs(positions) do
-        if isExterior ~= posDt.cell.isExterior or (not isExterior and plCell.id ~= posDt.cell.id) then goto continue end
+        if not (isExterior ~= posDt.cell.isExterior or (not isExterior and plCell.id ~= posDt.cell.id)) then
 
-        local pos = util.vector3(posDt.position.x, posDt.position.y, posDt.position.z)
+            local pos = util.vector3(posDt.position.x, posDt.position.y, posDt.position.z)
 
-        local distance = (plPos - pos):length()
+            local distance = (plPos - pos):length()
 
-        if minDistance > distance then
-            minDistance = distance
-            closestPos = pos
+            if minDistance > distance then
+                minDistance = distance
+                closestPos = pos
+            end
+
         end
-
-        ::continue::
     end
 
     return closestPos, minDistance
