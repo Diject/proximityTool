@@ -439,6 +439,7 @@ function this.registerMarker(activeMarker)
 
             content[2].content:add{
                 type = ui.TYPE.Flex,
+                name = uniqueId.getTemp(),
                 props = {
                     horizontal = true,
                     propagateEvents = false,
@@ -491,6 +492,7 @@ function this.registerMarker(activeMarker)
                 noteContent:add(iconContent)
                 noteContent:add{
                     template = I.MWUI.templates.interval,
+                    name = uniqueId.getTemp(),
                     props = {
                         propagateEvents = false,
                     },

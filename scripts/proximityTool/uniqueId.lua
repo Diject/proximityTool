@@ -4,6 +4,7 @@ local common = require("scripts.proximityTool.common")
 local this = {}
 
 local id = 0
+local tempId = 0
 
 local storageSection = storage.playerSection(common.playerStorageId)
 if storageSection then
@@ -15,6 +16,14 @@ end
 function this.get()
     local res = string.format("%.0f", id)
     id = id + 1
+    return res
+end
+
+
+---@return string
+function this.getTemp()
+    local res = string.format("%.0f", tempId)
+    tempId = tempId + 1
     return res
 end
 
